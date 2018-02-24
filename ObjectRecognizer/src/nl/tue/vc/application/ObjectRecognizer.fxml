@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import java.lang.*?>
+<?import javafx.geometry.*?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+<?import javafx.scene.image.*?>
+<?import javafx.scene.*?>
+
+<BorderPane xmlns="http://javafx.com/javafx/8" xmlns:fx="http://javafx.com/fxml/1" fx:controller="nl.tue.vc.application.ObjectRecognizerController">
+	<left>
+		<VBox fx:id="vboxLeft" alignment="CENTER">
+			<padding>
+				<Insets left="10" right="10" />
+			</padding>
+   <children>
+   			<ImageView fx:id="originalImage" />
+   </children>
+		</VBox>
+	</left>
+	<right>
+		<VBox alignment="CENTER" spacing="10">
+			<padding>
+				<Insets left="10" right="10" />
+			</padding>
+   <children>
+   			<ImageView fx:id="transformedImage" />
+   			<ImageView fx:id="antitransformedImage" />
+   </children>
+		</VBox>
+	</right>
+	<bottom>
+		<HBox alignment="CENTER" spacing="10">
+			<padding>
+				<Insets bottom="25" left="25" right="25" top="25" />
+			</padding>
+   <children>
+   			<Button alignment="center" onAction="#loadImage" text="Load Images" />
+   			<Button fx:id="extractButton" alignment="center" onAction="#extractSilhouettes" text="Extract Silhouettes" />
+   			<Button fx:id="calibrateButton" alignment="center" onAction="#calibrateCamera" text="Calibrate Camera " />
+            <Button fx:id="constructButton" mnemonicParsing="false" onAction="#constructModel" text="Construct 3D Model" />
+            <Button fx:id="visualizeButton" mnemonicParsing="false" onAction="#visualizeModel" text="Visualize Model" />
+   </children>
+		</HBox>
+	</bottom>
+</BorderPane>
