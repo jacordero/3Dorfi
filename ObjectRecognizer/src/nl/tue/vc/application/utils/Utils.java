@@ -2,8 +2,11 @@ package nl.tue.vc.application.utils;
 
 import java.awt.image.BufferedImage;
 import java.awt.image.DataBufferByte;
+import java.io.ByteArrayInputStream;
 
 import org.opencv.core.Mat;
+import org.opencv.core.MatOfByte;
+import org.opencv.imgcodecs.Imgcodecs;
 
 import javafx.application.Platform;
 import javafx.beans.property.ObjectProperty;
@@ -18,7 +21,7 @@ import javafx.scene.image.Image;
  * @author <a href="http://max-z.de">Maximilian Zuleger</a>
  * @version 1.1 (2017-03-10)
  * @since 1.0 (2016-09-17)
- * 
+ *
  */
 public final class Utils
 {
@@ -33,22 +36,29 @@ public final class Utils
 	{
 		try
 		{
-			return SwingFXUtils.toFXImage(matToBufferedImage(frame), null);
+			// create a temporary buffer
+			MatOfByte buffer = new MatOfByte();
+			// encode the frame in the buffer, according to the PNG format
+			Imgcodecs.imencode(".png", frame, buffer);
+			// build and return an Image created from the image encoded in the
+			// buffer
+			return new Image(new ByteArrayInputStream(buffer.toArray()));
+			//return SwingFXUtils.toFXImage(matToBufferedImage(frame), null);
 		}
 		catch (Exception e)
 		{
 			// show the exception details
 			System.err.println("Cannot convert the Mat object:");
 			e.printStackTrace();
-			
+
 			return null;
 		}
 	}
-	
+
 	/**
 	 * Generic method for putting element running on a non-JavaFX thread on the
 	 * JavaFX thread, to properly update the UI
-	 * 
+	 *
 	 * @param property
 	 *            a {@link ObjectProperty}
 	 * @param value
@@ -60,10 +70,10 @@ public final class Utils
 			property.set(value);
 		});
 	}
-	
+
 	/**
 	 * Support for the {@link mat2image()} method
-	 * 
+	 *
 	 * @param original
 	 *            the {@link Mat} object in BGR or grayscale
 	 * @return the corresponding {@link BufferedImage}
@@ -75,7 +85,7 @@ public final class Utils
 		int width = original.width(), height = original.height(), channels = original.channels();
 		byte[] sourcePixels = new byte[width * height * channels];
 		original.get(0, 0, sourcePixels);
-		
+
 		if (original.channels() > 1)
 		{
 			image = new BufferedImage(width, height, BufferedImage.TYPE_3BYTE_BGR);
@@ -86,7 +96,7 @@ public final class Utils
 		}
 		final byte[] targetPixels = ((DataBufferByte) image.getRaster().getDataBuffer()).getData();
 		System.arraycopy(sourcePixels, 0, targetPixels, 0, sourcePixels.length);
-		
+
 		return image;
 	}
 }
