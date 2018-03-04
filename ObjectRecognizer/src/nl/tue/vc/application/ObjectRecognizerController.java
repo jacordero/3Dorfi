@@ -189,33 +189,55 @@ public class ObjectRecognizerController {
 	/**
 	 * The action triggered by pushing the button for apply the dft to the loaded
 	 * image
+	 * @throws InterruptedException 
 	 */
 	@FXML
-	protected void extractSilhouettes() {
-		// optimize the dimension of the loaded image
-		Mat padded = this.optimizeImageDim(this.image);
-		padded.convertTo(padded, CvType.CV_32F);
-		// prepare the image planes to obtain the complex image
-		this.planes.add(padded);
-		this.planes.add(Mat.zeros(padded.size(), CvType.CV_32F));
-		// prepare a complex image for performing the dft
-		Core.merge(this.planes, this.complexImage);
+	protected void extractSilhouettes(){
+		
+	System.out.println("Extract silhouettes method was called...");
+	//Mat oldImage = this.image;
+	Mat grayImage = new Mat();
+		
+	// first convert to grayscale
+	System.out.println("Image channels: " + this.image.channels());
+	if (this.image.channels() == 3) {
+		Imgproc.cvtColor(this.image, grayImage, Imgproc.COLOR_BGR2GRAY);
+	} else {
+		this.image.copyTo(grayImage);
+	}		
+	//updateViewAndPause(transformedImage, Utils.mat2Image(grayImage));
+	
+	
+	// apply binarization process
+	Mat binaryImage = new Mat();
+	Imgproc.adaptiveThreshold(grayImage, binaryImage, 255, Imgproc.ADAPTIVE_THRESH_GAUSSIAN_C, Imgproc.THRESH_BINARY, 7, 4);
+	//updateViewAndPause(transformedImage, Utils.mat2Image(binaryImage));
+	
+	
+	// apply morphological operations
+    int kernelWindow = 2;
+    Mat erodeKernel = Imgproc.getStructuringElement(Imgproc.MORPH_RECT, new  Size(2*kernelWindow + 1, 2*kernelWindow+1));
+    //Imgproc.morphologyEx(binaryImage, binaryImage, Imgproc.MORPH_OPEN, kernelElement);
+    //Imgproc.morphologyEx(binaryImage, binaryImage, Imgproc.MORPH_CLOSE, kernelElement);
+    Imgproc.erode(binaryImage, binaryImage, erodeKernel);
+	//updateView(transformedImage, Utils.mat2Image(binaryImage));
+     
+    
+    Mat dilatationKernel = Imgproc.getStructuringElement(Imgproc.MORPH_RECT, new  Size(2*kernelWindow + 1, 2*kernelWindow+1));
+    Imgproc.dilate(binaryImage, binaryImage, dilatationKernel);
+	updateView(transformedImage, Utils.mat2Image(binaryImage));	
+}
 
-		// dft
-		Core.dft(this.complexImage, this.complexImage);
+private void updateView(ImageView view, Image image){
+	
+	this.updateImageView(view, image);
+	// set a fixed width
+	this.transformedImage.setFitWidth(250);
+	// preserve image ratio
+	this.transformedImage.setPreserveRatio(true);
+	//Thread.sleep(milliseconds);		
+}
 
-		// optimize the image resulting from the dft operation
-		Mat magnitude = this.createOptimizedMagnitude(this.complexImage);
-
-		// show the result of the transformation as an image
-		this.updateImageView(transformedImage, Utils.mat2Image(magnitude));
-		// set a fixed width
-		this.transformedImage.setFitWidth(250);
-		// preserve image ratio
-		this.transformedImage.setPreserveRatio(true);
-		// disable the button for applying the dft
-		this.extractButton.setDisable(true);
-	}
 
 	/**
 	 * Store all the chessboard properties, update the UI and prepare other
