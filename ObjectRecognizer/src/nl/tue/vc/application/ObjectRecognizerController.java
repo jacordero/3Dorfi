@@ -118,6 +118,7 @@ public class ObjectRecognizerController {
 	private List<Mat> planes;
 	// the final complex image
 	private Mat complexImage;
+	private double calibrationResult = 0;
 
 	public ObjectRecognizerController() {
 
@@ -458,7 +459,9 @@ private void updateView(ImageView view, Image image){
 		intrinsic.put(0, 0, 1);
 		intrinsic.put(1, 1, 1);
 		// calibrate!
-		Calib3d.calibrateCamera(objectPoints, imagePoints, savedImage.size(), intrinsic, distCoeffs, rvecs, tvecs);
+		this.calibrationResult = Calib3d.calibrateCamera(objectPoints, imagePoints, savedImage.size(), intrinsic, distCoeffs, rvecs, tvecs);
+		System.out.println("Calibration result = " + this.calibrationResult);
+
 		this.isCalibrated = true;
 
 		// you cannot take other snapshot, at this point...
