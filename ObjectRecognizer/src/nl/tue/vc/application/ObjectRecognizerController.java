@@ -1,13 +1,17 @@
 package nl.tue.vc.application;
 
 import java.awt.image.BufferedImage;
+import java.awt.image.Raster;
 import java.io.File;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Timer;
 import java.util.TimerTask;
+
+import javax.imageio.ImageIO;
 
 import org.opencv.calib3d.Calib3d;
 import org.opencv.core.Core;
@@ -47,6 +51,7 @@ import nl.tue.vc.application.utils.Utils;
 import nl.tue.vc.application.visual.IntersectionTest;
 import nl.tue.vc.imgproc.CameraController;
 import nl.tue.vc.imgproc.HistogramGenerator;
+import nl.tue.vc.application.visual.NewStage;
 import nl.tue.vc.imgproc.SilhouetteExtractor;
 import nl.tue.vc.voxelengine.CameraPosition;
 import nl.tue.vc.voxelengine.Octree;
@@ -257,6 +262,7 @@ public class ObjectRecognizerController {
 		this.obj = new MatOfPoint3f();
 		this.imageCorners = new MatOfPoint2f();
 		this.savedImage = new Mat();
+		this.processedExtractedImage = new Mat();
 		this.undistoredImage = null;
 		this.imagePoints = new ArrayList<>();
 		this.objectPoints = new ArrayList<>();
@@ -726,7 +732,9 @@ private void updateView(ImageView view, Image image){
 		intrinsic.put(0, 0, 1);
 		intrinsic.put(1, 1, 1);
 		// calibrate!
-		Calib3d.calibrateCamera(objectPoints, imagePoints, savedImage.size(), intrinsic, distCoeffs, rvecs, tvecs);
+		this.calibrationResult = Calib3d.calibrateCamera(objectPoints, imagePoints, savedImage.size(), intrinsic, distCoeffs, rvecs, tvecs);
+		System.out.println("Calibration result = " + this.calibrationResult);
+
 		this.isCalibrated = true;
 
 		// you cannot take other snapshot, at this point...
@@ -746,7 +754,15 @@ private void updateView(ImageView view, Image image){
 	 */
 	@FXML
 	protected void constructModel() {
-		//TODO
+		int boxSize = 100;
+		int level = 3;
+		System.out.println("height = " + this.processedExtractedImage.size().height + ", width = " + this.processedExtractedImage.size().width);
+		try {
+			new NewStage(this.processedExtractedImage, boxSize, level);
+		} catch (Exception e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
 	}
 
 	/**

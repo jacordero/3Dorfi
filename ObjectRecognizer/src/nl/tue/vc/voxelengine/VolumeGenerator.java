@@ -14,7 +14,7 @@ public class VolumeGenerator {
 	private Group octreeVolume;
 	private int[][] sourceArray;
 	private int[][] transformedArray;
-		
+
 	public VolumeGenerator(Octree octree, BoxParameters boxParameters, int[][] sourceBinaryArray, int[][] transformedBinaryArray) {
 		this.octree = octree;
 		this.sourceArray = sourceBinaryArray;
@@ -146,6 +146,25 @@ public class VolumeGenerator {
 		deltas.deltaY = 0;
 		deltas.deltaZ = 0;
 		System.out.println("Children: " + root.getChildren().length);
+
+		// First line of children
+		for (int i = 0; i < root.getChildren().length; i++) {
+
+			DeltaStruct displacementDirections = computeDeltaDirections(i);
+			int newBoxSize = boxParameters.getBoxSize()/2;
+			BoxParameters childrenParameters = new BoxParameters();
+			childrenParameters.setBoxSize(newBoxSize);
+			childrenParameters.setCenterX(boxParameters.getCenterX());
+			childrenParameters.setCenterY(boxParameters.getCenterY());
+			childrenParameters.setCenterZ(boxParameters.getCenterZ());
+
+			Node childNode = root.getChildren()[i];
+			//System.out.println("Index: "+ i + ", " + displacementDirections.toString());
+			
+			List<Box> voxels = generateVolumeAux(childNode, childrenParameters, displacementDirections);
+			volume.getChildren().addAll(voxels);
+		}
+		
 		// First line of children
 		for (int i = 0; i < root.getChildren().length; i++) {
 
@@ -176,7 +195,6 @@ public class VolumeGenerator {
 		//currentParameters.getCenterY() + ", z: " + currentParameters.getCenterZ() + " }";		
 		//System.out.println(debugStr);
 		
-				
 		List<Box> voxels = new ArrayList<Box>();
 		
 		if (currentNode == null) {
@@ -185,13 +203,17 @@ public class VolumeGenerator {
 		
 		if (currentNode.isLeaf()) {
 			// working with leafs
+			//System.out.println(">> Leaf ..");
 			// ignore nodes with white color
 			if (currentNode.getColor() != Color.WHITE) {
 				Box box = generateVoxel(currentParameters, currentDeltas, currentNode.getColor());
 				voxels.add(box);				
 			}
-			
+			//currentNode.setColor(Color.GRAY);
+			//return voxels;
+			//System.out.println("<< Leaf ..");			
 		} else {
+			//currentNode.setColor(Color.GRAY);
 			// working internal nodes
 			//System.out.println(">> Internal node ..");
 			Node[] children = currentNode.getChildren();
@@ -212,7 +234,7 @@ public class VolumeGenerator {
 				if (childNode != null) {
 					DeltaStruct displacementDirections = computeDeltaDirections(i);
 
-					//System.out.println("Index: "+ i + ", " + displacementDirections.toString());
+					//System.out.println("Index: "+ i + ", " + displacementDirections.toString());					
 					List<Box> innerBoxes = generateVolumeAux(childNode, newParameters, displacementDirections);
 					voxels.addAll(innerBoxes);					
 				} 
@@ -282,6 +304,7 @@ public class VolumeGenerator {
 		int posx = boxParameters.getCenterX() + (deltas.deltaX * boxParameters.getBoxSize() / 2);
 		int posy = boxParameters.getCenterY() + (deltas.deltaY * boxParameters.getBoxSize() / 2);
 		int posz = boxParameters.getCenterZ() + (deltas.deltaZ * boxParameters.getBoxSize() / 2);		
+
 		System.out.println("x: " + boxParameters.getCenterX() + ", y: " + boxParameters.getCenterY() + ", z: " + boxParameters.getCenterY());
 		System.out.println("Position {x: " + posx + ", y: " + posy + ", z: " + posz + "}, Size: " + boxParameters.getBoxSize() + "\n");
 		int projectedX = posx/posz;

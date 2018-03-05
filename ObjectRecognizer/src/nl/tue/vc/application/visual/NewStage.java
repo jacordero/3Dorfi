@@ -53,8 +53,6 @@ public class NewStage {
 
 		// configure values for the volume to render
 		BoxParameters boxParameters = new BoxParameters();
-
-		
 		boxParameters.setBoxSize(boxSize);
 		boxParameters.setCenterX(SCENE_WIDTH / 2);
 		boxParameters.setCenterY(SCENE_HEIGHT / 2);
