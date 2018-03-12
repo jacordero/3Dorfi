@@ -1,7 +1,5 @@
 package nl.tue.vc.voxelengine;
 
-import java.util.ArrayList;
-import java.util.List;
 
 import javafx.scene.paint.Color;
 
@@ -39,35 +37,53 @@ public class Octree {
 		return root;
 	}
 	
+	public void generateOctreeFractal(int parentBoxSize, int level) {
+		root = generateOctreeFractalAux(parentBoxSize, level);
+	}
 	
-	public void generateOctreeFractal(int depth) {
-		
-		int nodesBoxSize = boxSize / 2;
-		
-		// create node 0
-		root.getChildren()[0] = new Leaf(Color.WHITE, nodesBoxSize);
-		
-		// create node 1
-		root.getChildren()[1] = new Leaf(Color.WHITE, nodesBoxSize);
-		
-		// create node 2
-		root.getChildren()[2] = new Leaf(Color.WHITE, nodesBoxSize);
-
-		// create node 3
-		root.getChildren()[3] = new Leaf(Color.WHITE, nodesBoxSize);
-		
-		// create node 4
-		root.getChildren()[4] = generateInternalNode(nodesBoxSize);
-
-		// create node 5
-		root.getChildren()[5] = new Leaf(Color.BLACK, nodesBoxSize);
-
-		// create node 6
-		root.getChildren()[6] = new Leaf(Color.BLACK, nodesBoxSize);
-
-		// create node 7
-		root.getChildren()[7] = generateInternalNode(nodesBoxSize);
-
+	
+	private Node generateOctreeFractalAux(int parentBoxSize, int level) {
+		//int nodesBoxSize = boxSize / 2;
+		int nodesBoxSize = parentBoxSize / 2;
+		if (level == 0) {
+			return generateInternalNode(nodesBoxSize);
+		} else {
+			Node internalNode = new InternalNode(Color.BLACK, parentBoxSize);
+			// create node 0
+			internalNode.getChildren()[0] = new Leaf(Color.BLACK, nodesBoxSize);
+			//root.getChildren()[0] = generateInternalNode(nodesBoxSize);
+			
+			// create node 1
+			internalNode.getChildren()[1] = new Leaf(Color.BLUE, nodesBoxSize);
+			//root.getChildren()[1] = generateInternalNode(nodesBoxSize);
+			
+			// create node 2
+			internalNode.getChildren()[2] = new Leaf(Color.BLUEVIOLET, nodesBoxSize);
+			//root.getChildren()[2] = generateInternalNode(nodesBoxSize);
+			
+			// create node 3
+			internalNode.getChildren()[3] = new Leaf(Color.DARKGREEN, nodesBoxSize);
+			//root.getChildren()[3] = generateInternalNode(nodesBoxSize);
+			
+			// create node 4
+			internalNode.getChildren()[4] = generateOctreeFractalAux(nodesBoxSize, level-1);
+			//internalNode.getChildren()[4] = new Leaf(Color.DARKORANGE, nodesBoxSize);
+			
+			// create node 5
+			internalNode.getChildren()[5] = new Leaf(Color.MAROON, nodesBoxSize);
+			//root.getChildren()[5] = generateInternalNode(nodesBoxSize);
+			
+			// create node 6
+			internalNode.getChildren()[6] = new Leaf(Color.RED, nodesBoxSize);
+			//internalNode.getChildren()[6] = generateOctreeFractalAux(nodesBoxSize, level-1);
+			
+			// create node 7
+			internalNode.getChildren()[7] = generateOctreeFractalAux(nodesBoxSize, level-1);
+			//internalNode.getChildren()[7] = new Leaf(Color.PINK, nodesBoxSize);
+			
+			return internalNode;
+		}
+				
 	}
 	
 	private Node generateInternalNode(int boxSize) {
@@ -86,7 +102,7 @@ public class Octree {
 		node.getChildren()[3] = new Leaf(Color.DARKGREEN, boxSize/2);
 		
 		// create node 4
-		node.getChildren()[4] = new Leaf(Color.DARKORANGE, boxSize/2);
+		node.getChildren()[4] = new Leaf(Color.WHITE, boxSize/2);
 
 		// create node 5
 		node.getChildren()[5] = new Leaf(Color.MAROON, boxSize/2);
@@ -95,7 +111,7 @@ public class Octree {
 		node.getChildren()[6] = new Leaf(Color.RED, boxSize/2);
 
 		// create node 7
-		node.getChildren()[7] = new Leaf(Color.SIENNA, boxSize/2);
+		node.getChildren()[7] = new Leaf(Color.WHITE, boxSize/2);
 		
 		return node;
 	}
