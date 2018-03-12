@@ -7,7 +7,6 @@ import javafx.scene.Group;
 import javafx.scene.PerspectiveCamera;
 import javafx.scene.PointLight;
 import javafx.scene.Scene;
-import javafx.scene.shape.Box;
 import javafx.scene.transform.Rotate;
 import javafx.stage.Stage;
 import javafx.util.Duration;
@@ -27,14 +26,14 @@ public class VolumeRenderer extends Application {
 		// configure values for the volume to render
 		BoxParameters boxParameters = new BoxParameters();
 		
-		int boxSize = 200;
+		int boxSize = 256;
 		boxParameters.setBoxSize(boxSize);
 		boxParameters.setCenterX(SCENE_WIDTH/2);
 		boxParameters.setCenterY(SCENE_HEIGHT/2);
 		boxParameters.setCenterZ(SCENE_DEPTH/2);
 		
 		Octree octree = new Octree(boxSize);
-		octree.generateOctreeFractal(1);
+		octree.generateOctreeFractal(boxSize, 2);
 		System.out.println(octree.getRoot().toString());
 		VolumeGenerator volGenerator = new VolumeGenerator(octree, boxParameters);
 				
@@ -57,8 +56,8 @@ public class VolumeRenderer extends Application {
 	
 		RotateTransition rotation = new RotateTransition(Duration.seconds(20), root);
 		rotation.setCycleCount(Animation.INDEFINITE);
-		rotation.setFromAngle(360);
-		rotation.setToAngle(0);
+		rotation.setFromAngle(-45);
+		rotation.setToAngle(45);
 		rotation.setAutoReverse(true);
 		rotation.setAxis(Rotate.Y_AXIS);
 		rotation.play();
