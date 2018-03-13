@@ -34,6 +34,7 @@ import javafx.scene.layout.VBox;
 import javafx.stage.FileChooser;
 import javafx.stage.Stage;
 import nl.tue.vc.application.utils.Utils;
+import nl.tue.vc.imgproc.SilhouetteExtractor;
 
 /**
  * The controller associated to the only view of our application. The
@@ -196,6 +197,13 @@ public class ObjectRecognizerController {
 		
 	System.out.println("Extract silhouettes method was called...");
 	//Mat oldImage = this.image;
+	
+	Mat processedImage = SilhouetteExtractor.extract(this.image);
+	
+	updateView(transformedImage, Utils.mat2Image(processedImage));	
+
+	
+	/**
 	Mat grayImage = new Mat();
 		
 	// first convert to grayscale
@@ -225,7 +233,9 @@ public class ObjectRecognizerController {
     
     Mat dilatationKernel = Imgproc.getStructuringElement(Imgproc.MORPH_RECT, new  Size(2*kernelWindow + 1, 2*kernelWindow+1));
     Imgproc.dilate(binaryImage, binaryImage, dilatationKernel);
-	updateView(transformedImage, Utils.mat2Image(binaryImage));	
+	updateView(transformedImage, Utils.mat2Image(binaryImage));
+	**/
+		
 }
 
 private void updateView(ImageView view, Image image){
