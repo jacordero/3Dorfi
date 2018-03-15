@@ -22,19 +22,19 @@ import org.opencv.imgproc.Imgproc;
 import org.opencv.videoio.VideoCapture;
 
 import javafx.application.Platform;
-import javafx.collections.ObservableList;
 import javafx.fxml.FXML;
-import javafx.scene.Node;
 import javafx.scene.control.Button;
 import javafx.scene.control.TextField;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
-import javafx.scene.layout.HBox;
+import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.VBox;
 import javafx.stage.FileChooser;
 import javafx.stage.Stage;
 import nl.tue.vc.application.utils.Utils;
 import nl.tue.vc.imgproc.SilhouetteExtractor;
+import nl.tue.vc.voxelengine.Octree;
+import nl.tue.vc.voxelengine.VolumeRenderer;
 
 /**
  * The controller associated to the only view of our application. The
@@ -201,40 +201,6 @@ public class ObjectRecognizerController {
 	Mat processedImage = SilhouetteExtractor.extract(this.image);
 	
 	updateView(transformedImage, Utils.mat2Image(processedImage));	
-
-	
-	/**
-	Mat grayImage = new Mat();
-		
-	// first convert to grayscale
-	System.out.println("Image channels: " + this.image.channels());
-	if (this.image.channels() == 3) {
-		Imgproc.cvtColor(this.image, grayImage, Imgproc.COLOR_BGR2GRAY);
-	} else {
-		this.image.copyTo(grayImage);
-	}		
-	//updateViewAndPause(transformedImage, Utils.mat2Image(grayImage));
-	
-	
-	// apply binarization process
-	Mat binaryImage = new Mat();
-	Imgproc.adaptiveThreshold(grayImage, binaryImage, 255, Imgproc.ADAPTIVE_THRESH_GAUSSIAN_C, Imgproc.THRESH_BINARY, 7, 4);
-	//updateViewAndPause(transformedImage, Utils.mat2Image(binaryImage));
-	
-	
-	// apply morphological operations
-    int kernelWindow = 2;
-    Mat erodeKernel = Imgproc.getStructuringElement(Imgproc.MORPH_RECT, new  Size(2*kernelWindow + 1, 2*kernelWindow+1));
-    //Imgproc.morphologyEx(binaryImage, binaryImage, Imgproc.MORPH_OPEN, kernelElement);
-    //Imgproc.morphologyEx(binaryImage, binaryImage, Imgproc.MORPH_CLOSE, kernelElement);
-    Imgproc.erode(binaryImage, binaryImage, erodeKernel);
-	//updateView(transformedImage, Utils.mat2Image(binaryImage));
-     
-    
-    Mat dilatationKernel = Imgproc.getStructuringElement(Imgproc.MORPH_RECT, new  Size(2*kernelWindow + 1, 2*kernelWindow+1));
-    Imgproc.dilate(binaryImage, binaryImage, dilatationKernel);
-	updateView(transformedImage, Utils.mat2Image(binaryImage));
-	**/
 		
 }
 
@@ -490,7 +456,20 @@ private void updateView(ImageView view, Image image){
 	 */
 	@FXML
 	protected void visualizeModel() {
-		//TODO
+		int boxSize = 256;
+		Octree octree = new Octree(boxSize);
+		octree.generateOctreeFractal(boxSize, 2);
+
+		
+		BorderPane borderPane = (BorderPane) stage.getScene().getRoot();
+		//borderPane.
+		
+		/**
+		VolumeRenderer volumeRenderer = new VolumeRenderer(octree);
+		stage.setScene(volumeRenderer.getScene());
+		stage.setTitle("An Example with Predefined 3D Shapes");
+		stage.show();
+		**/
 	}
 
 	/**

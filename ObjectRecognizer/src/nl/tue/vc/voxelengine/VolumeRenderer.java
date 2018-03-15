@@ -1,59 +1,78 @@
 package nl.tue.vc.voxelengine;
-	
+
 import javafx.animation.Animation;
 import javafx.animation.RotateTransition;
-import javafx.application.Application;
 import javafx.scene.Group;
 import javafx.scene.PerspectiveCamera;
 import javafx.scene.PointLight;
-import javafx.scene.Scene;
+import javafx.scene.SceneAntialiasing;
+import javafx.scene.SubScene;
 import javafx.scene.transform.Rotate;
 import javafx.stage.Stage;
 import javafx.util.Duration;
+import nl.tue.vc.application.ObjectRecognizer;
 
+public class VolumeRenderer {
 
-public class VolumeRenderer extends Application {
+	private BoxParameters volumeBoxParameters;
+	private int sceneWidth;
+	private int sceneHeight;
+	private int sceneDepth;
+	private int lightPositionX;
+	private int lightPositionY;
+	private int lightPositionZ;
+	private int cameraPositionX;
+	private int cameraPositionY;
+	private int cameraPositionZ;
+
+	private PerspectiveCamera camera;
+	private PointLight light;
+	private SubScene subScene;
+
+	private Octree octree;
+	private VolumeGenerator volumeGenerator;
 	
-	private static final int SCENE_WIDTH = 800;
-	private static final int SCENE_HEIGHT = 600;
-	private static final int SCENE_DEPTH = 400;
+	public VolumeRenderer(Octree octree) {
+		this.octree = octree;
+		
+		sceneWidth = 640;
+		sceneHeight = 480;
+		sceneDepth = (int) (ObjectRecognizer.SCENE_DEPTH/2);
+		lightPositionX = sceneWidth/2;
+		lightPositionY = sceneHeight/2;
+		lightPositionZ = 300;
+		cameraPositionX = 320;
+		cameraPositionY = 240;
+		cameraPositionZ = 300;
+		camera = new PerspectiveCamera(false);
+		light = new PointLight();
+		configScene();
+	}
 	
-	@Override
-	public void start(Stage primaryStage) {
-		
-	
-		
-		// configure values for the volume to render
-		BoxParameters boxParameters = new BoxParameters();
-		
+	private void configScene() {
+		volumeBoxParameters = new BoxParameters();
 		int boxSize = 256;
-		boxParameters.setBoxSize(boxSize);
-		boxParameters.setCenterX(SCENE_WIDTH/2);
-		boxParameters.setCenterY(SCENE_HEIGHT/2);
-		boxParameters.setCenterZ(SCENE_DEPTH/2);
+		volumeBoxParameters.setBoxSize(boxSize);
+		volumeBoxParameters.setCenterX(sceneWidth);
+		volumeBoxParameters.setCenterY(sceneHeight);
+		volumeBoxParameters.setCenterZ(sceneDepth);
+
+		// Create point light
+		light.setTranslateX(lightPositionX);
+		light.setTranslateY(lightPositionY);
+		light.setTranslateX(lightPositionZ);
 		
-		Octree octree = new Octree(boxSize);
-		octree.generateOctreeFractal(boxSize, 2);
-		System.out.println(octree.getRoot().toString());
-		VolumeGenerator volGenerator = new VolumeGenerator(octree, boxParameters);
-				
-		// Create a Light
-		PointLight light = new PointLight();
-		light.setTranslateX(SCENE_WIDTH/2 + 350);
-		light.setTranslateY(SCENE_HEIGHT + 100);
-		light.setTranslateX(300);
+		// Create camera to view the 3D shape
+		camera.setTranslateX(cameraPositionX);
+		camera.setTranslateY(cameraPositionY);
+		camera.setTranslateZ(cameraPositionZ);
 		
-		// Create a Camera to view the 3D shape
-		PerspectiveCamera camera = new PerspectiveCamera(false);
-		camera.setTranslateX(100);
-		camera.setTranslateY(-50);
-		camera.setTranslateZ(300);
-				
-		// Add the shapes and the light to the group
+		// add the camera and the shapes
+		//System.out.println(octree.getRoot().toString());
+		volumeGenerator = new VolumeGenerator(octree, volumeBoxParameters);
+		Group root = volumeGenerator.getVolume();
 		
-		Group root = volGenerator.getVolume();
-		
-	
+		// add the volume to render
 		RotateTransition rotation = new RotateTransition(Duration.seconds(20), root);
 		rotation.setCycleCount(Animation.INDEFINITE);
 		rotation.setFromAngle(-45);
@@ -61,27 +80,23 @@ public class VolumeRenderer extends Application {
 		rotation.setAutoReverse(true);
 		rotation.setAxis(Rotate.Y_AXIS);
 		rotation.play();
-		
-		
-		// Create a Scene with depth buffer enabled
-		// width and height
-		Scene scene = new Scene(root, SCENE_WIDTH, SCENE_HEIGHT, true);
-		// Add the Camera to the scene
-		scene.setCamera(camera);
-		// Add the Scene to the Stage
+	
+		subScene = new SubScene(root, sceneWidth, sceneHeight, true, SceneAntialiasing.BALANCED);
+		subScene.setCamera(camera);
+	}
+	
+	public SubScene getSubScene() {
+		return subScene;
+	}
+
+	/**
+	public void render(Stage primaryStage) {		
 		primaryStage.setScene(scene);
 		// Set the Title of the Stage
 		primaryStage.setTitle("An Example with Predefined 3D Shapes");
 		// Display the Stage
 		primaryStage.show();
-		
 	}
+	**/
 	
-	// add function to construct set of squares
-	
-	// add function to rotate the view
-	
-	public static void main(String[] args) {
-		launch(args);
-	}
 }
