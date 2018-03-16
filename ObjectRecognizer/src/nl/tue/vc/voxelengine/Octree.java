@@ -1,6 +1,8 @@
 package nl.tue.vc.voxelengine;
 
 
+import java.util.Random;
+
 import javafx.scene.paint.Color;
 
 public class Octree {
@@ -39,6 +41,13 @@ public class Octree {
 	
 	public void generateOctreeFractal(int parentBoxSize, int level) {
 		root = generateOctreeFractalAux(parentBoxSize, level);
+	}
+	
+	public void generateOctreeTest(int parentBoxSize) {
+		Random random = new Random();
+		int level = random.nextInt(3) + 1;
+		System.out.println("Level for octree test: " + level);
+		generateOctreeFractal(parentBoxSize, level);
 	}
 	
 	

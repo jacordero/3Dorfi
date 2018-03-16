@@ -33,7 +33,7 @@ public class VolumeRendererApplication extends Application {
 		Octree octree = new Octree(boxSize);
 		octree.generateOctreeFractal(boxSize, 2);
 		System.out.println(octree.getRoot().toString());
-		VolumeGenerator volGenerator = new VolumeGenerator(octree, boxParameters);
+		//VolumeGenerator volGenerator = new VolumeGenerator(octree, boxParameters);
 				
 		// Create a Light
 		PointLight light = new PointLight();
@@ -43,13 +43,13 @@ public class VolumeRendererApplication extends Application {
 		
 		// Create a Camera to view the 3D shape
 		PerspectiveCamera camera = new PerspectiveCamera(false);
-		camera.setTranslateX(100);
-		camera.setTranslateY(-50);
-		camera.setTranslateZ(300);
+		camera.setTranslateX(300);
+		camera.setTranslateY(-150);
+		camera.setTranslateZ(100);
 				
 		// Add the shapes and the light to the group
 		
-		Group root = volGenerator.getVolume();
+		Group root = VolumeGenerator.getDefaultVolume(boxParameters);
 		
 	
 		RotateTransition rotation = new RotateTransition(Duration.seconds(20), root);

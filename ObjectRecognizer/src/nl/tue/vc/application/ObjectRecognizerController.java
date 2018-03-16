@@ -24,6 +24,7 @@ import org.opencv.videoio.VideoCapture;
 import javafx.application.Platform;
 import javafx.fxml.FXML;
 import javafx.scene.control.Button;
+import javafx.scene.control.Slider;
 import javafx.scene.control.TextField;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
@@ -33,6 +34,7 @@ import javafx.stage.FileChooser;
 import javafx.stage.Stage;
 import nl.tue.vc.application.utils.Utils;
 import nl.tue.vc.imgproc.SilhouetteExtractor;
+import nl.tue.vc.voxelengine.CameraPosition;
 import nl.tue.vc.voxelengine.Octree;
 import nl.tue.vc.voxelengine.VolumeRenderer;
 
@@ -85,6 +87,15 @@ public class ObjectRecognizerController {
 	@FXML
 	private TextField numVertCorners;
 
+	@FXML
+	private Slider cameraAxisX;
+	
+	@FXML
+	private Slider cameraAxisY;
+	
+	@FXML
+	private Slider cameraAxisZ;
+		
 	// a timer for acquiring the video stream
 	private Timer timer;
 	// the OpenCV object that performs the video capture
@@ -112,6 +123,9 @@ public class ObjectRecognizerController {
 
 	// the main stage
 	private Stage stage;
+	// The rootGroup
+	private BorderPane rootGroup;
+	
 	// the JavaFX file chooser
 	private FileChooser fileChooser;
 	// support variables
@@ -120,10 +134,32 @@ public class ObjectRecognizerController {
 	// the final complex image
 	private Mat complexImage;
 
+	private VolumeRenderer volumeRenderer;
+	
 	public ObjectRecognizerController() {
 
 	}
 
+	@FXML
+	private void initialize() {
+		cameraAxisX.valueProperty().addListener((observable, oldValue, newValue) -> {
+			System.out.println("Camera axis X changed (newValue: " +  newValue.intValue() + ")");
+			updateCameraPositionAxisX(newValue.intValue());
+		});
+		
+		cameraAxisY.valueProperty().addListener((observable, oldValue, newValue) -> {
+			System.out.println("Camera axis Y changed (newValue: " +  newValue.intValue() + ")");
+			updateCameraPositionAxisY(newValue.intValue());
+		});
+
+		cameraAxisZ.valueProperty().addListener((observable, oldValue, newValue) -> {
+			System.out.println("Camera axis Z changed (newValue: " +  newValue.intValue() + ")");
+			updateCameraPositionAxisZ(newValue.intValue());
+		});
+
+	}
+	
+	
 	/**
 	 * Init the needed variables
 	 */
@@ -187,13 +223,13 @@ public class ObjectRecognizerController {
 
 	}
 
-	/**
-	 * The action triggered by pushing the button for apply the dft to the loaded
-	 * image
-	 * @throws InterruptedException 
-	 */
-	@FXML
-	protected void extractSilhouettes(){
+/**
+ * The action triggered by pushing the button for apply the dft to the loaded
+ * image
+ * @throws InterruptedException 
+ */
+@FXML
+protected void extractSilhouettes(){
 		
 	System.out.println("Extract silhouettes method was called...");
 	//Mat oldImage = this.image;
@@ -457,21 +493,45 @@ private void updateView(ImageView view, Image image){
 	@FXML
 	protected void visualizeModel() {
 		int boxSize = 256;
+		CameraPosition cameraPosition = new CameraPosition();
+		//cameraPositionX = 320;
+		//cameraPositionY = 240;
+		//cameraPositionZ = 300;
+		cameraPosition.positionAxisX = 0;
+		cameraPosition.positionAxisY = 0;
+		cameraPosition.positionAxisZ = 300;
+		
 		Octree octree = new Octree(boxSize);
-		octree.generateOctreeFractal(boxSize, 2);
+		octree.generateOctreeTest(boxSize);
 
-		
-		BorderPane borderPane = (BorderPane) stage.getScene().getRoot();
-		//borderPane.
-		
-		/**
-		VolumeRenderer volumeRenderer = new VolumeRenderer(octree);
-		stage.setScene(volumeRenderer.getScene());
-		stage.setTitle("An Example with Predefined 3D Shapes");
-		stage.show();
-		**/
+		// try not create another volume renderer object to recompute the octree visualization
+		volumeRenderer = new VolumeRenderer(octree);
+		volumeRenderer.generateVolumeScene();
+		rootGroup.setCenter(volumeRenderer.getSubScene());
+	}
+	
+	private void updateCameraPositionAxisX(int positionX) {
+		CameraPosition cameraPosition = volumeRenderer.getCameraPosition();
+		cameraPosition.positionAxisX = positionX;
+		updateCameraPosition(cameraPosition);
+	}
+	
+	private void updateCameraPositionAxisY(int positionY) {
+		CameraPosition cameraPosition = volumeRenderer.getCameraPosition();
+		cameraPosition.positionAxisY = positionY;
+		updateCameraPosition(cameraPosition);
 	}
 
+	private void updateCameraPositionAxisZ(int positionZ) {
+		CameraPosition cameraPosition = volumeRenderer.getCameraPosition();
+		cameraPosition.positionAxisZ = positionZ;
+		updateCameraPosition(cameraPosition);
+	}
+
+	public void updateCameraPosition(CameraPosition cameraPosition) {
+		volumeRenderer.updateCameraPosition(cameraPosition); 		
+	}
+	
 	/**
 	 * Optimize the image dimensions
 	 *
@@ -563,7 +623,15 @@ private void updateView(ImageView view, Image image){
 	public void setStage(Stage stage) {
 		this.stage = stage;
 	}
-
+	
+	public void setRootGroup(BorderPane rootGroup) {
+		this.rootGroup = rootGroup;
+	}
+	
+	public void setVolumeRenderer(VolumeRenderer volumeRenderer) {
+		this.volumeRenderer = volumeRenderer;
+	}
+	
 	/**
 	 * Update the {@link ImageView} in the JavaFX main thread
 	 *

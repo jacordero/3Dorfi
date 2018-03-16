@@ -5,9 +5,10 @@ import org.opencv.core.Core;
 import javafx.application.Application;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Scene;
+import javafx.scene.SubScene;
 import javafx.scene.layout.BorderPane;
 import javafx.stage.Stage;
-import nl.tue.vc.voxelengine.Octree;
+import nl.tue.vc.voxelengine.CameraPosition;
 import nl.tue.vc.voxelengine.VolumeRenderer;
 
 /**
@@ -21,11 +22,11 @@ public class ObjectRecognizer extends Application
 	// the main stage
 	private Stage primaryStage;
 
-	public static final double SCENE_WIDTH = 800;
-	public static final double SCENE_HEIGHT = 600;
 	public static final double SCENE_DEPTH = 400;
 	//private Scene volumeScene;
 	//private BorderPane rootGroup;
+	private SubScene volumeScene;
+	BorderPane rootGroup;
 	
 	
 	@Override
@@ -35,21 +36,17 @@ public class ObjectRecognizer extends Application
 		{
 			// load the FXML resource
 			FXMLLoader loader = new FXMLLoader(getClass().getResource("ObjectRecognizer.fxml"));
-			//loader.setController(new ObjectRecognizerController());
-			int boxSize = 256;
-			Octree octree = new Octree(boxSize);
-			octree.generateOctreeFractal(boxSize, 2);
-			VolumeRenderer volumeRenderer = new VolumeRenderer(octree);
+			ApplicationConfiguration appConfig = ApplicationConfiguration.getInstance();
+			VolumeRenderer volumeRenderer = new VolumeRenderer();
+			volumeRenderer.generateVolumeScene();
+			volumeScene = volumeRenderer.getSubScene();			
+			rootGroup = (BorderPane) loader.load();
 			
-			
-			BorderPane rootGroup = (BorderPane) loader.load();
-			
-			//root.setCen
 			// set a whitesmoke background
 			rootGroup.setStyle("-fx-background-color: whitesmoke;");
-			rootGroup.setCenter(volumeRenderer.getSubScene());
+			rootGroup.setCenter(volumeScene);
 			
-			Scene scene = new Scene(rootGroup, SCENE_WIDTH, SCENE_HEIGHT);
+			Scene scene = new Scene(rootGroup, appConfig.getWindowWidth(), appConfig.getWindowHeight());
 			scene.getStylesheets().add(getClass().getResource("application.css").toExternalForm());
 			// create the stage with the given title and the previously created scene
 			this.primaryStage = primaryStage;
@@ -60,7 +57,8 @@ public class ObjectRecognizer extends Application
 			// init the controller
 			ObjectRecognizerController controller = loader.getController();
 			controller.setStage(this.primaryStage);
-			//controller.setBorderPane(this.)
+			controller.setRootGroup(rootGroup);
+			controller.setVolumeRenderer(volumeRenderer);
 			controller.init();
 		}
 		catch (Exception e)
@@ -76,11 +74,4 @@ public class ObjectRecognizer extends Application
 
 		launch(args);
 	}
-	
-	/**
-	public void updateCentralView(Group volumeGroup) {
-		rootGroup.setCenter(volumeGroup);
-		// maybe refresh the scene?
-	}
-	**/
 }
