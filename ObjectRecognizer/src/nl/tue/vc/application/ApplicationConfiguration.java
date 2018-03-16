@@ -32,9 +32,9 @@ public class ApplicationConfiguration {
 		volumeSceneDepth = 200;
 		
 		cameraPosition = new CameraPosition();
-		cameraPosition.positionAxisX = 0;
-		cameraPosition.positionAxisY = 0;
-		cameraPosition.positionAxisZ = -50;
+		cameraPosition.positionAxisX = -70;
+		cameraPosition.positionAxisY = -50;
+		cameraPosition.positionAxisZ = 100;
 		volumeBoxSize = 256;
 	}
 	

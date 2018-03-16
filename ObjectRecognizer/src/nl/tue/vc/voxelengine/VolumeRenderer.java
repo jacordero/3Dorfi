@@ -7,11 +7,10 @@ import javafx.scene.PerspectiveCamera;
 import javafx.scene.PointLight;
 import javafx.scene.SceneAntialiasing;
 import javafx.scene.SubScene;
+import javafx.scene.paint.Color;
 import javafx.scene.transform.Rotate;
-import javafx.stage.Stage;
 import javafx.util.Duration;
 import nl.tue.vc.application.ApplicationConfiguration;
-import nl.tue.vc.application.ObjectRecognizer;
 
 public class VolumeRenderer {
 
@@ -26,10 +25,13 @@ public class VolumeRenderer {
 	private int lightPositionZ;
 	private int boxSize;
 	
-	private PerspectiveCamera camera;
+	// Variables used to control the camera
+	private PerspectiveCamera camera;    
+    private Group root3D = new Group();
+	
+	
 	private PointLight light;
 	private SubScene subScene;
-
 	private Octree octree;
 	
 	public VolumeRenderer() {
@@ -52,8 +54,7 @@ public class VolumeRenderer {
 		
 		lightPositionX = sceneWidth/2;
 		lightPositionY = sceneHeight/2;
-		lightPositionZ = 300;
-		camera = new PerspectiveCamera(false);
+		lightPositionZ = 0;
 		light = new PointLight();		
 
 		volumeBoxParameters = new BoxParameters();		
@@ -67,37 +68,46 @@ public class VolumeRenderer {
 		light.setTranslateY(lightPositionY);
 		light.setTranslateZ(lightPositionZ);
 		
-		// Create camera to view the 3D shape
-		camera.setTranslateX(cameraPosition.positionAxisX);
+		buildCamera();
+	}
+	
+	private void buildCamera() {
+		camera = new PerspectiveCamera(false);
+	    camera.setTranslateX(cameraPosition.positionAxisX);
 		camera.setTranslateY(cameraPosition.positionAxisY);
 		camera.setTranslateZ(cameraPosition.positionAxisZ);
+		
+		Rotate rx = new Rotate(-30, Rotate.X_AXIS);
+		Rotate ry = new Rotate(30, Rotate.Y_AXIS);
+		camera.getTransforms().add(rx);
+		camera.getTransforms().add(ry);
 	}
 	
 	public void generateVolumeScene() {
 		// add the camera and the shapes
 		//System.out.println(octree.getRoot().toString());
 		//volumeGenerator = new VolumeGenerator(octree, volumeBoxParameters);
-		Group root = null;
 		if (octree == null) {
-			root = VolumeGenerator.getDefaultVolume(volumeBoxParameters);
+			root3D = VolumeGenerator.getDefaultVolume(volumeBoxParameters);
 		} else {
-			root = VolumeGenerator.generateVolume(octree, volumeBoxParameters);
+			root3D = VolumeGenerator.generateVolume(octree, volumeBoxParameters);
 		}
 		
-		// add the volume to render
-		/**
-		RotateTransition rotation = new RotateTransition(Duration.seconds(20), root);
+		RotateTransition rotation = new RotateTransition(Duration.seconds(20), root3D);
 		rotation.setCycleCount(Animation.INDEFINITE);
 		rotation.setFromAngle(0);
 		rotation.setToAngle(360);
 		rotation.setAutoReverse(false);
 		rotation.setAxis(Rotate.Y_AXIS);
 		rotation.play();
-		*/
 		
-		subScene = new SubScene(root, sceneWidth, sceneHeight, true, SceneAntialiasing.BALANCED);
+		
+		subScene = new SubScene(root3D, sceneWidth, sceneHeight, true, SceneAntialiasing.BALANCED);
 		subScene.setCamera(camera);
+		subScene.setFill(Color.CADETBLUE);
+		//setListeners(true);
 	}
+	
 	
 	public SubScene getSubScene() {
 		return subScene;
