@@ -1,5 +1,8 @@
 package nl.tue.vc.application;
 
+import java.util.HashMap;
+import java.util.Map;
+
 import nl.tue.vc.voxelengine.CameraPosition;
 
 public class ApplicationConfiguration {
@@ -20,6 +23,8 @@ public class ApplicationConfiguration {
 	
 	private int volumeBoxSize;
 	
+	private Map<String, Integer> silhouetteConfiguration;
+	
 	
 	
 	// private constructor to make this a singleton
@@ -36,6 +41,13 @@ public class ApplicationConfiguration {
 		cameraPosition.positionAxisY = -50;
 		cameraPosition.positionAxisZ = 100;
 		volumeBoxSize = 256;
+		
+		silhouetteConfiguration = new HashMap<String, Integer>();
+		silhouetteConfiguration.put("imageWidthFirstPixel", 30);
+		silhouetteConfiguration.put("imageWidthLastPixel", 370);
+		silhouetteConfiguration.put("imageHeightFirstPixel", 20);
+		silhouetteConfiguration.put("imageHeightLastPixel", 280);
+		silhouetteConfiguration.put("binaryThreshold", 50);
 	}
 	
 	public static ApplicationConfiguration getInstance() {
@@ -100,5 +112,9 @@ public class ApplicationConfiguration {
 
 	public void setVolumeSceneDepth(int volumeSceneDepth) {
 		this.volumeSceneDepth = volumeSceneDepth;
+	}
+	
+	public Map<String, Integer> getSilhouetteConfiguration(){
+		return silhouetteConfiguration;
 	}
 }

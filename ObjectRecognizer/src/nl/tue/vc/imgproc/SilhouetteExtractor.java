@@ -1,25 +1,55 @@
 package nl.tue.vc.imgproc;
 
+import java.util.Map;
+
 import org.opencv.core.Core;
 import org.opencv.core.CvType;
 import org.opencv.core.Mat;
 import org.opencv.core.Scalar;
-import org.opencv.core.Size;
 import org.opencv.imgproc.Imgproc;
 
-import nl.tue.vc.application.utils.Utils;
+import nl.tue.vc.application.ApplicationConfiguration;
 
 public class SilhouetteExtractor {
 
 	
 	//private static Mat 
 	
-	private static final int LEFT_LIMIT = 30;
-	private static final int RIGHT_LIMIT = 370;
-	private static final int TOP_LIMIT = 20;
-	private static final int LOWER_LIMIT = 280;
+//	private static final int LEFT_LIMIT = 30;
+//	private static final int RIGHT_LIMIT = 370;
+//	private static final int TOP_LIMIT = 20;
+//	private static final int LOWER_LIMIT = 280;
 	
-	public static Mat extract(Mat image) {
+	private int leftLimit;
+	private int rightLimit;
+	private int topLimit;
+	private int lowerLimit;
+	private int binaryThreshold;
+	
+	private Mat binaryImage;
+	
+	private Mat noiseFreeImage;
+	
+	private Mat sureBackgroundImage;
+	
+	private Mat sureForegroundImage;
+	
+	private Mat unknownImage;
+	
+	private Mat segmentedImage;
+	
+	public SilhouetteExtractor() {
+		ApplicationConfiguration appConfig = ApplicationConfiguration.getInstance();
+		Map<String, Integer> silhouetteConfig = appConfig.getSilhouetteConfiguration();
+		leftLimit = silhouetteConfig.get("imageWidthFirstPixel");
+		rightLimit = silhouetteConfig.get("imageWidthLastPixel");
+		topLimit = silhouetteConfig.get("imageHeightFirstPixel");
+		lowerLimit = silhouetteConfig.get("imageHeightLastPixel");
+		binaryThreshold = silhouetteConfig.get("binaryThreshold");
+	}
+	
+	
+	public void extract(Mat image) {
 
 		// first convert to grayscale
 		Mat grayImage = new Mat();			
@@ -30,25 +60,31 @@ public class SilhouetteExtractor {
 		}		
 				
 		// apply binarization process
-		Mat binaryImage = new Mat(grayImage.rows(), grayImage.cols(), CvType.CV_32SC1);
-		Imgproc.threshold(grayImage, binaryImage, 0, 255, Imgproc.THRESH_OTSU);
+		binaryImage = new Mat(grayImage.rows(), grayImage.cols(), CvType.CV_32SC1);
+		
+		// simple tresholding
+		//binaryThreshold = 160;
+		Imgproc.threshold(grayImage, binaryImage, binaryThreshold, 255, Imgproc.THRESH_BINARY);
+		
+		// adaptive thresholding
+		//Imgproc.adaptiveThreshold(grayImage, binaryImage, 255, Imgproc.ADAPTIVE_THRESH_GAUSSIAN_C, Imgproc.THRESH_BINARY, 11, 2);
 		
 		// noise removal
-		Mat kernel = Mat.ones(3, 3, CvType.CV_32S);
-		Mat noiseFree = new Mat();
-		Imgproc.morphologyEx(binaryImage, noiseFree, Imgproc.MORPH_OPEN, kernel);
+		Mat kernel = Mat.ones(5, 5, CvType.CV_32S);
+		noiseFreeImage = new Mat();
+		Imgproc.morphologyEx(binaryImage, noiseFreeImage, Imgproc.MORPH_OPEN, kernel);
 		
 		// sure background area (dilation shrinks the black pixels)
-		Mat sureBackground = new Mat();
-		Imgproc.dilate(noiseFree, sureBackground, kernel);
+		sureBackgroundImage = new Mat();
+		Imgproc.dilate(noiseFreeImage, sureBackgroundImage, kernel);
 		
 		// sure foreground area (erosion shrinks the white pixels)
-		Mat sureForeground = new Mat();
-		Imgproc.erode(noiseFree, sureForeground, kernel);
+		sureForegroundImage = new Mat();
+		Imgproc.erode(noiseFreeImage, sureForegroundImage, kernel);
 		
 		
-		Mat unknown = new Mat();
-		Core.subtract(sureBackground, sureForeground, unknown);
+		unknownImage = new Mat();
+		Core.subtract(sureBackgroundImage, sureForegroundImage, unknownImage);
 				
 		// Marker labelling
 		Mat markers = new Mat();
@@ -58,9 +94,9 @@ public class SilhouetteExtractor {
 		
 		byte[] pixelValue = new byte[1];	
 		int[] unknownLabel = {0};
-		for (int i = 0; i < unknown.rows(); i++) {
-			for (int j = 0; j < unknown.cols(); j++) {
-				unknown.get(i, j, pixelValue);
+		for (int i = 0; i < unknownImage.rows(); i++) {
+			for (int j = 0; j < unknownImage.cols(); j++) {
+				unknownImage.get(i, j, pixelValue);
 				if (pixelValue[0] == -1) {
 					scaledMarkers.put(i, j, unknownLabel);
 				}
@@ -71,7 +107,7 @@ public class SilhouetteExtractor {
 		Mat newBinaryImage = new Mat();
 		Imgproc.cvtColor(binaryImage, newBinaryImage, Imgproc.COLOR_GRAY2BGR);
 		Imgproc.watershed(newBinaryImage, scaledMarkers);
-		Mat segmentedImage = new Mat(binaryImage.rows(), binaryImage.cols(), CvType.CV_32SC1);
+		segmentedImage = new Mat(binaryImage.rows(), binaryImage.cols(), CvType.CV_32SC1);
 		int[] blackPixel = {0};
 		int[] whitePixel = {255};
 		int[] labelValue = new int[1];
@@ -80,9 +116,9 @@ public class SilhouetteExtractor {
 			int endRegion = -1;
 			for (int j = 0; j < scaledMarkers.cols(); j++) {
 				scaledMarkers.get(i, j, labelValue);
-				if (labelValue[0] == -1 && startRegion == -1 && j > LEFT_LIMIT && i > TOP_LIMIT && i < LOWER_LIMIT) {
+				if (labelValue[0] == -1 && startRegion == -1 && j > leftLimit && i > topLimit && i < lowerLimit) {
 					startRegion = j;
-				} else if (labelValue[0] == -1 && startRegion > -1 && j < RIGHT_LIMIT && i > TOP_LIMIT && i < LOWER_LIMIT){
+				} else if (labelValue[0] == -1 && startRegion > -1 && j < rightLimit && i > topLimit && i < lowerLimit){
 					endRegion = j;
 				}
 			}
@@ -100,9 +136,48 @@ public class SilhouetteExtractor {
 			
 		}
 		
-		return segmentedImage;
+		//return binaryImage;
 		
 	}
 	
+	
+	public void setBinaryThreshold(int binaryTreshold) {
+		this.binaryThreshold = binaryTreshold;
+	}
+
+
+	public int getBinaryThreshold() {
+		return binaryThreshold;
+	}
+
+
+	public Mat getBinaryImage() {
+		return binaryImage;
+	}
+
+
+	public Mat getNoiseFreeImage() {
+		return noiseFreeImage;
+	}
+
+
+	public Mat getSureBackgroundImage() {
+		return sureBackgroundImage;
+	}
+
+
+	public Mat getSureForegroundImage() {
+		return sureForegroundImage;
+	}
+
+
+	public Mat getUnknownImage() {
+		return unknownImage;
+	}
+
+
+	public Mat getSegmentedImage() {
+		return segmentedImage;
+	}
 	
 }

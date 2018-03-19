@@ -28,6 +28,7 @@ import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.fxml.FXML;
 import javafx.scene.control.Button;
+import javafx.scene.control.Label;
 import javafx.scene.control.ListCell;
 import javafx.scene.control.ListView;
 import javafx.scene.control.Slider;
@@ -39,6 +40,7 @@ import javafx.scene.layout.VBox;
 import javafx.stage.FileChooser;
 import javafx.stage.Stage;
 import nl.tue.vc.application.utils.Utils;
+import nl.tue.vc.imgproc.HistogramGenerator;
 import nl.tue.vc.imgproc.SilhouetteExtractor;
 import nl.tue.vc.voxelengine.CameraPosition;
 import nl.tue.vc.voxelengine.Octree;
@@ -105,7 +107,13 @@ public class ObjectRecognizerController {
 	
 	@FXML
 	private Slider cameraAxisZ;
-		
+	
+	@FXML
+	private Slider binaryThreshold;
+	
+	@FXML
+	private Label thresholdLabel;
+	
 	// a timer for acquiring the video stream
 	private Timer timer;
 	// the OpenCV object that performs the video capture
@@ -136,12 +144,11 @@ public class ObjectRecognizerController {
 	ListView<String> loadedImagesView = new ListView<>();
 	ObservableList<String> loadedImagesNames = FXCollections.observableArrayList();
 
-	List<Mat> modifiedImages = new ArrayList<>();
-	Map<String, Integer> modifiedImagesDescription = new HashMap<>();
-	ListView<String> modifiedImagesView = new ListView<>();
-	ObservableList<String> modifiedImagesNames = FXCollections.observableArrayList();
-	
-	
+	List<Mat> segmentedImages = new ArrayList<>();
+	Map<String, Integer> processedImagesDescription = new HashMap<>();
+	ListView<String> processedImagesView = new ListView<>();
+	ObservableList<String> processedImagesNames = FXCollections.observableArrayList();
+		
 	// the main stage
 	private Stage stage;
 	// The rootGroup
@@ -157,8 +164,10 @@ public class ObjectRecognizerController {
 
 	private VolumeRenderer volumeRenderer;
 	
+	private SilhouetteExtractor silhouetteExtractor;
+	
 	public ObjectRecognizerController() {
-
+		silhouetteExtractor = new SilhouetteExtractor();
 	}
 
 	@FXML
@@ -177,11 +186,19 @@ public class ObjectRecognizerController {
 			System.out.println("Camera axis Z changed (newValue: " +  newValue.intValue() + ")");
 			updateCameraPositionAxisZ(newValue.intValue());
 		});
+		
+		Map<String, Integer> silhouetteConfig = ApplicationConfiguration.getInstance().getSilhouetteConfiguration();
+		binaryThreshold.valueProperty().addListener((observable, oldValue, newValue) -> {
+			//System.out.println("Binary treshold value changed (newValue: " +  newValue.intValue() + ")");
+			thresholdLabel.setText("Threshold: " + String.format("%.2f", newValue));
+			updateBinaryThreshold(newValue.intValue());
+		});		
+		
 
 		this.vboxLeft.getChildren().add(loadedImagesView);
 		loadedImagesView.setMaxWidth(140);
-		this.vboxRight.getChildren().add(modifiedImagesView);
-		modifiedImagesView.setMaxWidth(140);
+		this.vboxRight.getChildren().add(processedImagesView);
+		processedImagesView.setMaxWidth(140);
 	}
 	
 	
@@ -289,33 +306,61 @@ public class ObjectRecognizerController {
  */
 @FXML
 protected void extractSilhouettes(){
-		
+	
+	// TODO: remove this hardcoded value
+	//int binaryThreshold = 50;
 	System.out.println("Extract silhouettes method was called...");
 
 	// First, clear the previous content. Then, load the new content
-	modifiedImages.clear();
-	modifiedImagesNames.clear();
-	modifiedImagesDescription.clear();
-	
-	//  Mat oldImage = this.image;
-	
-	//	Mat processedImage = SilhouetteExtractor.extract(this.image);
-	
-	//	updateView(transformedImage, Utils.mat2Image(processedImage));	
-		
+	segmentedImages = new ArrayList<Mat>();
+
+	processedImagesView = new ListView<String>();
+	List<Mat> processedImages = new ArrayList<Mat>();
+	processedImagesNames = FXCollections.observableArrayList();
+	processedImagesDescription = new HashMap<String, Integer>();
+			
 	int imgId = 1;
 	for (Mat image: loadedImages) {
-		Mat processedImage = SilhouetteExtractor.extract(image);
-		modifiedImages.add(processedImage);
-		modifiedImagesNames.add("img_" + imgId);
-		modifiedImagesDescription.put("img_" + imgId, modifiedImages.size() - 1);
+		silhouetteExtractor.extract(image);
+		segmentedImages.add(silhouetteExtractor.getSegmentedImage());
+
+		processedImages.add(silhouetteExtractor.getSegmentedImage());
+		processedImagesNames.add("sg_" + imgId);
+		processedImagesDescription.put("sg_" + imgId, processedImages.size() - 1);
+		
+		processedImages.add(silhouetteExtractor.getBinaryImage());
+		processedImagesNames.add("bi_" + imgId);
+		processedImagesDescription.put("bi_" + imgId, processedImages.size() - 1);
+		
+		Mat histImage = HistogramGenerator.histogram(image);
+		processedImages.add(histImage);
+		processedImagesNames.add("hi_" + imgId);
+		processedImagesDescription.put("hi_" + imgId, processedImages.size() - 1);
+
+		processedImages.add(silhouetteExtractor.getNoiseFreeImage());
+		processedImagesNames.add("nf_" + imgId);
+		processedImagesDescription.put("nf_" + imgId, processedImages.size() - 1);
+
+		processedImages.add(silhouetteExtractor.getSureBackgroundImage());
+		processedImagesNames.add("sb_" + imgId);
+		processedImagesDescription.put("sb_" + imgId, processedImages.size() - 1);
+
+		processedImages.add(silhouetteExtractor.getSureBackgroundImage());
+		processedImagesNames.add("sf_" + imgId);
+		processedImagesDescription.put("sf_" + imgId, processedImages.size() - 1);
+
+		processedImages.add(silhouetteExtractor.getUnknownImage());
+		processedImagesNames.add("u_" + imgId);
+		processedImagesDescription.put("u_" + imgId, processedImages.size() - 1);
+
 		imgId++;
 	}
-	
-	modifiedImagesView.setItems(modifiedImagesNames);
+
+	processedImagesView.setItems(processedImagesNames);
+	System.out.println(processedImagesDescription.keySet());
 	//System.out.println(x);
 	
-	modifiedImagesView.setCellFactory(param -> new ListCell<String>() {
+	processedImagesView.setCellFactory(param -> new ListCell<String>() {
         private ImageView imageView = new ImageView();
         @Override
         public void updateItem(String name, boolean empty) {
@@ -325,19 +370,22 @@ protected void extractSilhouettes(){
                 setText(null);
                 setGraphic(null);
             } else {
-            	int imagePosition = modifiedImagesDescription.get(name);
+            	System.out.println("Name: " + name);
+            	System.out.println(processedImagesDescription.keySet());
+            	int imagePosition = processedImagesDescription.get(name);
             	System.out.println("Name: " + name +", Position: " + imagePosition);
-            	imageView.setImage(Utils.mat2Image(modifiedImages.get(imagePosition)));
+            	imageView.setImage(Utils.mat2Image(processedImages.get(imagePosition)));
 				imageView.setFitWidth(100);
 				imageView.setPreserveRatio(true);
-                setText("");
+                setText(name);
                 setGraphic(imageView);
             }
         }
     });
 
-	modifiedImagesView.refresh();
-	//this.vboxRight.getChildren().add(modifiedImagesView);
+	// to allow updating new elements for the list view
+	this.vboxRight.getChildren().clear();
+	this.vboxRight.getChildren().add(processedImagesView);
 }
 
 private void updateView(ImageView view, Image image){
@@ -626,6 +674,10 @@ private void updateView(ImageView view, Image image){
 		CameraPosition cameraPosition = volumeRenderer.getCameraPosition();
 		cameraPosition.positionAxisZ = positionZ;
 		updateCameraPosition(cameraPosition);
+	}
+	
+	private void updateBinaryThreshold(int binaryThreshold) {
+		silhouetteExtractor.setBinaryThreshold(binaryThreshold);
 	}
 
 	public void updateCameraPosition(CameraPosition cameraPosition) {
