@@ -67,9 +67,6 @@
 			<padding>
 				<Insets left="10" right="10" />
 			</padding>
-			<children>
-				<ImageView fx:id="originalImage" />
-			</children>
 		</VBox>
 	</left>
 	<center>
@@ -83,12 +80,12 @@
 		</VBox>
 	</center>
 	<right>
-		<VBox alignment="CENTER" spacing="10">
+		<VBox fx:id="vboxRight" alignment="CENTER" spacing="10">
 			<padding>
 				<Insets left="10" right="10" />
 			</padding>
 			<children>
-			<ImageView fx:id="calibratedFrame" />
+				<ImageView fx:id="calibratedFrame" />
 				<ImageView fx:id="transformedImage" />
 				<ImageView fx:id="antitransformedImage" />
 			</children>

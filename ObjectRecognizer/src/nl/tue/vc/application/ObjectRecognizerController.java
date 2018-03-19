@@ -2,7 +2,9 @@ package nl.tue.vc.application;
 
 import java.io.File;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Timer;
 import java.util.TimerTask;
 
@@ -22,8 +24,12 @@ import org.opencv.imgproc.Imgproc;
 import org.opencv.videoio.VideoCapture;
 
 import javafx.application.Platform;
+import javafx.collections.FXCollections;
+import javafx.collections.ObservableList;
 import javafx.fxml.FXML;
 import javafx.scene.control.Button;
+import javafx.scene.control.ListCell;
+import javafx.scene.control.ListView;
 import javafx.scene.control.Slider;
 import javafx.scene.control.TextField;
 import javafx.scene.image.Image;
@@ -55,6 +61,10 @@ public class ObjectRecognizerController {
 	// a FXML button for performing the antitransformation
 	@FXML
 	private VBox vboxLeft;
+	
+	@FXML
+	private VBox vboxRight;
+	
 	@FXML
 	private ImageView transformedImage;
 	@FXML
@@ -119,8 +129,19 @@ public class ObjectRecognizerController {
 	private Mat distCoeffs;
 	private boolean isCalibrated;
 
-	List<ImageView> imageViews = new ArrayList<>();
+	//List<ImageView> imageViews = new ArrayList<>();
 
+	List<Mat> loadedImages = new ArrayList<>();
+	Map<String, Integer> loadedImagesDescription = new HashMap<>();
+	ListView<String> loadedImagesView = new ListView<>();
+	ObservableList<String> loadedImagesNames = FXCollections.observableArrayList();
+
+	List<Mat> modifiedImages = new ArrayList<>();
+	Map<String, Integer> modifiedImagesDescription = new HashMap<>();
+	ListView<String> modifiedImagesView = new ListView<>();
+	ObservableList<String> modifiedImagesNames = FXCollections.observableArrayList();
+	
+	
 	// the main stage
 	private Stage stage;
 	// The rootGroup
@@ -157,6 +178,10 @@ public class ObjectRecognizerController {
 			updateCameraPositionAxisZ(newValue.intValue());
 		});
 
+		this.vboxLeft.getChildren().add(loadedImagesView);
+		loadedImagesView.setMaxWidth(140);
+		this.vboxRight.getChildren().add(modifiedImagesView);
+		modifiedImagesView.setMaxWidth(140);
 	}
 	
 	
@@ -191,24 +216,33 @@ public class ObjectRecognizerController {
 		//imageViews.add(this.originalImage2);
 
 		List<File> list = fileChooser.showOpenMultipleDialog(stage);
+		
 		if (list != null) {
+			
+			// Clear content of previous images
+			loadedImagesNames.clear();
+			loadedImages.clear();
+			loadedImagesDescription.clear();
+			
 			for (int i = 0; i < list.size(); i++) {
 
 				// show the open dialog window
 				// File file = this.fileChooser.showOpenDialog(this.stage);
 				File file = list.get(i);
+				
 				if (file != null) {
 					ImageView imageView = new ImageView();
 					// read the image in gray scale
 					this.image = Imgcodecs.imread(file.getAbsolutePath(), Imgcodecs.CV_LOAD_IMAGE_GRAYSCALE);
-					// show the image
-					this.updateImageView(imageView, Utils.mat2Image(this.image));
-					// set a fixed width
-					imageView.setFitWidth(50);
-					// preserve image ratio
-					imageView.setPreserveRatio(true);
-					imageViews.add(imageView);
-					this.vboxLeft.getChildren().add(imageView);
+					
+					// load the images into the listview
+					String imgName = file.getName().split("\\.")[0];
+					loadedImagesNames.add(imgName);
+					loadedImages.add(this.image);
+					loadedImagesDescription.put(imgName, loadedImages.size() - 1);
+					
+					//System.out.println(imgName);
+					
 					// empty the image planes and the image views if it is not the first
 					// loaded image
 					if (!this.planes.isEmpty()) {
@@ -216,11 +250,36 @@ public class ObjectRecognizerController {
 						this.transformedImage.setImage(null);
 						this.antitransformedImage.setImage(null);
 					}
-
 				}
 			}
+			
+			loadedImagesView.setItems(loadedImagesNames);
+			//System.out.println(x);
+			
+			loadedImagesView.setCellFactory(param -> new ListCell<String>() {
+	            private ImageView imageView = new ImageView();
+	            @Override
+	            public void updateItem(String name, boolean empty) {
+	                super.updateItem(name, empty);
+	                if (empty) {
+	                	System.out.println("Null information");
+	                    setText(null);
+	                    setGraphic(null);
+	                } else {
+	                	int imagePosition = loadedImagesDescription.get(name);
+	                	System.out.println("Name: " + name +", Position: " + imagePosition);
+	                	imageView.setImage(Utils.mat2Image(loadedImages.get(imagePosition)));
+						imageView.setFitWidth(100);
+						imageView.setPreserveRatio(true);
+	                    setText("");
+	                    setGraphic(imageView);
+	                }
+	            }
+	        });
+		
+			loadedImagesView.setMaxWidth(140);
+			loadedImagesView.refresh();			
 		}
-
 	}
 
 /**
@@ -232,12 +291,53 @@ public class ObjectRecognizerController {
 protected void extractSilhouettes(){
 		
 	System.out.println("Extract silhouettes method was called...");
-	//Mat oldImage = this.image;
+
+	// First, clear the previous content. Then, load the new content
+	modifiedImages.clear();
+	modifiedImagesNames.clear();
+	modifiedImagesDescription.clear();
 	
-	Mat processedImage = SilhouetteExtractor.extract(this.image);
+	//  Mat oldImage = this.image;
 	
-	updateView(transformedImage, Utils.mat2Image(processedImage));	
+	//	Mat processedImage = SilhouetteExtractor.extract(this.image);
+	
+	//	updateView(transformedImage, Utils.mat2Image(processedImage));	
 		
+	int imgId = 1;
+	for (Mat image: loadedImages) {
+		Mat processedImage = SilhouetteExtractor.extract(image);
+		modifiedImages.add(processedImage);
+		modifiedImagesNames.add("img_" + imgId);
+		modifiedImagesDescription.put("img_" + imgId, modifiedImages.size() - 1);
+		imgId++;
+	}
+	
+	modifiedImagesView.setItems(modifiedImagesNames);
+	//System.out.println(x);
+	
+	modifiedImagesView.setCellFactory(param -> new ListCell<String>() {
+        private ImageView imageView = new ImageView();
+        @Override
+        public void updateItem(String name, boolean empty) {
+            super.updateItem(name, empty);
+            if (empty) {
+            	//System.out.println("Null information");
+                setText(null);
+                setGraphic(null);
+            } else {
+            	int imagePosition = modifiedImagesDescription.get(name);
+            	System.out.println("Name: " + name +", Position: " + imagePosition);
+            	imageView.setImage(Utils.mat2Image(modifiedImages.get(imagePosition)));
+				imageView.setFitWidth(100);
+				imageView.setPreserveRatio(true);
+                setText("");
+                setGraphic(imageView);
+            }
+        }
+    });
+
+	modifiedImagesView.refresh();
+	//this.vboxRight.getChildren().add(modifiedImagesView);
 }
 
 private void updateView(ImageView view, Image image){
