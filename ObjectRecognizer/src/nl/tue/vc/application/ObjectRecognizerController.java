@@ -1,10 +1,15 @@
 package nl.tue.vc.application;
 
+import java.awt.image.BufferedImage;
+import java.awt.image.Raster;
 import java.io.File;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Timer;
 import java.util.TimerTask;
+
+import javax.imageio.ImageIO;
 
 import org.opencv.calib3d.Calib3d;
 import org.opencv.core.Core;
@@ -34,6 +39,8 @@ import javafx.scene.layout.VBox;
 import javafx.stage.FileChooser;
 import javafx.stage.Stage;
 import nl.tue.vc.application.utils.Utils;
+import nl.tue.vc.application.visual.IntersectionTest;
+import nl.tue.vc.application.visual.NewStage;
 import nl.tue.vc.imgproc.SilhouetteExtractor;
 
 /**
@@ -92,7 +99,7 @@ public class ObjectRecognizerController {
 	// a flag to change the button behavior
 	private boolean cameraActive;
 	// the saved chessboard image
-	private Mat savedImage;
+	private Mat savedImage, processedExtractedImage;
 	// the calibrated camera frame
 	private Image undistoredImage,CamStream;
 	// various variables needed for the calibration
@@ -138,6 +145,7 @@ public class ObjectRecognizerController {
 		this.obj = new MatOfPoint3f();
 		this.imageCorners = new MatOfPoint2f();
 		this.savedImage = new Mat();
+		this.processedExtractedImage = new Mat();
 		this.undistoredImage = null;
 		this.imagePoints = new ArrayList<>();
 		this.objectPoints = new ArrayList<>();
@@ -202,7 +210,7 @@ public class ObjectRecognizerController {
 	Mat processedImage = SilhouetteExtractor.extract(this.image);
 	
 	updateView(transformedImage, Utils.mat2Image(processedImage));	
-
+	this.processedExtractedImage = processedImage;
 	
 	/**
 	Mat grayImage = new Mat();
@@ -236,6 +244,25 @@ public class ObjectRecognizerController {
     Imgproc.dilate(binaryImage, binaryImage, dilatationKernel);
 	updateView(transformedImage, Utils.mat2Image(binaryImage));
 	**/
+	
+//	try {
+//		
+//		BufferedImage convertedMat = IntersectionTest.Mat2BufferedImage(processedImage);
+//		
+//		//Raster raster = IntersectionTest.loadImageRaster("C:\\Tools\\eclipse\\workspace\\objectrecognizer\\ObjectRecognizer\\images\\football.jpg");
+//		Raster raster = IntersectionTest.binarizeImage(convertedMat).getData();
+//		for(int x = 0; x<raster.getWidth(); x++) {
+//			for(int y = 0; y<raster.getHeight(); y++) {
+//				System.out.println("pixel("+x+", "+y+") = " + raster.getSampleDouble(x, y, 0));
+//			}
+//		}	
+//	} catch (IOException e) {
+//		// TODO Auto-generated catch block
+//		e.printStackTrace();
+//	} catch (Exception e) {
+//		// TODO Auto-generated catch block
+//		e.printStackTrace();
+//	}
 		
 }
 
@@ -484,7 +511,7 @@ private void updateView(ImageView view, Image image){
 	 */
 	@FXML
 	protected void constructModel() {
-		//TODO
+		new NewStage(this.processedExtractedImage);
 	}
 
 	/**

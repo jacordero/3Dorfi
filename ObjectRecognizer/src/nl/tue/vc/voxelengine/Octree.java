@@ -78,8 +78,11 @@ public class Octree {
 			//internalNode.getChildren()[6] = generateOctreeFractalAux(nodesBoxSize, level-1);
 			
 			// create node 7
-			internalNode.getChildren()[7] = generateOctreeFractalAux(nodesBoxSize, level-1);
-			//internalNode.getChildren()[7] = new Leaf(Color.PINK, nodesBoxSize);
+			//internalNode.getChildren()[7] = generateOctreeFractalAux(nodesBoxSize, level-1);
+			internalNode.getChildren()[7] = new Leaf(Color.PINK, nodesBoxSize);
+			
+			// create node 8
+			//internalNode.getChildren()[8] = new Leaf(Color.YELLOW, nodesBoxSize);
 			
 			return internalNode;
 		}

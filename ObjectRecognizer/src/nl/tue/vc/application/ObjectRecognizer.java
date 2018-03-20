@@ -29,11 +29,11 @@ public class ObjectRecognizer extends Application {
 			BorderPane root = (BorderPane) loader.load();
 
 //			Box box = new Box();
-//			// Setting the properties of the Box
+//			Setting the properties of the Box
 //			box.setWidth(200.0);
 //			box.setHeight(400.0);
 //			box.setDepth(200.0);
-//			// Creating a Group object
+//			Creating a Group object
 //			Group root = new Group(box);
 
 			// set a whitesmoke background
