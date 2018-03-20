@@ -40,6 +40,7 @@ import javafx.scene.layout.VBox;
 import javafx.stage.FileChooser;
 import javafx.stage.Stage;
 import nl.tue.vc.application.utils.Utils;
+import nl.tue.vc.imgproc.CameraController;
 import nl.tue.vc.imgproc.HistogramGenerator;
 import nl.tue.vc.imgproc.SilhouetteExtractor;
 import nl.tue.vc.voxelengine.CameraPosition;
@@ -114,8 +115,10 @@ public class ObjectRecognizerController {
 	@FXML
 	private Label thresholdLabel;
 	
-	// a timer for acquiring the video stream
+	// old timer
 	private Timer timer;
+	// a timer for acquiring the video stream
+	private Timer imageTimer;
 	// the OpenCV object that performs the video capture
 	private VideoCapture capture;
 	// a flag to change the button behavior
@@ -148,7 +151,9 @@ public class ObjectRecognizerController {
 	Map<String, Integer> processedImagesDescription = new HashMap<>();
 	ListView<String> processedImagesView = new ListView<>();
 	ObservableList<String> processedImagesNames = FXCollections.observableArrayList();
-		
+	
+	
+	
 	// the main stage
 	private Stage stage;
 	// The rootGroup
@@ -166,8 +171,23 @@ public class ObjectRecognizerController {
 	
 	private SilhouetteExtractor silhouetteExtractor;
 	
+	private CameraController cameraController;
+	
+	private Mat cameraFrame;
+	
+	@FXML
+	private ImageView cameraFrameView;
+
+	private Timer videoTimer;
+
+	public static int SECOND = 1000;
+	
 	public ObjectRecognizerController() {
 		silhouetteExtractor = new SilhouetteExtractor();
+		cameraController = new CameraController();
+		cameraFrame = new Mat();
+		cameraFrameView = new ImageView();
+		videoTimer = new Timer();
 	}
 
 	@FXML
@@ -187,7 +207,6 @@ public class ObjectRecognizerController {
 			updateCameraPositionAxisZ(newValue.intValue());
 		});
 		
-		Map<String, Integer> silhouetteConfig = ApplicationConfiguration.getInstance().getSilhouetteConfiguration();
 		binaryThreshold.valueProperty().addListener((observable, oldValue, newValue) -> {
 			//System.out.println("Binary treshold value changed (newValue: " +  newValue.intValue() + ")");
 			thresholdLabel.setText("Threshold: " + String.format("%.2f", newValue));
@@ -195,6 +214,8 @@ public class ObjectRecognizerController {
 		});		
 		
 
+		startVideo();
+		//this.vboxLeft.getChildren().add(cameraFrameView);
 		this.vboxLeft.getChildren().add(loadedImagesView);
 		loadedImagesView.setMaxWidth(140);
 		this.vboxRight.getChildren().add(processedImagesView);
@@ -233,13 +254,12 @@ public class ObjectRecognizerController {
 		//imageViews.add(this.originalImage2);
 
 		List<File> list = fileChooser.showOpenMultipleDialog(stage);
-		
-		if (list != null) {
-			
+
+		if (list != null) {			
 			// Clear content of previous images
-			loadedImagesNames.clear();
-			loadedImages.clear();
-			loadedImagesDescription.clear();
+			//loadedImagesNames.clear();
+			//loadedImages.clear();
+			//loadedImagesDescription.clear();
 			
 			for (int i = 0; i < list.size(); i++) {
 
@@ -269,36 +289,37 @@ public class ObjectRecognizerController {
 					}
 				}
 			}
-			
-			loadedImagesView.setItems(loadedImagesNames);
-			//System.out.println(x);
-			
-			loadedImagesView.setCellFactory(param -> new ListCell<String>() {
-	            private ImageView imageView = new ImageView();
-	            @Override
-	            public void updateItem(String name, boolean empty) {
-	                super.updateItem(name, empty);
-	                if (empty) {
-	                	System.out.println("Null information");
-	                    setText(null);
-	                    setGraphic(null);
-	                } else {
-	                	int imagePosition = loadedImagesDescription.get(name);
-	                	System.out.println("Name: " + name +", Position: " + imagePosition);
-	                	imageView.setImage(Utils.mat2Image(loadedImages.get(imagePosition)));
-						imageView.setFitWidth(100);
-						imageView.setPreserveRatio(true);
-	                    setText("");
-	                    setGraphic(imageView);
-	                }
-	            }
-	        });
-		
-			loadedImagesView.setMaxWidth(140);
-			loadedImagesView.refresh();			
-		}
+			showLoadedImages();
+		}			
 	}
 
+	public void showLoadedImages() {
+		loadedImagesView.setItems(loadedImagesNames);
+		loadedImagesView.setCellFactory(param -> new ListCell<String>() {
+            private ImageView imageView = new ImageView();
+            @Override
+            public void updateItem(String name, boolean empty) {
+                super.updateItem(name, empty);
+                if (empty) {
+                	System.out.println("Null information");
+                    setText(null);
+                    setGraphic(null);
+                } else {
+                	int imagePosition = loadedImagesDescription.get(name);
+                	System.out.println("Name: " + name +", Position: " + imagePosition);
+                	imageView.setImage(Utils.mat2Image(loadedImages.get(imagePosition)));
+					imageView.setFitWidth(100);
+					imageView.setPreserveRatio(true);
+                    setText("");
+                    setGraphic(imageView);
+                }
+            }
+        });
+	
+		loadedImagesView.setMaxWidth(140);
+		loadedImagesView.refresh();
+	}
+	
 /**
  * The action triggered by pushing the button for apply the dft to the loaded
  * image
@@ -538,9 +559,53 @@ private void updateView(ImageView view, Image image){
 		return imageToShow;
 	}
 
+	
+	@FXML
+	protected void startVideo() {
+		cameraController.startCamera();
+		TimerTask frameGrabber = new TimerTask() {
+		
+			@Override
+			public void run() {
+				cameraFrame = cameraController.grabFrame();
+				System.out.println("Frame grabbed!!");
+				Platform.runLater(new Runnable() {
+					@Override
+		            public void run() {
+						cameraFrameView.setImage(Utils.mat2Image(cameraFrame));
+						originalFrame.setFitWidth(100);
+						originalFrame.setPreserveRatio(true);
+		            }
+				});
+			}
+		};
+
+		videoTimer.schedule(frameGrabber, 0, 33);		
+	}
+
+	
 	/**
 	 * Take a snapshot to be used for the calibration process
 	 */
+	@FXML
+	protected void takeSnapshot() {
+		
+		TimerTask frameGrabber = new TimerTask() {
+			@Override
+			public void run() {
+				cameraController.startCamera();
+				loadedImages.add(cameraController.grabFrame());
+				loadedImagesNames.add("sc_" + loadedImages.size());
+				loadedImagesDescription.put("sc_" + loadedImages.size(), loadedImages.size() - 1);
+				showLoadedImages();
+			}
+		};
+		
+		imageTimer = new Timer();
+		imageTimer.schedule(frameGrabber, 1*SECOND);		
+	}
+	
+	/*
 	@FXML
 	protected void takeSnapshot()
 	{
@@ -558,7 +623,9 @@ private void updateView(ImageView view, Image image){
 		{
 			this.calibrateCamera();
 		}
-	}
+	}*/
+	
+	
 
 	/**
 	 * Find and draws the points needed for the calibration on the chessboard
@@ -625,6 +692,13 @@ private void updateView(ImageView view, Image image){
 		this.snapshotButton.setDisable(true);
 	}
 
+	@FXML
+	protected void clearLoadedImages() {
+		loadedImagesNames.clear();
+		loadedImages.clear();
+		loadedImagesDescription.clear();		
+	}
+	
 	/**
 	 * The action triggered by pushing the button for constructing the model from
 	 * the loaded images

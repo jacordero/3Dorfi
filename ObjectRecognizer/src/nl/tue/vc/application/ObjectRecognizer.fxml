@@ -18,6 +18,11 @@
    					<Insets bottom="10" top="10" />
    				</padding>
       <children>
+                  <Button fx:id="refreshButton" mnemonicParsing="false" onAction="#clearLoadedImages" text="Refresh">
+                     <HBox.margin>
+                        <Insets right="10.0" />
+                     </HBox.margin>
+                  </Button>
       				<Label text="Boards #" />
       				<TextField fx:id="numBoards" maxWidth="50" text="20" />
       				<Label text="Horizontal corners #" />
@@ -73,6 +78,12 @@
 			<padding>
 				<Insets left="10" right="10" />
 			</padding>
+         <children>
+            <ImageView fx:id="cameraFrameView" fitHeight="140.0" fitWidth="120.0" pickOnBounds="true" preserveRatio="true">
+               <VBox.margin>
+                  <Insets bottom="10.0" top="10.0" />
+               </VBox.margin></ImageView>
+         </children>
 		</VBox>
 	</left>
 	<center>
@@ -106,7 +117,7 @@
 				<Button alignment="center" onAction="#loadImage" text="Load Images" />
 				<Button fx:id="extractButton" alignment="center" onAction="#extractSilhouettes" text="Extract Silhouettes" />
 					<Button fx:id="cameraButton" alignment="center" disable="true" onAction="#startCamera" text="Start camera" />
-				<Button fx:id="snapshotButton" alignment="center" disable="true" onAction="#takeSnapshot" text="Take snapshot" />
+				<Button fx:id="snapshotButton" alignment="center" onAction="#takeSnapshot" text="Take snapshot" />
 				<Button fx:id="constructButton" mnemonicParsing="false" onAction="#constructModel" text="Construct 3D Model" />
 				<Button fx:id="visualizeButton" mnemonicParsing="false" onAction="#visualizeModel" text="Visualize Model" />
 			</children>
