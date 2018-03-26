@@ -74,7 +74,7 @@ public class ObjectRecognizer extends Application
 		System.out.println("Library; " + Core.NATIVE_LIBRARY_NAME);
 		// load the native OpenCV library
 		System.loadLibrary(Core.NATIVE_LIBRARY_NAME);
-
+		
 		launch(args);
 	}
 }

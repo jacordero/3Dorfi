@@ -42,7 +42,9 @@ public class SilhouetteExtractor {
 	}
 	
 	
-	public void extract(Mat image) {
+	public void extract(Mat image, String method) {
+		
+		System.out.println("Segmentation algorithm: " + method);
 
 		// first convert to grayscale
 		Mat grayImage = new Mat();			
@@ -67,68 +69,80 @@ public class SilhouetteExtractor {
 		noiseFreeImage = new Mat();
 		Imgproc.morphologyEx(binaryImage, noiseFreeImage, Imgproc.MORPH_OPEN, kernel);
 		
-		// sure background area (dilation shrinks the black pixels)
-		sureBackgroundImage = new Mat();
-		Imgproc.dilate(noiseFreeImage, sureBackgroundImage, kernel);
 		
-		// sure foreground area (erosion shrinks the white pixels)
-		sureForegroundImage = new Mat();
-		Imgproc.erode(noiseFreeImage, sureForegroundImage, kernel);
-		
-		
-		unknownImage = new Mat();
-		Core.subtract(sureBackgroundImage, sureForegroundImage, unknownImage);
+		if (method.equals("Binarization")) {
+			System.out.println("Applying Binarization!!!");
+			segmentedImage = noiseFreeImage;
+			sureBackgroundImage = noiseFreeImage;
+			sureForegroundImage = noiseFreeImage;
+			unknownImage = noiseFreeImage;
+		} else if (method.equals("Watersheed")) {
+			System.out.println("Applying Watersheed!");
+			// sure background area (dilation shrinks the black pixels)
+			sureBackgroundImage = new Mat();
+			Imgproc.dilate(noiseFreeImage, sureBackgroundImage, kernel);
+			
+			// sure foreground area (erosion shrinks the white pixels)
+			sureForegroundImage = new Mat();
+			Imgproc.erode(noiseFreeImage, sureForegroundImage, kernel);
+			
+			
+			unknownImage = new Mat();
+			Core.subtract(sureBackgroundImage, sureForegroundImage, unknownImage);
+					
+			// Marker labelling
+			Mat markers = new Mat();
+			Imgproc.connectedComponents(binaryImage, markers);
+			Mat scaledMarkers = new Mat();
+			Core.add(markers, new Scalar(1), scaledMarkers);
+			
+			byte[] pixelValue = new byte[1];	
+			int[] unknownLabel = {0};
+			for (int i = 0; i < unknownImage.rows(); i++) {
+				for (int j = 0; j < unknownImage.cols(); j++) {
+					unknownImage.get(i, j, pixelValue);
+					if (pixelValue[0] == -1) {
+						scaledMarkers.put(i, j, unknownLabel);
+					}
+				}
+			}
+			
+			// Apply watersheed algorithm		
+			Mat newBinaryImage = new Mat();
+			Imgproc.cvtColor(binaryImage, newBinaryImage, Imgproc.COLOR_GRAY2BGR);
+			Imgproc.watershed(newBinaryImage, scaledMarkers);
+			segmentedImage = new Mat(binaryImage.rows(), binaryImage.cols(), CvType.CV_32SC1);
+			int[] blackPixel = {0};
+			int[] whitePixel = {255};
+			int[] labelValue = new int[1];
+			for (int i = 0; i < scaledMarkers.rows(); i++) {
+				int startRegion = -1;
+				int endRegion = -1;
+				for (int j = 0; j < scaledMarkers.cols(); j++) {
+					scaledMarkers.get(i, j, labelValue);
+					if (labelValue[0] == -1 && startRegion == -1 && j > leftLimit && i > topLimit && i < lowerLimit) {
+						startRegion = j;
+					} else if (labelValue[0] == -1 && startRegion > -1 && j < rightLimit && i > topLimit && i < lowerLimit){
+						endRegion = j;
+					}
+				}
 				
-		// Marker labelling
-		Mat markers = new Mat();
-		Imgproc.connectedComponents(binaryImage, markers);
-		Mat scaledMarkers = new Mat();
-		Core.add(markers, new Scalar(1), scaledMarkers);
-		
-		byte[] pixelValue = new byte[1];	
-		int[] unknownLabel = {0};
-		for (int i = 0; i < unknownImage.rows(); i++) {
-			for (int j = 0; j < unknownImage.cols(); j++) {
-				unknownImage.get(i, j, pixelValue);
-				if (pixelValue[0] == -1) {
-					scaledMarkers.put(i, j, unknownLabel);
+				for (int j = 0; j < scaledMarkers.cols(); j++) {
+					segmentedImage.put(i, j, whitePixel);
 				}
-			}
-		}
-		
-		// Apply watersheed algorithm		
-		Mat newBinaryImage = new Mat();
-		Imgproc.cvtColor(binaryImage, newBinaryImage, Imgproc.COLOR_GRAY2BGR);
-		Imgproc.watershed(newBinaryImage, scaledMarkers);
-		segmentedImage = new Mat(binaryImage.rows(), binaryImage.cols(), CvType.CV_32SC1);
-		int[] blackPixel = {0};
-		int[] whitePixel = {255};
-		int[] labelValue = new int[1];
-		for (int i = 0; i < scaledMarkers.rows(); i++) {
-			int startRegion = -1;
-			int endRegion = -1;
-			for (int j = 0; j < scaledMarkers.cols(); j++) {
-				scaledMarkers.get(i, j, labelValue);
-				if (labelValue[0] == -1 && startRegion == -1 && j > leftLimit && i > topLimit && i < lowerLimit) {
-					startRegion = j;
-				} else if (labelValue[0] == -1 && startRegion > -1 && j < rightLimit && i > topLimit && i < lowerLimit){
-					endRegion = j;
+				
+				
+				if (endRegion > startRegion) {
+					for (int j = startRegion; j <= endRegion; j++) {
+						segmentedImage.put(i, j, blackPixel);
+					}
 				}
+				
 			}
 			
-			for (int j = 0; j < scaledMarkers.cols(); j++) {
-				segmentedImage.put(i, j, whitePixel);
-			}
-			
-			
-			if (endRegion > startRegion) {
-				for (int j = startRegion; j <= endRegion; j++) {
-					segmentedImage.put(i, j, blackPixel);
-				}
-			}
-			
-		}
-		
+		} else {
+			throw new RuntimeException("Invalid binarization algorithm!");
+		}		
 		//return binaryImage;
 		
 	}

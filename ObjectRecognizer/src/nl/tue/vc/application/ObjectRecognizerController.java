@@ -29,6 +29,9 @@ import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.fxml.FXML;
 import javafx.scene.control.Button;
+import javafx.scene.control.CheckBox;
+import javafx.scene.control.ChoiceBox;
+import javafx.scene.control.ComboBox;
 import javafx.scene.control.Label;
 import javafx.scene.control.ListCell;
 import javafx.scene.control.ListView;
@@ -116,6 +119,12 @@ public class ObjectRecognizerController {
 	
 	@FXML
 	private Label thresholdLabel;
+	
+	@FXML
+	private ComboBox<String> segmentationAlgorithm;
+	
+	@FXML
+	private CheckBox debugSegmentation;
 	
 	// old timer
 	private Timer timer;
@@ -217,7 +226,15 @@ public class ObjectRecognizerController {
 			updateBinaryThreshold(newValue.intValue());
 		});		
 		
+		
+		//segmentationAlgorithm;
+		segmentationAlgorithm.getItems().add("Watersheed");
+		segmentationAlgorithm.getItems().add("Binarization");
+		segmentationAlgorithm.setValue("Watersheed");
+		
+		System.out.println(segmentationAlgorithm.getValue());
 
+		
 		startVideo();
 		//this.vboxLeft.getChildren().add(cameraFrameView);
 		this.vboxLeft.getChildren().add(loadedImagesView);
@@ -346,7 +363,7 @@ protected void extractSilhouettes(){
 			
 	int imgId = 1;
 	for (Mat image: loadedImages) {
-		silhouetteExtractor.extract(image);
+		silhouetteExtractor.extract(image, segmentationAlgorithm.getValue());
 		segmentedImages.add(silhouetteExtractor.getSegmentedImage());
 		
 		try {
@@ -355,35 +372,38 @@ protected void extractSilhouettes(){
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
-
-		processedImages.add(silhouetteExtractor.getSegmentedImage());
-		processedImagesNames.add("sg_" + imgId);
-		processedImagesDescription.put("sg_" + imgId, processedImages.size() - 1);
 		
-		processedImages.add(silhouetteExtractor.getBinaryImage());
-		processedImagesNames.add("bi_" + imgId);
-		processedImagesDescription.put("bi_" + imgId, processedImages.size() - 1);
-		
-		Mat histImage = HistogramGenerator.histogram(image);
-		processedImages.add(histImage);
-		processedImagesNames.add("hi_" + imgId);
-		processedImagesDescription.put("hi_" + imgId, processedImages.size() - 1);
+			processedImages.add(silhouetteExtractor.getSegmentedImage());
+			processedImagesNames.add("sg_" + imgId);
+			processedImagesDescription.put("sg_" + imgId, processedImages.size() - 1);
 
-		processedImages.add(silhouetteExtractor.getNoiseFreeImage());
-		processedImagesNames.add("nf_" + imgId);
-		processedImagesDescription.put("nf_" + imgId, processedImages.size() - 1);
+		// show the processed images during the segmentation process
+		if (debugSegmentation.isSelected() && segmentationAlgorithm.getValue() == "Watersheed") {
+			processedImages.add(silhouetteExtractor.getBinaryImage());
+			processedImagesNames.add("bi_" + imgId);
+			processedImagesDescription.put("bi_" + imgId, processedImages.size() - 1);
+			
+			Mat histImage = HistogramGenerator.histogram(image);
+			processedImages.add(histImage);
+			processedImagesNames.add("hi_" + imgId);
+			processedImagesDescription.put("hi_" + imgId, processedImages.size() - 1);
 
-		processedImages.add(silhouetteExtractor.getSureBackgroundImage());
-		processedImagesNames.add("sb_" + imgId);
-		processedImagesDescription.put("sb_" + imgId, processedImages.size() - 1);
+			processedImages.add(silhouetteExtractor.getNoiseFreeImage());
+			processedImagesNames.add("nf_" + imgId);
+			processedImagesDescription.put("nf_" + imgId, processedImages.size() - 1);
 
-		processedImages.add(silhouetteExtractor.getSureBackgroundImage());
-		processedImagesNames.add("sf_" + imgId);
-		processedImagesDescription.put("sf_" + imgId, processedImages.size() - 1);
+			processedImages.add(silhouetteExtractor.getSureBackgroundImage());
+			processedImagesNames.add("sb_" + imgId);
+			processedImagesDescription.put("sb_" + imgId, processedImages.size() - 1);
 
-		processedImages.add(silhouetteExtractor.getUnknownImage());
-		processedImagesNames.add("u_" + imgId);
-		processedImagesDescription.put("u_" + imgId, processedImages.size() - 1);
+			processedImages.add(silhouetteExtractor.getSureBackgroundImage());
+			processedImagesNames.add("sf_" + imgId);
+			processedImagesDescription.put("sf_" + imgId, processedImages.size() - 1);
+
+			processedImages.add(silhouetteExtractor.getUnknownImage());
+			processedImagesNames.add("u_" + imgId);
+			processedImagesDescription.put("u_" + imgId, processedImages.size() - 1);			
+		}
 
 		imgId++;
 	}
@@ -579,13 +599,23 @@ private void updateView(ImageView view, Image image){
 			@Override
 			public void run() {
 				cameraFrame = cameraController.grabFrame();
-				System.out.println("Frame grabbed!!");
+				//System.out.println("Frame grabbed!!");
+/*				
+				if (!cameraFrame.empty()) {
+					cameraFrameView.setImage(Utils.mat2Image(cameraFrame));
+					originalFrame.setFitWidth(100);
+					originalFrame.setPreserveRatio(true);					
+				}
+*/
+				
 				Platform.runLater(new Runnable() {
 					@Override
 		            public void run() {
-						cameraFrameView.setImage(Utils.mat2Image(cameraFrame));
-						originalFrame.setFitWidth(100);
-						originalFrame.setPreserveRatio(true);
+						if (!cameraFrame.empty()) {
+							cameraFrameView.setImage(Utils.mat2Image(cameraFrame));
+							originalFrame.setFitWidth(100);
+							originalFrame.setPreserveRatio(true);
+						}
 		            }
 				});
 			}

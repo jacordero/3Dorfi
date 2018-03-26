@@ -30,7 +30,7 @@ public class ApplicationConfiguration {
 	// private constructor to make this a singleton
 	private ApplicationConfiguration() {
 		windowWidth = 960;
-		windowHeight = 640;
+		windowHeight = 680;
 		
 		volumeSceneWidth = 640;
 		volumeSceneHeight = 480;
@@ -47,7 +47,7 @@ public class ApplicationConfiguration {
 		silhouetteConfiguration.put("imageWidthLastPixel", 370);
 		silhouetteConfiguration.put("imageHeightFirstPixel", 20);
 		silhouetteConfiguration.put("imageHeightLastPixel", 280);
-		silhouetteConfiguration.put("binaryThreshold", 50);
+		silhouetteConfiguration.put("binaryThreshold", 80);
 	}
 	
 	public static ApplicationConfiguration getInstance() {
