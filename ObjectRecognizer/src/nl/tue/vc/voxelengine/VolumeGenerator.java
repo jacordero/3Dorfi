@@ -12,124 +12,14 @@ public class VolumeGenerator {
 	
 	private Octree octree;
 	private Group octreeVolume;
-//	private BoxParameters boxParameters;
+	private int[][] sourceArray;
+	private int[][] transformedArray;
 	
-	public VolumeGenerator(Octree octree, BoxParameters boxParameters) {
+	public VolumeGenerator(Octree octree, BoxParameters boxParameters, int[][] sourceBinaryArray, int[][] transformedBinaryArray) {
 		this.octree = octree;
-	//	this.BoxParameters = BoxParameters;
+		this.sourceArray = sourceBinaryArray;
+		this.transformedArray = transformedBinaryArray;
 		this.octreeVolume = generateVolume(boxParameters);
-		//this.volume = generateTestVolume();	
-	}
-	
-	private Box generateTestBox(int size, int posx, int posy, int posz, Color color) {
-		Box box = new Box(size, size, size);
-		box.setTranslateX(posx);
-		box.setTranslateY(posy);
-		box.setTranslateZ(posz);
-		
-		PhongMaterial textureMaterial = new PhongMaterial();
-		Color diffuseColor = color;
-		textureMaterial.setDiffuseColor(diffuseColor);
-		//textureMaterial.setDiffuseMap()
-		box.setMaterial(textureMaterial);
-		return box;		
-	}
-	
-	
-	private Group generateTestVolume() {
-		Group volume = new Group();
-		
-		int centerX = 400;
-		int centerY = 300;
-		int centerZ = 400;
-		int boxSize = 100;
-		int delta = 50;
-		
-		
-		/**
-		//Coordinates for first box corner are {x: 400, y: 300, z: 400}
-		volume.getChildren().add(generateTestBox(100, centerX - 50, centerY + 50, centerZ + 50, Color.BLACK));
-				
-		//Coordinates for second box corner are {x: 200, y: 300, z: 400}
-		volume.getChildren().add(generateTestBox(100, centerX + 50, centerY + 50, centerZ + 50, Color.BLUE));
-
-		//Coordinates for third box corner are {x: 400, y: 100, z: 400}
-		volume.getChildren().add(generateTestBox(100, centerX - 50, centerY - 50, centerZ + 50, Color.BLUEVIOLET));
-		
-		//Coordinates for fourth box corner are {x: 200, y: 100, z: 400}
-		volume.getChildren().add(generateTestBox(100, centerX + 50, centerY - 50, centerZ + 50, Color.DARKMAGENTA));
-		**/
-
-		//Coordinates for fifth box corner are {x: 400, y: 300, z: 200}
-		int newBoxSize = boxSize/2;
-		int newDelta = delta/2;
-		
-		int newCenterX = centerX - newBoxSize;
-		int newCenterY = centerY + newBoxSize;
-		int newCenterZ = centerZ - newBoxSize;
-		
-		debugPosition(newBoxSize, newDelta, newCenterX - newDelta, newCenterY + newDelta, newCenterZ + newDelta);
-		volume.getChildren().add(generateTestBox(newBoxSize, newCenterX - newDelta, newCenterY + newDelta, newCenterZ + newDelta, Color.BLACK));
-		
-		//Coordinates for second box corner are {x: 200, y: 300, z: 400}
-		debugPosition(newBoxSize, newDelta, newCenterX + newDelta, newCenterY + newDelta, newCenterZ + newDelta);
-		volume.getChildren().add(generateTestBox(newBoxSize, newCenterX + newDelta, newCenterY + newDelta, newCenterZ + newDelta, Color.BLUE));
-
-		//Coordinates for third box corner are {x: 400, y: 100, z: 400}
-		debugPosition(newBoxSize, newDelta, newCenterX - newDelta, newCenterY - newDelta, newCenterZ + newDelta);
-		volume.getChildren().add(generateTestBox(newBoxSize, newCenterX - newDelta, newCenterY - newDelta, newCenterZ + newDelta, Color.BLUEVIOLET));
-		
-		debugPosition(newBoxSize, newDelta, newCenterX + newDelta, newCenterY - newDelta, newCenterZ + newDelta);
-		volume.getChildren().add(generateTestBox(newBoxSize, newCenterX + newDelta, newCenterY - newDelta, newCenterZ + newDelta, Color.DARKMAGENTA));
-		
-		// ignore cubes in position fifth and eight
-		//Coordinates for sixth box corner are {x: 200, y: 300, z: 200}
-		debugPosition(newBoxSize, newDelta, newCenterX + newDelta, newCenterY + newDelta, newCenterZ - newDelta);
-		volume.getChildren().add(generateTestBox(newBoxSize, newCenterX + newDelta, newCenterY + newDelta, newCenterZ - newDelta, Color.MAROON));
-		
-		//Coordinates for seventh box corner are {x: 400, y: 100, z: 200}
-		debugPosition(newBoxSize, newDelta, newCenterX - newDelta, newCenterY - newDelta, newCenterZ - newDelta);
-		volume.getChildren().add(generateTestBox(newBoxSize, newCenterX - newDelta, newCenterY - newDelta, newCenterZ - newDelta, Color.RED));
-		
-		
-		//Coordinates for sixth box corner are {x: 200, y: 300, z: 200}
-		debugPosition(boxSize, delta, centerX + delta, centerY + delta, centerZ - delta);
-		volume.getChildren().add(generateTestBox(100, centerX + 50, centerY + 50, centerZ - 50, Color.MAROON));
-		
-		//Coordinates for seventh box corner are {x: 400, y: 100, z: 200}
-		debugPosition(boxSize, delta, centerX - delta, centerY - delta, centerZ - delta);
-		volume.getChildren().add(generateTestBox(100, centerX - 50, centerY - 50, centerZ - 50, Color.RED));
-		
-		
-		newCenterX = centerX + newBoxSize;
-		newCenterY = centerY - newBoxSize;
-		newCenterZ = centerZ - newBoxSize;
-		
-		volume.getChildren().add(generateTestBox(newBoxSize, newCenterX - newDelta, newCenterY + newDelta, newCenterZ + newDelta, Color.BLACK));
-		
-		//Coordinates for second box corner are {x: 200, y: 300, z: 400}
-		volume.getChildren().add(generateTestBox(newBoxSize, newCenterX + newDelta, newCenterY + newDelta, newCenterZ + newDelta, Color.BLUE));
-
-		//Coordinates for third box corner are {x: 400, y: 100, z: 400}
-		volume.getChildren().add(generateTestBox(newBoxSize, newCenterX - newDelta, newCenterY - newDelta, newCenterZ + newDelta, Color.BLUEVIOLET));
-		
-		volume.getChildren().add(generateTestBox(newBoxSize, newCenterX + newDelta, newCenterY - newDelta, newCenterZ + newDelta, Color.DARKMAGENTA));
-		
-		// ignore cubes in position fifth and eight
-		//Coordinates for sixth box corner are {x: 200, y: 300, z: 200}
-		volume.getChildren().add(generateTestBox(newBoxSize, newCenterX + newDelta, newCenterY + newDelta, newCenterZ - newDelta, Color.MAROON));
-		
-		//Coordinates for seventh box corner are {x: 400, y: 100, z: 200}
-		volume.getChildren().add(generateTestBox(newBoxSize, newCenterX - newDelta, newCenterY - newDelta, newCenterZ - newDelta, Color.RED));
-
-		
-		//Coordinates for eight box corner are {x: 200, y: 100, z: 200}
-		return volume;
-	}
-	
-	private void debugPosition(int boxSize, int delta, int centerX, int centerY, int centerZ) {
-		String str = "BoxSize: " + boxSize + ", delta: " + delta + ", centerX: " + centerX + ", centerY: " + centerY + ", centerZ: " + centerZ;
-		System.out.println(str);
 	}
 	
 	public Group generateVolume(BoxParameters boxParameters) {
@@ -140,12 +30,11 @@ public class VolumeGenerator {
 		deltas.deltaX = 0;
 		deltas.deltaY = 0;
 		deltas.deltaZ = 0;
-		
+		System.out.println("Children: " + root.getChildren().length);
 		// First line of children
 		for (int i = 0; i < root.getChildren().length; i++) {
 
 			DeltaStruct displacementDirections = computeDeltaDirections(i);
-
 			int newBoxSize = boxParameters.getBoxSize()/2;
 			BoxParameters childrenParameters = new BoxParameters();
 			childrenParameters.setBoxSize(newBoxSize);
@@ -153,44 +42,25 @@ public class VolumeGenerator {
 			childrenParameters.setCenterY(boxParameters.getCenterY());
 			childrenParameters.setCenterZ(boxParameters.getCenterZ());
 
-			//System.out.println("Child deltas: " + displacementDirections.toString());
-			//System.out.println("Child box size: " + childBoxParameters.getBoxSize());
-			//System.out.println("Working with children: " + i);
-			//String str = "Children with center position {x: " + childBoxParameters.getCenterX() + ", y: " + 
-			//		childBoxParameters.getCenterY() + ", z: " + childBoxParameters.getCenterZ() + " }";		
-			//System.out.println(str);
-			//System.out.println("Box Size: " + childBoxParameters.getBoxSize());
 			Node childNode = root.getChildren()[i];
-			System.out.println("Index: "+ i + ", " + displacementDirections.toString());
+			//System.out.println("Index: "+ i + ", " + displacementDirections.toString());
 			
 			List<Box> voxels = generateVolumeAux(childNode, childrenParameters, displacementDirections);
 			volume.getChildren().addAll(voxels);
 		}
 		
-		//List<Box> voxels = generateVolumeAux(root, boxParameters, deltas);
-		//volume.getChildren().addAll(voxels);
+		List<Box> voxels = generateVolumeAux(root, boxParameters, deltas);
+		volume.getChildren().addAll(voxels);
 		return volume;
 	}
 	
 	
 	private List<Box> generateVolumeAux(Node currentNode, BoxParameters currentParameters, DeltaStruct currentDeltas) {
 		// now we only care about the relative center position and the size of each cube
-		String debugStr = "gva center position {x: " + currentParameters.getCenterX() + ", y: " + 
-		currentParameters.getCenterY() + ", z: " + currentParameters.getCenterZ() + " }";		
-		System.out.println(debugStr);
+		//String debugStr = "gva center position {x: " + currentParameters.getCenterX() + ", y: " + 
+		//currentParameters.getCenterY() + ", z: " + currentParameters.getCenterZ() + " }";		
+		//System.out.println(debugStr);
 		
-		//DeltaStruct currentDeltas = new DeltaStruct();
-		//currentDeltas.deltaX = parentDeltas.deltaX/2;
-		//currentDeltas.deltaY = parentDeltas.deltaY/2;
-		//currentDeltas.deltaZ = parentDeltas.deltaZ/2;
-		
-		//BoxParameters currentBoxParameters = new BoxParameters();
-		//currentBoxParameters.setBoxSize(parentBoxParameters.getBoxSize()/2);
-		//currentBoxParameters.setCenterX(parentBoxParameters.getCenterX() + currentDeltas.deltaX);
-		//currentBoxParameters.setCenterY(parentBoxParameters.getCenterY() + currentDeltas.deltaY);
-		//currentBoxParameters.setCenterZ(parentBoxParameters.getCenterZ() + currentDeltas.deltaZ);
-		
-				
 		List<Box> voxels = new ArrayList<Box>();
 		
 		if (currentNode.isLeaf()) {
@@ -201,12 +71,13 @@ public class VolumeGenerator {
 				Box box = generateVoxel(currentParameters, currentDeltas, currentNode.getColor());
 				voxels.add(box);				
 			}
-			
+			//currentNode.setColor(Color.GRAY);
 			//return voxels;
 			//System.out.println("<< Leaf ..");			
 		} else {
+			//currentNode.setColor(Color.GRAY);
 			// working internal nodes
-			System.out.println(">> Internal node ..");
+			//System.out.println(">> Internal node ..");
 			Node[] children = currentNode.getChildren();
 
 			int newBoxSize = currentParameters.getBoxSize()/2;
@@ -225,21 +96,12 @@ public class VolumeGenerator {
 				if (childNode != null) {
 					DeltaStruct displacementDirections = computeDeltaDirections(i);
 
-					System.out.println("Index: "+ i + ", " + displacementDirections.toString());
-					
-					//System.out.println("Child deltas: " + displacementDirections.toString());
-					//System.out.println("Child box size: " + childBoxParameters.getBoxSize());
-					//System.out.println("Working with children: " + i);
-					//String str = "Children with center position {x: " + childBoxParameters.getCenterX() + ", y: " + 
-					//		childBoxParameters.getCenterY() + ", z: " + childBoxParameters.getCenterZ() + " }";		
-					//System.out.println(str);
-					//System.out.println("Box Size: " + childBoxParameters.getBoxSize());
-					
+					//System.out.println("Index: "+ i + ", " + displacementDirections.toString());					
 					List<Box> innerBoxes = generateVolumeAux(childNode, newParameters, displacementDirections);
 					voxels.addAll(innerBoxes);					
 				} 
 			}			
-			System.out.println("<< Internal node ..");
+			//System.out.println("<< Internal node ..");
 		}
 		
 		return voxels;		
@@ -304,24 +166,28 @@ public class VolumeGenerator {
 		int posx = boxParameters.getCenterX() + (deltas.deltaX * boxParameters.getBoxSize() / 2);
 		int posy = boxParameters.getCenterY() + (deltas.deltaY * boxParameters.getBoxSize() / 2);
 		int posz = boxParameters.getCenterZ() + (deltas.deltaZ * boxParameters.getBoxSize() / 2);		
+		System.out.println("x: " + boxParameters.getCenterX() + ", y: " + boxParameters.getCenterY() + ", z: " + boxParameters.getCenterY());
 		System.out.println("Position {x: " + posx + ", y: " + posy + ", z: " + posz + "}, Size: " + boxParameters.getBoxSize() + "\n");
+		int projectedX = posx/posz;
+		int projectedY = posy/posz;
+		System.out.println("Projected x: " + projectedX + ", projected y: " + projectedY);
+		int lowerLeftYValue = projectedY + boxParameters.getBoxSize();
+		int transformedValue = this.transformedArray[projectedX][lowerLeftYValue];
+		System.out.println("transformedValue: " + transformedValue);
+		Color diffuseColor;
+		if(transformedValue >= boxParameters.getBoxSize()) {
+			diffuseColor = Color.BLACK;
+		}
+		else {
+			diffuseColor = Color.GRAY;
+		}
 		
 		box.setTranslateX(posx);
 		box.setTranslateY(posy);
 		box.setTranslateZ(posz);
 		
-		//Color.BLUE;
-		//Color.
-		
 		PhongMaterial textureMaterial = new PhongMaterial();
-		Color diffuseColor = nodeColor;
-		/*
-		if (nodeColor == NodeColor.BLACK) {
-			diffuseColor = Color.BLACK;
-		} else if (nodeColor == NodeColor.GRAY) {
-			diffuseColor = Color.GRAY;
-		}*/
-		
+		//diffuseColor = nodeColor;
 		textureMaterial.setDiffuseColor(diffuseColor);
 		//textureMaterial.setDiffuseMap()
 		box.setMaterial(textureMaterial);
@@ -332,6 +198,22 @@ public class VolumeGenerator {
 	
 	public Group getVolume() {
 		return octreeVolume;
+	}
+
+	public int[][] getSourceArray() {
+		return sourceArray;
+	}
+
+	public void setSourceArray(int[][] sourceArray) {
+		this.sourceArray = sourceArray;
+	}
+
+	public int[][] getTransformedArray() {
+		return transformedArray;
+	}
+
+	public void setTransformedArray(int[][] transformedArray) {
+		this.transformedArray = transformedArray;
 	}
 
 }

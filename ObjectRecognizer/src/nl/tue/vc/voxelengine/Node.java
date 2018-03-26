@@ -12,6 +12,10 @@ public abstract class Node {
 		return color;
 	}
 	
+	public void setColor(Color newColor) {
+		color = newColor;
+	}
+	
 	public int getBoxSize() {
 		return boxSize;
 	}

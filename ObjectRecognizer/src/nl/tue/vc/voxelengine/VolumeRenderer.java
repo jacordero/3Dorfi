@@ -7,9 +7,11 @@ import javafx.scene.Group;
 import javafx.scene.PerspectiveCamera;
 import javafx.scene.PointLight;
 import javafx.scene.Scene;
+import javafx.scene.paint.Color;
 import javafx.scene.transform.Rotate;
 import javafx.stage.Stage;
 import javafx.util.Duration;
+import nl.tue.vc.application.visual.IntersectionTest;
 
 
 public class VolumeRenderer extends Application {
@@ -33,9 +35,11 @@ public class VolumeRenderer extends Application {
 		boxParameters.setCenterZ(SCENE_DEPTH/2);
 		
 		Octree octree = new Octree(boxSize);
-		octree.generateOctreeFractal(boxSize, 2);
-		System.out.println(octree.getRoot().toString());
-		VolumeGenerator volGenerator = new VolumeGenerator(octree, boxParameters);
+		octree.generateOctreeFractal(boxSize, 0);
+		octree.setBoxParameters(boxParameters);
+		octree = IntersectionTest.testIntersection(octree);
+		//System.out.println(octree.getRoot().toString());
+		VolumeGenerator volGenerator = new VolumeGenerator(octree, boxParameters, new int[1][1], new int[1][1]);
 				
 		// Create a Light
 		PointLight light = new PointLight();
@@ -45,9 +49,9 @@ public class VolumeRenderer extends Application {
 		
 		// Create a Camera to view the 3D shape
 		PerspectiveCamera camera = new PerspectiveCamera(false);
-		camera.setTranslateX(100);
-		camera.setTranslateY(-50);
-		camera.setTranslateZ(300);
+		camera.setTranslateX(0);
+		camera.setTranslateY(0);
+		camera.setTranslateZ(0);
 				
 		// Add the shapes and the light to the group
 		

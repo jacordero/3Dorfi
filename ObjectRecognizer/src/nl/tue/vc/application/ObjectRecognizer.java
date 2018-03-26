@@ -7,7 +7,9 @@ import javafx.stage.Stage;
 import javafx.scene.Group;
 import javafx.scene.Scene;
 import javafx.scene.layout.BorderPane;
+import javafx.scene.layout.VBox;
 import javafx.scene.shape.Box;
+import javafx.scene.shape.Line;
 import javafx.fxml.FXMLLoader;
 
 /**
@@ -35,6 +37,20 @@ public class ObjectRecognizer extends Application {
 //			box.setDepth(200.0);
 //			Creating a Group object
 //			Group root = new Group(box);
+			
+//			VBox box = new VBox();
+//	        final Scene scene = new Scene(box,300, 250);
+//	        scene.setFill(null);
+//	        
+//	        Line line = new Line();
+//	        line.setStartX(0.0f);
+//	        line.setStartY(0.0f);
+//	        line.setEndX(100.0f);
+//	        line.setEndY(0.0f);
+//	        
+//	        box.getChildren().add(line);
+//	        primaryStage.setScene(scene);
+//	        primaryStage.show();
 
 			// set a whitesmoke background
 			root.setStyle("-fx-background-color: whitesmoke;");
@@ -56,6 +72,9 @@ public class ObjectRecognizer extends Application {
 	}
 
 	public static void main(String[] args) {
+		String libPath = System.getProperty("java.library.path");
+		System.out.println("Library path; " + libPath);
+		System.out.println("Library; " + Core.NATIVE_LIBRARY_NAME);
 		// load the native OpenCV library
 		System.loadLibrary(Core.NATIVE_LIBRARY_NAME);
 

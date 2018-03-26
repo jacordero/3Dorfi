@@ -161,7 +161,7 @@ public class SilhouetteExtractor {
 				segmentedImage.put(i, j, whitePixel);
 			}
 			
-			System.out.println("Start: " + startRegion + ", end: " + endRegion);
+			//System.out.println("Start: " + startRegion + ", end: " + endRegion);
 			
 			if (endRegion > startRegion) {
 				for (int j = startRegion; j <= endRegion; j++) {

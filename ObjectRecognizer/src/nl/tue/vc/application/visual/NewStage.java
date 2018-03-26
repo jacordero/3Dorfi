@@ -27,42 +27,44 @@ public class NewStage {
 	private static final int SCENE_HEIGHT = 600;
 	private static final int SCENE_DEPTH = 400;
 
-	public NewStage(Mat processedImage) {
-		System.out.println("NewStage called");
-		try {
-			
-			BufferedImage convertedMat = IntersectionTest.Mat2BufferedImage(processedImage);
-			
-			//Raster raster = IntersectionTest.loadImageRaster("C:\\Tools\\eclipse\\workspace\\objectrecognizer\\ObjectRecognizer\\images\\football.jpg");
-			Raster raster = IntersectionTest.binarizeImage(convertedMat).getData();
-			for(int x = 0; x<raster.getWidth(); x++) {
-				for(int y = 0; y<raster.getHeight(); y++) {
-					System.out.println("pixel("+x+", "+y+") = " + raster.getSampleDouble(x, y, 0));
-				}
-			}	
-		} catch (IOException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		} catch (Exception e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
+	public NewStage(Mat processedImage, int boxSize, int level) throws Exception {
 		
+		BufferedImage convertedMat = IntersectionTest.Mat2BufferedImage(processedImage);	
+		System.out.println("Converted mat width = " + convertedMat.getWidth() + ", height = " + convertedMat.getHeight());
+		int[][] sourceArray = IntersectionTest.getBinaryArray(convertedMat);
+		System.out.println("binary array rows = " + sourceArray.length + ", cols = " + sourceArray[0].length);
+		for (int x = 0; x < sourceArray.length; x++) {
+			for (int y = 0; y < sourceArray[x].length; y++) {
+				System.out.print(sourceArray[x][y] + " ");
+			}
+			System.out.println("");
+		}
+		int[][] transformedArray = IntersectionTest.getTransformedArray(sourceArray);
+		System.out.println("transformedArray array rows = " + transformedArray.length + ", cols = " + transformedArray[0].length);
+		// print the contents of transformedArray
+		for (int x = 0; x < transformedArray.length; x++) {
+			for (int y = 0; y < transformedArray[x].length; y++) {
+				System.out.print(transformedArray[x][y] + " ");
+			}
+			System.out.println("");
+		}
+					
 		Stage primaryStage = new Stage();
 
 		// configure values for the volume to render
 		BoxParameters boxParameters = new BoxParameters();
 
-		int boxSize = 256;
+		
 		boxParameters.setBoxSize(boxSize);
 		boxParameters.setCenterX(SCENE_WIDTH / 2);
 		boxParameters.setCenterY(SCENE_HEIGHT / 2);
 		boxParameters.setCenterZ(SCENE_DEPTH / 2);
 
 		Octree octree = new Octree(boxSize);
-		octree.generateOctreeFractal(boxSize, 2);
+		octree.generateOctreeFractal(boxSize, level);
 		System.out.println(octree.getRoot().toString());
-		VolumeGenerator volGenerator = new VolumeGenerator(octree, boxParameters);
+	
+		VolumeGenerator volGenerator = new VolumeGenerator(octree, boxParameters, sourceArray, transformedArray);
 
 		Group root = volGenerator.getVolume();
 		// FlowPane root = new FlowPane();

@@ -245,24 +245,32 @@ public class ObjectRecognizerController {
 	updateView(transformedImage, Utils.mat2Image(binaryImage));
 	**/
 	
-//	try {
-//		
-//		BufferedImage convertedMat = IntersectionTest.Mat2BufferedImage(processedImage);
-//		
-//		//Raster raster = IntersectionTest.loadImageRaster("C:\\Tools\\eclipse\\workspace\\objectrecognizer\\ObjectRecognizer\\images\\football.jpg");
+	try {
+		
+		BufferedImage convertedMat = IntersectionTest.Mat2BufferedImage(processedImage);
+		
+		//Raster raster = IntersectionTest.loadImageRaster("C:\\Tools\\eclipse\\workspace\\objectrecognizer\\ObjectRecognizer\\images\\football.jpg");
 //		Raster raster = IntersectionTest.binarizeImage(convertedMat).getData();
 //		for(int x = 0; x<raster.getWidth(); x++) {
 //			for(int y = 0; y<raster.getHeight(); y++) {
 //				System.out.println("pixel("+x+", "+y+") = " + raster.getSampleDouble(x, y, 0));
 //			}
-//		}	
-//	} catch (IOException e) {
-//		// TODO Auto-generated catch block
-//		e.printStackTrace();
-//	} catch (Exception e) {
-//		// TODO Auto-generated catch block
-//		e.printStackTrace();
-//	}
+//		}
+		System.out.println("Converted mat width = " + convertedMat.getWidth() + ", height = " + convertedMat.getHeight());
+		int[][] result = IntersectionTest.getBinaryArray(convertedMat);
+		System.out.println("binary array rows = " + result.length + ", cols = " + result[0].length);
+		for (int x = 0; x < result.length; x++) {
+			for (int y = 0; y < result[x].length; y++) {				
+				//System.out.println("pixel(" + x + ", " + y + ") = " + result[x][y]);
+			}
+		}
+	} catch (IOException e) {
+		// TODO Auto-generated catch block
+		e.printStackTrace();
+	} catch (Exception e) {
+		// TODO Auto-generated catch block
+		e.printStackTrace();
+	}
 		
 }
 
@@ -511,7 +519,15 @@ private void updateView(ImageView view, Image image){
 	 */
 	@FXML
 	protected void constructModel() {
-		new NewStage(this.processedExtractedImage);
+		int boxSize = 100;
+		int level = 3;
+		System.out.println("height = " + this.processedExtractedImage.size().height + ", width = " + this.processedExtractedImage.size().width);
+		try {
+			new NewStage(this.processedExtractedImage, boxSize, level);
+		} catch (Exception e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
 	}
 
 	/**
