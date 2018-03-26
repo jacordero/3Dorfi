@@ -33,15 +33,20 @@ public class VolumeRenderer {
 	private PointLight light;
 	private SubScene subScene;
 	private Octree octree;
+	private VolumeGenerator volumeGenerator;
+	
 	
 	public VolumeRenderer() {
 		this.octree = null;
+		//this.octree = new Octree(ApplicationConfiguration.getInstance().getVolumeBoxSize());
 		configVolumeScene();
+		volumeGenerator = new VolumeGenerator(octree, volumeBoxParameters, new int[1][1], new int[1][1]);
 	}
 	
 	public VolumeRenderer(Octree octree) {
 		this.octree = octree;
 		configVolumeScene();
+		volumeGenerator = new VolumeGenerator(octree, volumeBoxParameters, new int[1][1], new int[1][1]);
 	}
 	
 	private void configVolumeScene() {
@@ -88,9 +93,9 @@ public class VolumeRenderer {
 		//System.out.println(octree.getRoot().toString());
 		//volumeGenerator = new VolumeGenerator(octree, volumeBoxParameters);
 		if (octree == null) {
-			root3D = VolumeGenerator.getDefaultVolume(volumeBoxParameters);
+			root3D = volumeGenerator.getDefaultVolume(volumeBoxParameters);
 		} else {
-			root3D = VolumeGenerator.generateVolume(octree, volumeBoxParameters);
+			root3D = volumeGenerator.generateVolume(volumeBoxParameters);
 		}
 		
 		RotateTransition rotation = new RotateTransition(Duration.seconds(20), root3D);

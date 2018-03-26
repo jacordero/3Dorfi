@@ -31,8 +31,8 @@ public class VolumeRendererApplication extends Application {
 		boxParameters.setCenterZ(SCENE_DEPTH/2);
 		
 		Octree octree = new Octree(boxSize);
-		octree.generateOctreeFractal(boxSize, 2);
-		System.out.println(octree.getRoot().toString());
+		//octree.generateOctreeFractal(boxSize, 2);
+		//System.out.println(octree.getRoot().toString());
 		//VolumeGenerator volGenerator = new VolumeGenerator(octree, boxParameters);
 				
 		// Create a Light
@@ -49,7 +49,8 @@ public class VolumeRendererApplication extends Application {
 				
 		// Add the shapes and the light to the group
 		
-		Group root = VolumeGenerator.getDefaultVolume(boxParameters);
+		VolumeGenerator volumeGenerator = new VolumeGenerator(octree, boxParameters, new int[1][1], new int[1][1]);
+		Group root = volumeGenerator.getDefaultVolume(boxParameters);
 		
 	
 		RotateTransition rotation = new RotateTransition(Duration.seconds(20), root);

@@ -10,7 +10,22 @@ import javafx.scene.shape.Box;
 
 public class VolumeGenerator {
 	
-	
+	private Octree octree;
+	private Group octreeVolume;
+	private int[][] sourceArray;
+	private int[][] transformedArray;
+		
+	public VolumeGenerator(Octree octree, BoxParameters boxParameters, int[][] sourceBinaryArray, int[][] transformedBinaryArray) {
+		this.octree = octree;
+		this.sourceArray = sourceBinaryArray;
+		this.transformedArray = transformedBinaryArray;
+		if (octree == null) {
+			this.octreeVolume = getDefaultVolume(boxParameters);
+		} else {
+			this.octreeVolume = generateVolume(boxParameters);			
+		}
+	}
+		
 	private Box generateTestBox(int size, int posx, int posy, int posz, Color color) {
 		Box box = new Box(size, size, size);
 		box.setTranslateX(posx);
@@ -122,7 +137,7 @@ public class VolumeGenerator {
 		System.out.println(str);
 	}
 	
-	public static Group generateVolume(Octree octree, BoxParameters boxParameters) {
+	public Group generateVolume(BoxParameters boxParameters) {
 		Group volume = new Group();
 		Node root = octree.getRoot();
 		
@@ -130,12 +145,11 @@ public class VolumeGenerator {
 		deltas.deltaX = 0;
 		deltas.deltaY = 0;
 		deltas.deltaZ = 0;
-		
+		System.out.println("Children: " + root.getChildren().length);
 		// First line of children
 		for (int i = 0; i < root.getChildren().length; i++) {
 
 			DeltaStruct displacementDirections = computeDeltaDirections(i);
-
 			int newBoxSize = boxParameters.getBoxSize()/2;
 			BoxParameters childrenParameters = new BoxParameters();
 			childrenParameters.setBoxSize(newBoxSize);
@@ -150,24 +164,30 @@ public class VolumeGenerator {
 			volume.getChildren().addAll(voxels);
 		}
 		
+		List<Box> voxels = generateVolumeAux(root, boxParameters, deltas);
+		volume.getChildren().addAll(voxels);
 		return volume;
 	}
 	
 	
-	private static List<Box> generateVolumeAux(Node currentNode, BoxParameters currentParameters, DeltaStruct currentDeltas) {
+	private List<Box> generateVolumeAux(Node currentNode, BoxParameters currentParameters, DeltaStruct currentDeltas) {
 		// now we only care about the relative center position and the size of each cube
-		String debugStr = "gva center position {x: " + currentParameters.getCenterX() + ", y: " + 
-		currentParameters.getCenterY() + ", z: " + currentParameters.getCenterZ() + " }";		
+		//String debugStr = "gva center position {x: " + currentParameters.getCenterX() + ", y: " + 
+		//currentParameters.getCenterY() + ", z: " + currentParameters.getCenterZ() + " }";		
 		//System.out.println(debugStr);
 		
 				
 		List<Box> voxels = new ArrayList<Box>();
 		
+		if (currentNode == null) {
+			return voxels;
+		}
+		
 		if (currentNode.isLeaf()) {
 			// working with leafs
 			// ignore nodes with white color
 			if (currentNode.getColor() != Color.WHITE) {
-			Box box = generateVoxel(currentParameters, currentDeltas, currentNode.getColor());
+				Box box = generateVoxel(currentParameters, currentDeltas, currentNode.getColor());
 				voxels.add(box);				
 			}
 			
@@ -193,7 +213,6 @@ public class VolumeGenerator {
 					DeltaStruct displacementDirections = computeDeltaDirections(i);
 
 					//System.out.println("Index: "+ i + ", " + displacementDirections.toString());
-										
 					List<Box> innerBoxes = generateVolumeAux(childNode, newParameters, displacementDirections);
 					voxels.addAll(innerBoxes);					
 				} 
@@ -204,7 +223,7 @@ public class VolumeGenerator {
 		return voxels;		
 	}
 	
-	private static DeltaStruct computeDeltaDirections(int index) {
+	private DeltaStruct computeDeltaDirections(int index) {
 		DeltaStruct deltas = new DeltaStruct();
 		switch (index) {
 		case 0:
@@ -257,29 +276,56 @@ public class VolumeGenerator {
 	// Make the X, Y, and Z coordinates start at the corner of the first (0) node
 	// and translate the rest of the nodes to their respective positions
 	// Get rid of the center stuff
-	private static Box generateVoxel(BoxParameters boxParameters, DeltaStruct deltas, Color nodeColor) {
+	private Box generateVoxel(BoxParameters boxParameters, DeltaStruct deltas, Color nodeColor) {
 		Box box = new Box(boxParameters.getBoxSize(), boxParameters.getBoxSize(), boxParameters.getBoxSize());
 		
 		int posx = boxParameters.getCenterX() + (deltas.deltaX * boxParameters.getBoxSize() / 2);
 		int posy = boxParameters.getCenterY() + (deltas.deltaY * boxParameters.getBoxSize() / 2);
 		int posz = boxParameters.getCenterZ() + (deltas.deltaZ * boxParameters.getBoxSize() / 2);		
-		//System.out.println("Position {x: " + posx + ", y: " + posy + ", z: " + posz + "}, Size: " + boxParameters.getBoxSize() + "\n");
+		System.out.println("x: " + boxParameters.getCenterX() + ", y: " + boxParameters.getCenterY() + ", z: " + boxParameters.getCenterY());
+		System.out.println("Position {x: " + posx + ", y: " + posy + ", z: " + posz + "}, Size: " + boxParameters.getBoxSize() + "\n");
+		int projectedX = posx/posz;
+		int projectedY = posy/posz;
+		System.out.println("Projected x: " + projectedX + ", projected y: " + projectedY);
+		
+		// TODO: Test the computation of the transformed value for different generated volumes.
+		Color diffuseColor;	
+		int lowerLeftYValue = projectedY + boxParameters.getBoxSize();
+		int transformedValue;
+		if (projectedX >= this.transformedArray.length ||lowerLeftYValue >= this.transformedArray[0].length) {
+			transformedValue = -1;
+			System.out.println("Something weird happened here!!!");
+		} else {
+			transformedValue = this.transformedArray[projectedX][lowerLeftYValue];	
+		}
+		
+		System.out.println("transformedValue: " + transformedValue);
+		
+		if(transformedValue >= boxParameters.getBoxSize()) {
+			diffuseColor = Color.BLACK;
+		}
+		else {
+			diffuseColor = Color.GRAY;
+		}
 		
 		box.setTranslateX(posx);
 		box.setTranslateY(posy);
 		box.setTranslateZ(posz);
-		
-		
+			
 		PhongMaterial textureMaterial = new PhongMaterial();
-		Color diffuseColor = nodeColor;
-		
+//		Color diffuseColor = nodeColor;		
 		textureMaterial.setDiffuseColor(diffuseColor);
 		box.setMaterial(textureMaterial);
 
 		return box;
 	}
+	
+	
+	public Group getVolume() {
+		return octreeVolume;
+	}
 
-	public static Group getDefaultVolume(BoxParameters boxParameters) {
+	public Group getDefaultVolume(BoxParameters boxParameters) {
 		DeltaStruct deltas = new DeltaStruct();
 		deltas.deltaX = 0;
 		deltas.deltaY = 0;
@@ -289,5 +335,21 @@ public class VolumeGenerator {
 		volume.getChildren().addAll(box);
 		return volume;
 	}
-	
+
+	public int[][] getSourceArray() {
+		return sourceArray;
+	}
+		
+	public void setSourceArray(int[][] sourceArray) {
+		this.sourceArray = sourceArray;
+	}
+
+	public int[][] getTransformedArray() {
+		return transformedArray;
+	}
+
+	public void setTransformedArray(int[][] transformedArray) {
+		this.transformedArray = transformedArray;
+	}
+
 }

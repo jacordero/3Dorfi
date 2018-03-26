@@ -1,5 +1,6 @@
 package nl.tue.vc.application;
 
+import java.awt.image.BufferedImage;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -40,6 +41,7 @@ import javafx.scene.layout.VBox;
 import javafx.stage.FileChooser;
 import javafx.stage.Stage;
 import nl.tue.vc.application.utils.Utils;
+import nl.tue.vc.application.visual.IntersectionTest;
 import nl.tue.vc.imgproc.CameraController;
 import nl.tue.vc.imgproc.HistogramGenerator;
 import nl.tue.vc.imgproc.SilhouetteExtractor;
@@ -124,7 +126,7 @@ public class ObjectRecognizerController {
 	// a flag to change the button behavior
 	private boolean cameraActive;
 	// the saved chessboard image
-	private Mat savedImage;
+	private Mat savedImage, processedExtractedImage;
 	// the calibrated camera frame
 	private Image undistoredImage,CamStream;
 	// various variables needed for the calibration
@@ -152,13 +154,11 @@ public class ObjectRecognizerController {
 	ListView<String> processedImagesView = new ListView<>();
 	ObservableList<String> processedImagesNames = FXCollections.observableArrayList();
 	
+	List<BufferedImage> bufferedImagesForTest = new ArrayList<>();
 	
 	
 	// the main stage
 	private Stage stage;
-	// The rootGroup
-	private BorderPane rootGroup;
-	
 	// the JavaFX file chooser
 	private FileChooser fileChooser;
 	// support variables
@@ -166,6 +166,10 @@ public class ObjectRecognizerController {
 	private List<Mat> planes;
 	// the final complex image
 	private Mat complexImage;
+	private double calibrationResult = 0;
+
+	// The rootGroup
+	private BorderPane rootGroup;
 
 	private VolumeRenderer volumeRenderer;
 	
@@ -344,6 +348,13 @@ protected void extractSilhouettes(){
 	for (Mat image: loadedImages) {
 		silhouetteExtractor.extract(image);
 		segmentedImages.add(silhouetteExtractor.getSegmentedImage());
+		
+		try {
+			bufferedImagesForTest.add(IntersectionTest.Mat2BufferedImage(silhouetteExtractor.getBinaryImage()));
+		} catch (Exception e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
 
 		processedImages.add(silhouetteExtractor.getSegmentedImage());
 		processedImagesNames.add("sg_" + imgId);

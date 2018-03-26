@@ -13,13 +13,6 @@ import nl.tue.vc.application.ApplicationConfiguration;
 public class SilhouetteExtractor {
 
 	
-	//private static Mat 
-	
-//	private static final int LEFT_LIMIT = 30;
-//	private static final int RIGHT_LIMIT = 370;
-//	private static final int TOP_LIMIT = 20;
-//	private static final int LOWER_LIMIT = 280;
-	
 	private int leftLimit;
 	private int rightLimit;
 	private int topLimit;
