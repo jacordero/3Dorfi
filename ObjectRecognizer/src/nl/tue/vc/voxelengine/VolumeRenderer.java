@@ -71,8 +71,7 @@ public class VolumeRenderer {
 		// Create point light
 		light.setTranslateX(lightPositionX);
 		light.setTranslateY(lightPositionY);
-		light.setTranslateZ(lightPositionZ);
-		
+		light.setTranslateZ(lightPositionZ);		
 		buildCamera();
 	}
 	

@@ -19,6 +19,7 @@ public class VolumeGenerator {
 		this.octree = octree;
 		this.sourceArray = sourceBinaryArray;
 		this.transformedArray = transformedBinaryArray;
+
 		if (octree == null) {
 			this.octreeVolume = getDefaultVolume(boxParameters);
 		} else {

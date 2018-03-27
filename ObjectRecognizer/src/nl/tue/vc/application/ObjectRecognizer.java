@@ -38,6 +38,7 @@ public class ObjectRecognizer extends Application {
 			volumeRenderer.generateVolumeScene();
 			volumeScene = volumeRenderer.getSubScene();			
 			rootGroup = (BorderPane) loader.load();
+
 			// set a whitesmoke background
 			rootGroup.setStyle("-fx-background-color: whitesmoke;");
 			rootGroup.setCenter(volumeScene);
@@ -61,8 +62,7 @@ public class ObjectRecognizer extends Application {
 		}
 	}
 
-	public static void main(String[] args)
-	{
+	public static void main(String[] args) {
 		String libPath = System.getProperty("java.library.path");
 		System.out.println("Library path; " + libPath);
 		System.out.println("Library; " + Core.NATIVE_LIBRARY_NAME);
