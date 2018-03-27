@@ -242,7 +242,7 @@ public class ObjectRecognizerController {
 		if (!this.cameraActive)
 		{
 			// start the video capture
-			this.capture.open(0);
+			this.capture.open(1);
 
 			// is the video stream available?
 			if (this.capture.isOpened())
