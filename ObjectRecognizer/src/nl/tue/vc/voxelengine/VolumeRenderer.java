@@ -1,5 +1,7 @@
 package nl.tue.vc.voxelengine;
 
+import java.util.List;
+
 import javafx.animation.Animation;
 import javafx.animation.RotateTransition;
 import javafx.scene.Group;
@@ -40,13 +42,20 @@ public class VolumeRenderer {
 		this.octree = null;
 		//this.octree = new Octree(ApplicationConfiguration.getInstance().getVolumeBoxSize());
 		configVolumeScene();
-		volumeGenerator = new VolumeGenerator(octree, volumeBoxParameters, new int[1][1], new int[1][1]);
+		volumeGenerator = new VolumeGenerator(octree, volumeBoxParameters);
 	}
 	
 	public VolumeRenderer(Octree octree) {
 		this.octree = octree;
 		configVolumeScene();
-		volumeGenerator = new VolumeGenerator(octree, volumeBoxParameters, new int[1][1], new int[1][1]);
+		volumeGenerator = new VolumeGenerator(octree, volumeBoxParameters);
+	}
+	
+	public VolumeRenderer(Octree octree, List<int[][]> sourceBinaryArrays,
+			List<int[][]> transformedBinaryArrays) {
+		this.octree = octree;
+		configVolumeScene();
+		volumeGenerator = new VolumeGenerator(octree, volumeBoxParameters, sourceBinaryArrays, transformedBinaryArrays);
 	}
 	
 	private void configVolumeScene() {
@@ -83,8 +92,8 @@ public class VolumeRenderer {
 		
 		Rotate rx = new Rotate(-30, Rotate.X_AXIS);
 		Rotate ry = new Rotate(30, Rotate.Y_AXIS);
-		camera.getTransforms().add(rx);
-		camera.getTransforms().add(ry);
+//		camera.getTransforms().add(rx);
+//		camera.getTransforms().add(ry);
 	}
 	
 	public void generateVolumeScene() {
@@ -108,7 +117,8 @@ public class VolumeRenderer {
 		
 		subScene = new SubScene(root3D, sceneWidth, sceneHeight, true, SceneAntialiasing.BALANCED);
 		subScene.setCamera(camera);
-		subScene.setFill(Color.CADETBLUE);
+		//subScene.setFill(Color.CADETBLUE);
+		subScene.setFill(Color.WHITE);
 		//setListeners(true);
 	}
 	

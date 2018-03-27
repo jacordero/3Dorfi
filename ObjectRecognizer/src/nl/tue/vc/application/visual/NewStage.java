@@ -3,6 +3,8 @@ package nl.tue.vc.application.visual;
 import java.awt.image.BufferedImage;
 import java.awt.image.Raster;
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
 
 import org.opencv.core.Mat;
 
@@ -61,8 +63,11 @@ public class NewStage {
 		Octree octree = new Octree(boxSize);
 		octree.generateOctreeFractal(boxSize, level);
 		System.out.println(octree.getRoot().toString());
-	
-		VolumeGenerator volGenerator = new VolumeGenerator(octree, boxParameters, sourceArray, transformedArray);
+		List<int[][]> sourceArrays = new ArrayList<int[][]>();
+		sourceArrays.add(sourceArray);
+		List<int[][]> transformedArrays = new ArrayList<int[][]>();
+		transformedArrays.add(transformedArray);
+		VolumeGenerator volGenerator = new VolumeGenerator(octree, boxParameters, sourceArrays, transformedArrays);
 
 		Group root = volGenerator.getVolume();
 		// FlowPane root = new FlowPane();

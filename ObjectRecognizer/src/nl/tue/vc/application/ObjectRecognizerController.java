@@ -155,7 +155,9 @@ public class ObjectRecognizerController {
 	private Mat intrinsic;
 	private Mat distCoeffs;
 	private boolean isCalibrated;
-
+	List<int[][]> sourceArrays = new ArrayList<int[][]>();
+	List<int[][]> transformedArrays = new ArrayList<int[][]>();
+	
 	//List<ImageView> imageViews = new ArrayList<>();
 
 	List<Mat> loadedImages = new ArrayList<>();
@@ -754,15 +756,30 @@ private void updateView(ImageView view, Image image){
 	 */
 	@FXML
 	protected void constructModel() {
-		int boxSize = 100;
-		int level = 3;
-		System.out.println("height = " + this.processedExtractedImage.size().height + ", width = " + this.processedExtractedImage.size().width);
-		try {
-			new NewStage(this.processedExtractedImage, boxSize, level);
-		} catch (Exception e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
+		//System.out.println("height = " + this.processedExtractedImage.size().height + ", width = " + this.processedExtractedImage.size().width);
+		for(BufferedImage convertedMat : this.bufferedImagesForTest) {	
+			//System.out.println("Converted mat width = " + convertedMat.getWidth() + ", height = " + convertedMat.getHeight());
+			int[][] sourceArray = IntersectionTest.getBinaryArray(convertedMat);
+			//System.out.println("binary array rows = " + sourceArray.length + ", cols = " + sourceArray[0].length);
+			for (int x = 0; x < sourceArray.length; x++) {
+				for (int y = 0; y < sourceArray[x].length; y++) {
+					//System.out.print(sourceArray[x][y] + " ");
+				}
+				//System.out.println("");
+			}
+			sourceArrays.add(sourceArray);
+			int[][] transformedArray = IntersectionTest.getTransformedArray(sourceArray);
+			//System.out.println("transformedArray array rows = " + transformedArray.length + ", cols = " + transformedArray[0].length);
+			// print the contents of transformedArray
+			for (int x = 0; x < transformedArray.length; x++) {
+				for (int y = 0; y < transformedArray[x].length; y++) {
+					//System.out.print(transformedArray[x][y] + " ");
+				}
+				//System.out.println("");
+			}
+			transformedArrays.add(transformedArray);
 		}
+			
 	}
 
 	/**
@@ -778,13 +795,13 @@ private void updateView(ImageView view, Image image){
 		//cameraPositionZ = 300;
 		cameraPosition.positionAxisX = 0;
 		cameraPosition.positionAxisY = 0;
-		cameraPosition.positionAxisZ = 300;
+		cameraPosition.positionAxisZ = 0;
 		
 		Octree octree = new Octree(boxSize);
-		octree.generateOctreeTest(boxSize);
+		octree.generateOctreeTest(boxSize, 3);
 
 		// try not create another volume renderer object to recompute the octree visualization
-		volumeRenderer = new VolumeRenderer(octree);
+		volumeRenderer = new VolumeRenderer(octree, this.sourceArrays, this.transformedArrays);
 		volumeRenderer.generateVolumeScene();
 		rootGroup.setCenter(volumeRenderer.getSubScene());
 	}

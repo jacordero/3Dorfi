@@ -49,6 +49,10 @@ public class Octree {
 		generateOctreeFractal(parentBoxSize, level);
 	}
 	
+	public void generateOctreeTest(int parentBoxSize, int level) {
+		System.out.println("Level for octree test: " + level);
+		generateOctreeFractal(parentBoxSize, level);
+	}
 	
 	private Node generateOctreeFractalAux(int parentBoxSize, int level) {
 		int nodesBoxSize = parentBoxSize / 2;
