@@ -286,6 +286,7 @@ public class VolumeGenerator {
 		System.out.println("Position {x: " + posx + ", y: " + posy + ", z: " + posz + "}, Size: " + boxParameters.getBoxSize() + "\n");
 		int projectedX = posx/posz;
 		int projectedY = posy/posz;
+		System.out.println("Transformed array dimensions: " + this.transformedArray.length + ", " + this.transformedArray[0].length);
 		System.out.println("Projected x: " + projectedX + ", projected y: " + projectedY);
 		
 		// TODO: Test the computation of the transformed value for different generated volumes.

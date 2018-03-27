@@ -370,6 +370,7 @@ protected void extractSilhouettes(){
 			bufferedImagesForTest.add(IntersectionTest.Mat2BufferedImage(silhouetteExtractor.getBinaryImage()));
 		} catch (Exception e) {
 			// TODO Auto-generated catch block
+			System.out.println("Something went really wrong!!!");
 			e.printStackTrace();
 		}
 		
