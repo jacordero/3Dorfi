@@ -3,34 +3,47 @@ package nl.tue.vc.application;
 import org.opencv.core.Core;
 
 import javafx.application.Application;
-import javafx.stage.Stage;
-import javafx.scene.Scene;
-import javafx.scene.layout.BorderPane;
 import javafx.fxml.FXMLLoader;
+import javafx.scene.Scene;
+import javafx.scene.SubScene;
+import javafx.scene.layout.BorderPane;
+import javafx.stage.Stage;
+import nl.tue.vc.voxelengine.CameraPosition;
+import nl.tue.vc.voxelengine.VolumeRenderer;
 
 /**
  *
  * This application opens an image stored on disk and perform the Object recognition and transformation
- * transformation and antitranformation.
+ * transformation and anti transformation.
  *
  */
-public class ObjectRecognizer extends Application
-{
+public class ObjectRecognizer extends Application {
 	// the main stage
 	private Stage primaryStage;
 
+	public static final double SCENE_DEPTH = 400;
+	//private Scene volumeScene;
+	//private BorderPane rootGroup;
+	private SubScene volumeScene;
+	BorderPane rootGroup;
+	
+	
 	@Override
-	public void start(Stage primaryStage)
-	{
-		try
-		{
+	public void start(Stage primaryStage) {
+		try {
 			// load the FXML resource
 			FXMLLoader loader = new FXMLLoader(getClass().getResource("ObjectRecognizer.fxml"));
-			//loader.setController(new ObjectRecognizerController());
-			BorderPane root = (BorderPane) loader.load();
+			ApplicationConfiguration appConfig = ApplicationConfiguration.getInstance();
+			VolumeRenderer volumeRenderer = new VolumeRenderer();
+			volumeRenderer.generateVolumeScene();
+			volumeScene = volumeRenderer.getSubScene();			
+			rootGroup = (BorderPane) loader.load();
+
 			// set a whitesmoke background
-			root.setStyle("-fx-background-color: whitesmoke;");
-			Scene scene = new Scene(root, 800, 600);
+			rootGroup.setStyle("-fx-background-color: whitesmoke;");
+			rootGroup.setCenter(volumeScene);
+			
+			Scene scene = new Scene(rootGroup, appConfig.getWindowWidth(), appConfig.getWindowHeight());
 			scene.getStylesheets().add(getClass().getResource("application.css").toExternalForm());
 			// create the stage with the given title and the previously created scene
 			this.primaryStage = primaryStage;
@@ -41,19 +54,21 @@ public class ObjectRecognizer extends Application
 			// init the controller
 			ObjectRecognizerController controller = loader.getController();
 			controller.setStage(this.primaryStage);
+			controller.setRootGroup(rootGroup);
+			controller.setVolumeRenderer(volumeRenderer);
 			controller.init();
-		}
-		catch (Exception e)
-		{
+		} catch (Exception e) {
 			e.printStackTrace();
 		}
 	}
 
-	public static void main(String[] args)
-	{
+	public static void main(String[] args) {
+//		String libPath = System.getProperty("java.library.path");
+//		System.out.println("Library path; " + libPath);
+//		System.out.println("Library; " + Core.NATIVE_LIBRARY_NAME);
 		// load the native OpenCV library
 		System.loadLibrary(Core.NATIVE_LIBRARY_NAME);
-
+		
 		launch(args);
 	}
 }

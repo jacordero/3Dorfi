@@ -1,10 +1,17 @@
 package nl.tue.vc.application;
 
+import java.awt.image.BufferedImage;
+import java.awt.image.Raster;
 import java.io.File;
+import java.io.IOException;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Timer;
 import java.util.TimerTask;
+
+import javax.imageio.ImageIO;
 
 import org.opencv.calib3d.Calib3d;
 import org.opencv.core.Core;
@@ -22,18 +29,33 @@ import org.opencv.imgproc.Imgproc;
 import org.opencv.videoio.VideoCapture;
 
 import javafx.application.Platform;
+import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.fxml.FXML;
-import javafx.scene.Node;
 import javafx.scene.control.Button;
+import javafx.scene.control.CheckBox;
+import javafx.scene.control.ChoiceBox;
+import javafx.scene.control.ComboBox;
+import javafx.scene.control.Label;
+import javafx.scene.control.ListCell;
+import javafx.scene.control.ListView;
+import javafx.scene.control.Slider;
 import javafx.scene.control.TextField;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
-import javafx.scene.layout.HBox;
+import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.VBox;
 import javafx.stage.FileChooser;
 import javafx.stage.Stage;
 import nl.tue.vc.application.utils.Utils;
+import nl.tue.vc.application.visual.IntersectionTest;
+import nl.tue.vc.imgproc.CameraController;
+import nl.tue.vc.imgproc.HistogramGenerator;
+import nl.tue.vc.application.visual.NewStage;
+import nl.tue.vc.imgproc.SilhouetteExtractor;
+import nl.tue.vc.voxelengine.CameraPosition;
+import nl.tue.vc.voxelengine.Octree;
+import nl.tue.vc.voxelengine.VolumeRenderer;
 
 /**
  * The controller associated to the only view of our application. The
@@ -52,6 +74,10 @@ public class ObjectRecognizerController {
 	// a FXML button for performing the antitransformation
 	@FXML
 	private VBox vboxLeft;
+	
+	@FXML
+	private VBox vboxRight;
+	
 	@FXML
 	private ImageView transformedImage;
 	@FXML
@@ -84,14 +110,37 @@ public class ObjectRecognizerController {
 	@FXML
 	private TextField numVertCorners;
 
-	// a timer for acquiring the video stream
+	@FXML
+	private Slider cameraAxisX;
+	
+	@FXML
+	private Slider cameraAxisY;
+	
+	@FXML
+	private Slider cameraAxisZ;
+	
+	@FXML
+	private Slider binaryThreshold;
+	
+	@FXML
+	private Label thresholdLabel;
+	
+	@FXML
+	private ComboBox<String> segmentationAlgorithm;
+	
+	@FXML
+	private CheckBox debugSegmentation;
+	
+	// old timer
 	private Timer timer;
+	// a timer for acquiring the video stream
+	private Timer imageTimer;
 	// the OpenCV object that performs the video capture
 	private VideoCapture capture;
 	// a flag to change the button behavior
 	private boolean cameraActive;
 	// the saved chessboard image
-	private Mat savedImage;
+	private Mat savedImage, processedExtractedImage;
 	// the calibrated camera frame
 	private Image undistoredImage,CamStream;
 	// various variables needed for the calibration
@@ -106,9 +155,24 @@ public class ObjectRecognizerController {
 	private Mat intrinsic;
 	private Mat distCoeffs;
 	private boolean isCalibrated;
+	List<int[][]> sourceArrays = new ArrayList<int[][]>();
+	List<int[][]> transformedArrays = new ArrayList<int[][]>();
+	
+	//List<ImageView> imageViews = new ArrayList<>();
 
-	List<ImageView> imageViews = new ArrayList<>();
+	List<Mat> loadedImages = new ArrayList<>();
+	Map<String, Integer> loadedImagesDescription = new HashMap<>();
+	ListView<String> loadedImagesView = new ListView<>();
+	ObservableList<String> loadedImagesNames = FXCollections.observableArrayList();
 
+	List<Mat> segmentedImages = new ArrayList<>();
+	Map<String, Integer> processedImagesDescription = new HashMap<>();
+	ListView<String> processedImagesView = new ListView<>();
+	ObservableList<String> processedImagesNames = FXCollections.observableArrayList();
+	
+	List<BufferedImage> bufferedImagesForTest = new ArrayList<>();
+	
+	
 	// the main stage
 	private Stage stage;
 	// the JavaFX file chooser
@@ -118,11 +182,75 @@ public class ObjectRecognizerController {
 	private List<Mat> planes;
 	// the final complex image
 	private Mat complexImage;
+	private double calibrationResult = 0;
 
+	// The rootGroup
+	private BorderPane rootGroup;
+
+	private VolumeRenderer volumeRenderer;
+	
+	private SilhouetteExtractor silhouetteExtractor;
+	
+	private CameraController cameraController;
+	
+	private Mat cameraFrame;
+	
+	@FXML
+	private ImageView cameraFrameView;
+
+	private Timer videoTimer;
+
+	public static int SECOND = 1000;
+	
 	public ObjectRecognizerController() {
-
+		silhouetteExtractor = new SilhouetteExtractor();
+		cameraController = new CameraController();
+		cameraFrame = new Mat();
+		cameraFrameView = new ImageView();
+		videoTimer = new Timer();
 	}
 
+	@FXML
+	private void initialize() {
+		cameraAxisX.valueProperty().addListener((observable, oldValue, newValue) -> {
+			System.out.println("Camera axis X changed (newValue: " +  newValue.intValue() + ")");
+			updateCameraPositionAxisX(newValue.intValue());
+		});
+		
+		cameraAxisY.valueProperty().addListener((observable, oldValue, newValue) -> {
+			System.out.println("Camera axis Y changed (newValue: " +  newValue.intValue() + ")");
+			updateCameraPositionAxisY(newValue.intValue());
+		});
+
+		cameraAxisZ.valueProperty().addListener((observable, oldValue, newValue) -> {
+			System.out.println("Camera axis Z changed (newValue: " +  newValue.intValue() + ")");
+			updateCameraPositionAxisZ(newValue.intValue());
+		});
+		
+		binaryThreshold.valueProperty().addListener((observable, oldValue, newValue) -> {
+			//System.out.println("Binary treshold value changed (newValue: " +  newValue.intValue() + ")");
+			thresholdLabel.setText("Threshold: " + String.format("%.2f", newValue));
+			updateBinaryThreshold(newValue.intValue());
+		});		
+		
+		
+		//segmentationAlgorithm;
+		segmentationAlgorithm.getItems().add("Watersheed");
+		segmentationAlgorithm.getItems().add("Binarization");
+		segmentationAlgorithm.setValue("Watersheed");
+		
+		System.out.println(segmentationAlgorithm.getValue());
+
+		
+		startVideo();
+		//this.vboxLeft.getChildren().add(cameraFrameView);
+		this.vboxLeft.getChildren().add(loadedImagesView);
+		loadedImagesView.setMaxWidth(140);
+		this.vboxRight.getChildren().add(processedImagesView);
+		processedImagesView.setMaxWidth(140);
+	}
+	
+	
 	/**
 	 * Init the needed variables
 	 */
@@ -136,6 +264,7 @@ public class ObjectRecognizerController {
 		this.obj = new MatOfPoint3f();
 		this.imageCorners = new MatOfPoint2f();
 		this.savedImage = new Mat();
+		this.processedExtractedImage = new Mat();
 		this.undistoredImage = null;
 		this.imagePoints = new ArrayList<>();
 		this.objectPoints = new ArrayList<>();
@@ -154,24 +283,32 @@ public class ObjectRecognizerController {
 		//imageViews.add(this.originalImage2);
 
 		List<File> list = fileChooser.showOpenMultipleDialog(stage);
-		if (list != null) {
+
+		if (list != null) {			
+			// Clear content of previous images
+			//loadedImagesNames.clear();
+			//loadedImages.clear();
+			//loadedImagesDescription.clear();
+			
 			for (int i = 0; i < list.size(); i++) {
 
 				// show the open dialog window
 				// File file = this.fileChooser.showOpenDialog(this.stage);
 				File file = list.get(i);
+				
 				if (file != null) {
 					ImageView imageView = new ImageView();
 					// read the image in gray scale
 					this.image = Imgcodecs.imread(file.getAbsolutePath(), Imgcodecs.CV_LOAD_IMAGE_GRAYSCALE);
-					// show the image
-					this.updateImageView(imageView, Utils.mat2Image(this.image));
-					// set a fixed width
-					imageView.setFitWidth(50);
-					// preserve image ratio
-					imageView.setPreserveRatio(true);
-					imageViews.add(imageView);
-					this.vboxLeft.getChildren().add(imageView);
+					
+					// load the images into the listview
+					String imgName = file.getName().split("\\.")[0];
+					loadedImagesNames.add(imgName);
+					loadedImages.add(this.image);
+					loadedImagesDescription.put(imgName, loadedImages.size() - 1);
+					
+					//System.out.println(imgName);
+					
 					// empty the image planes and the image views if it is not the first
 					// loaded image
 					if (!this.planes.isEmpty()) {
@@ -179,43 +316,148 @@ public class ObjectRecognizerController {
 						this.transformedImage.setImage(null);
 						this.antitransformedImage.setImage(null);
 					}
-
 				}
 			}
+			showLoadedImages();
+		}			
+	}
+
+	public void showLoadedImages() {
+		loadedImagesView.setItems(loadedImagesNames);
+		loadedImagesView.setCellFactory(param -> new ListCell<String>() {
+            private ImageView imageView = new ImageView();
+            @Override
+            public void updateItem(String name, boolean empty) {
+                super.updateItem(name, empty);
+                if (empty) {
+                	System.out.println("Null information");
+                    setText(null);
+                    setGraphic(null);
+                } else {
+                	int imagePosition = loadedImagesDescription.get(name);
+                	System.out.println("Name: " + name +", Position: " + imagePosition);
+                	imageView.setImage(Utils.mat2Image(loadedImages.get(imagePosition)));
+					imageView.setFitWidth(100);
+					imageView.setPreserveRatio(true);
+                    setText("");
+                    setGraphic(imageView);
+                }
+            }
+        });
+	
+		loadedImagesView.setMaxWidth(140);
+		loadedImagesView.refresh();
+	}
+	
+/**
+ * The action triggered by pushing the button for apply the dft to the loaded
+ * image
+ * @throws InterruptedException 
+ */
+@FXML
+protected void extractSilhouettes(){
+	
+	// TODO: remove this hardcoded value
+	//int binaryThreshold = 50;
+	System.out.println("Extract silhouettes method was called...");
+
+	// First, clear the previous content. Then, load the new content
+	segmentedImages = new ArrayList<Mat>();
+
+	processedImagesView = new ListView<String>();
+	List<Mat> processedImages = new ArrayList<Mat>();
+	processedImagesNames = FXCollections.observableArrayList();
+	processedImagesDescription = new HashMap<String, Integer>();
+			
+	int imgId = 1;
+	for (Mat image: loadedImages) {
+		silhouetteExtractor.extract(image, segmentationAlgorithm.getValue());
+		segmentedImages.add(silhouetteExtractor.getSegmentedImage());
+		
+		try {
+			bufferedImagesForTest.add(IntersectionTest.Mat2BufferedImage(silhouetteExtractor.getBinaryImage()));
+		} catch (Exception e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		
+			processedImages.add(silhouetteExtractor.getSegmentedImage());
+			processedImagesNames.add("sg_" + imgId);
+			processedImagesDescription.put("sg_" + imgId, processedImages.size() - 1);
+
+		// show the processed images during the segmentation process
+		if (debugSegmentation.isSelected() && segmentationAlgorithm.getValue() == "Watersheed") {
+			processedImages.add(silhouetteExtractor.getBinaryImage());
+			processedImagesNames.add("bi_" + imgId);
+			processedImagesDescription.put("bi_" + imgId, processedImages.size() - 1);
+			
+			Mat histImage = HistogramGenerator.histogram(image);
+			processedImages.add(histImage);
+			processedImagesNames.add("hi_" + imgId);
+			processedImagesDescription.put("hi_" + imgId, processedImages.size() - 1);
+
+			processedImages.add(silhouetteExtractor.getNoiseFreeImage());
+			processedImagesNames.add("nf_" + imgId);
+			processedImagesDescription.put("nf_" + imgId, processedImages.size() - 1);
+
+			processedImages.add(silhouetteExtractor.getSureBackgroundImage());
+			processedImagesNames.add("sb_" + imgId);
+			processedImagesDescription.put("sb_" + imgId, processedImages.size() - 1);
+
+			processedImages.add(silhouetteExtractor.getSureBackgroundImage());
+			processedImagesNames.add("sf_" + imgId);
+			processedImagesDescription.put("sf_" + imgId, processedImages.size() - 1);
+
+			processedImages.add(silhouetteExtractor.getUnknownImage());
+			processedImagesNames.add("u_" + imgId);
+			processedImagesDescription.put("u_" + imgId, processedImages.size() - 1);			
 		}
 
+		imgId++;
 	}
 
-	/**
-	 * The action triggered by pushing the button for apply the dft to the loaded
-	 * image
-	 */
-	@FXML
-	protected void extractSilhouettes() {
-		// optimize the dimension of the loaded image
-		Mat padded = this.optimizeImageDim(this.image);
-		padded.convertTo(padded, CvType.CV_32F);
-		// prepare the image planes to obtain the complex image
-		this.planes.add(padded);
-		this.planes.add(Mat.zeros(padded.size(), CvType.CV_32F));
-		// prepare a complex image for performing the dft
-		Core.merge(this.planes, this.complexImage);
+	processedImagesView.setItems(processedImagesNames);
+	System.out.println(processedImagesDescription.keySet());
+	//System.out.println(x);
+	
+	processedImagesView.setCellFactory(param -> new ListCell<String>() {
+        private ImageView imageView = new ImageView();
+        @Override
+        public void updateItem(String name, boolean empty) {
+            super.updateItem(name, empty);
+            if (empty) {
+            	//System.out.println("Null information");
+                setText(null);
+                setGraphic(null);
+            } else {
+            	System.out.println("Name: " + name);
+            	System.out.println(processedImagesDescription.keySet());
+            	int imagePosition = processedImagesDescription.get(name);
+            	System.out.println("Name: " + name +", Position: " + imagePosition);
+            	imageView.setImage(Utils.mat2Image(processedImages.get(imagePosition)));
+				imageView.setFitWidth(100);
+				imageView.setPreserveRatio(true);
+                setText(name);
+                setGraphic(imageView);
+            }
+        }
+    });
 
-		// dft
-		Core.dft(this.complexImage, this.complexImage);
+	// to allow updating new elements for the list view
+	this.vboxRight.getChildren().clear();
+	this.vboxRight.getChildren().add(processedImagesView);
+}
 
-		// optimize the image resulting from the dft operation
-		Mat magnitude = this.createOptimizedMagnitude(this.complexImage);
+private void updateView(ImageView view, Image image){
+	
+	this.updateImageView(view, image);
+	// set a fixed width
+	this.transformedImage.setFitWidth(250);
+	// preserve image ratio
+	this.transformedImage.setPreserveRatio(true);
+	//Thread.sleep(milliseconds);		
+}
 
-		// show the result of the transformation as an image
-		this.updateImageView(transformedImage, Utils.mat2Image(magnitude));
-		// set a fixed width
-		this.transformedImage.setFitWidth(250);
-		// preserve image ratio
-		this.transformedImage.setPreserveRatio(true);
-		// disable the button for applying the dft
-		this.extractButton.setDisable(true);
-	}
 
 	/**
 	 * Store all the chessboard properties, update the UI and prepare other
@@ -356,9 +598,63 @@ public class ObjectRecognizerController {
 		return imageToShow;
 	}
 
+	
+	@FXML
+	protected void startVideo() {
+		cameraController.startCamera();
+		TimerTask frameGrabber = new TimerTask() {
+		
+			@Override
+			public void run() {
+				cameraFrame = cameraController.grabFrame();
+				//System.out.println("Frame grabbed!!");
+/*				
+				if (!cameraFrame.empty()) {
+					cameraFrameView.setImage(Utils.mat2Image(cameraFrame));
+					originalFrame.setFitWidth(100);
+					originalFrame.setPreserveRatio(true);					
+				}
+*/
+				
+				Platform.runLater(new Runnable() {
+					@Override
+		            public void run() {
+						if (!cameraFrame.empty()) {
+							cameraFrameView.setImage(Utils.mat2Image(cameraFrame));
+							originalFrame.setFitWidth(100);
+							originalFrame.setPreserveRatio(true);
+						}
+		            }
+				});
+			}
+		};
+
+		videoTimer.schedule(frameGrabber, 0, 33);		
+	}
+
+	
 	/**
 	 * Take a snapshot to be used for the calibration process
 	 */
+	@FXML
+	protected void takeSnapshot() {
+		
+		TimerTask frameGrabber = new TimerTask() {
+			@Override
+			public void run() {
+				cameraController.startCamera();
+				loadedImages.add(cameraController.grabFrame());
+				loadedImagesNames.add("sc_" + loadedImages.size());
+				loadedImagesDescription.put("sc_" + loadedImages.size(), loadedImages.size() - 1);
+				showLoadedImages();
+			}
+		};
+		
+		imageTimer = new Timer();
+		imageTimer.schedule(frameGrabber, 1*SECOND);		
+	}
+	
+	/*
 	@FXML
 	protected void takeSnapshot()
 	{
@@ -376,7 +672,9 @@ public class ObjectRecognizerController {
 		{
 			this.calibrateCamera();
 		}
-	}
+	}*/
+	
+	
 
 	/**
 	 * Find and draws the points needed for the calibration on the chessboard
@@ -436,20 +734,52 @@ public class ObjectRecognizerController {
 		intrinsic.put(0, 0, 1);
 		intrinsic.put(1, 1, 1);
 		// calibrate!
-		Calib3d.calibrateCamera(objectPoints, imagePoints, savedImage.size(), intrinsic, distCoeffs, rvecs, tvecs);
+		this.calibrationResult = Calib3d.calibrateCamera(objectPoints, imagePoints, savedImage.size(), intrinsic, distCoeffs, rvecs, tvecs);
+		System.out.println("Calibration result = " + this.calibrationResult);
+
 		this.isCalibrated = true;
 
 		// you cannot take other snapshot, at this point...
 		this.snapshotButton.setDisable(true);
 	}
 
+	@FXML
+	protected void clearLoadedImages() {
+		loadedImagesNames.clear();
+		loadedImages.clear();
+		loadedImagesDescription.clear();		
+	}
+	
 	/**
 	 * The action triggered by pushing the button for constructing the model from
 	 * the loaded images
 	 */
 	@FXML
 	protected void constructModel() {
-		//TODO
+		//System.out.println("height = " + this.processedExtractedImage.size().height + ", width = " + this.processedExtractedImage.size().width);
+		for(BufferedImage convertedMat : this.bufferedImagesForTest) {	
+			//System.out.println("Converted mat width = " + convertedMat.getWidth() + ", height = " + convertedMat.getHeight());
+			int[][] sourceArray = IntersectionTest.getBinaryArray(convertedMat);
+			//System.out.println("binary array rows = " + sourceArray.length + ", cols = " + sourceArray[0].length);
+			for (int x = 0; x < sourceArray.length; x++) {
+				for (int y = 0; y < sourceArray[x].length; y++) {
+					//System.out.print(sourceArray[x][y] + " ");
+				}
+				//System.out.println("");
+			}
+			sourceArrays.add(sourceArray);
+			int[][] transformedArray = IntersectionTest.getTransformedArray(sourceArray);
+			//System.out.println("transformedArray array rows = " + transformedArray.length + ", cols = " + transformedArray[0].length);
+			// print the contents of transformedArray
+			for (int x = 0; x < transformedArray.length; x++) {
+				for (int y = 0; y < transformedArray[x].length; y++) {
+					//System.out.print(transformedArray[x][y] + " ");
+				}
+				//System.out.println("");
+			}
+			transformedArrays.add(transformedArray);
+		}
+			
 	}
 
 	/**
@@ -458,9 +788,50 @@ public class ObjectRecognizerController {
 	 */
 	@FXML
 	protected void visualizeModel() {
-		//TODO
+		int boxSize = 256;
+		CameraPosition cameraPosition = new CameraPosition();
+		//cameraPositionX = 320;
+		//cameraPositionY = 240;
+		//cameraPositionZ = 300;
+		cameraPosition.positionAxisX = 0;
+		cameraPosition.positionAxisY = 0;
+		cameraPosition.positionAxisZ = 0;
+		
+		Octree octree = new Octree(boxSize);
+		octree.generateOctreeTest(boxSize, 3);
+
+		// try not create another volume renderer object to recompute the octree visualization
+		volumeRenderer = new VolumeRenderer(octree, this.sourceArrays, this.transformedArrays);
+		volumeRenderer.generateVolumeScene();
+		rootGroup.setCenter(volumeRenderer.getSubScene());
+	}
+	
+	private void updateCameraPositionAxisX(int positionX) {
+		CameraPosition cameraPosition = volumeRenderer.getCameraPosition();
+		cameraPosition.positionAxisX = positionX;
+		updateCameraPosition(cameraPosition);
+	}
+	
+	private void updateCameraPositionAxisY(int positionY) {
+		CameraPosition cameraPosition = volumeRenderer.getCameraPosition();
+		cameraPosition.positionAxisY = positionY;
+		updateCameraPosition(cameraPosition);
 	}
 
+	private void updateCameraPositionAxisZ(int positionZ) {
+		CameraPosition cameraPosition = volumeRenderer.getCameraPosition();
+		cameraPosition.positionAxisZ = positionZ;
+		updateCameraPosition(cameraPosition);
+	}
+	
+	private void updateBinaryThreshold(int binaryThreshold) {
+		silhouetteExtractor.setBinaryThreshold(binaryThreshold);
+	}
+
+	public void updateCameraPosition(CameraPosition cameraPosition) {
+		volumeRenderer.updateCameraPosition(cameraPosition); 		
+	}
+	
 	/**
 	 * Optimize the image dimensions
 	 *
@@ -552,7 +923,15 @@ public class ObjectRecognizerController {
 	public void setStage(Stage stage) {
 		this.stage = stage;
 	}
-
+	
+	public void setRootGroup(BorderPane rootGroup) {
+		this.rootGroup = rootGroup;
+	}
+	
+	public void setVolumeRenderer(VolumeRenderer volumeRenderer) {
+		this.volumeRenderer = volumeRenderer;
+	}
+	
 	/**
 	 * Update the {@link ImageView} in the JavaFX main thread
 	 *
