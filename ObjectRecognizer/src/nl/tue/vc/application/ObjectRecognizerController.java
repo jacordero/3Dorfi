@@ -1,7 +1,9 @@
 package nl.tue.vc.application;
 
 import java.awt.image.BufferedImage;
+import java.awt.image.Raster;
 import java.io.File;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -9,6 +11,7 @@ import java.util.Map;
 import java.util.Timer;
 import java.util.TimerTask;
 
+import javax.imageio.ImageIO;
 
 import org.opencv.calib3d.Calib3d;
 import org.opencv.core.Core;
@@ -47,6 +50,7 @@ import nl.tue.vc.application.utils.Utils;
 import nl.tue.vc.application.visual.IntersectionTest;
 import nl.tue.vc.imgproc.CameraController;
 import nl.tue.vc.imgproc.HistogramGenerator;
+import nl.tue.vc.application.visual.NewStage;
 import nl.tue.vc.imgproc.SilhouetteExtractor;
 import nl.tue.vc.voxelengine.CameraPosition;
 import nl.tue.vc.voxelengine.Octree;
@@ -162,7 +166,9 @@ public class ObjectRecognizerController {
 	private Mat intrinsic;
 	private Mat distCoeffs;
 	private boolean isCalibrated;
-
+	List<int[][]> sourceArrays = new ArrayList<int[][]>();
+	List<int[][]> transformedArrays = new ArrayList<int[][]>();
+	
 	//List<ImageView> imageViews = new ArrayList<>();
 
 	List<Mat> loadedImages = new ArrayList<>();
@@ -342,6 +348,7 @@ public class ObjectRecognizerController {
 		this.obj = new MatOfPoint3f();
 		this.imageCorners = new MatOfPoint2f();
 		this.savedImage = new Mat();
+		this.processedExtractedImage = new Mat();
 		this.undistoredImage = null;
 		this.imagePoints = new ArrayList<>();
 		this.objectPoints = new ArrayList<>();
@@ -407,12 +414,12 @@ public class ObjectRecognizerController {
             public void updateItem(String name, boolean empty) {
                 super.updateItem(name, empty);
                 if (empty) {
-                	System.out.println("Null information");
+                	//System.out.println("Null information");
                     setText(null);
                     setGraphic(null);
                 } else {
                 	int imagePosition = loadedImagesDescription.get(name);
-                	System.out.println("Name: " + name +", Position: " + imagePosition);
+                	//System.out.println("Name: " + name +", Position: " + imagePosition);
                 	imageView.setImage(Utils.mat2Image(loadedImages.get(imagePosition)));
 					imageView.setFitWidth(100);
 					imageView.setPreserveRatio(true);
@@ -558,7 +565,6 @@ protected void extractSilhouettes(){
 		{
 			// start the video capture
 			this.calibrationCapture.open(1);
-
 			// is the video stream available?
 			if (this.calibrationCapture.isOpened())
 			{
@@ -827,7 +833,9 @@ protected void extractSilhouettes(){
 		intrinsic.put(0, 0, 1);
 		intrinsic.put(1, 1, 1);
 		// calibrate!
-		Calib3d.calibrateCamera(objectPoints, imagePoints, savedImage.size(), intrinsic, distCoeffs, rvecs, tvecs);
+		this.calibrationResult = Calib3d.calibrateCamera(objectPoints, imagePoints, savedImage.size(), intrinsic, distCoeffs, rvecs, tvecs);
+		System.out.println("Calibration result = " + this.calibrationResult);
+
 		this.isCalibrated = true;
 
 		// you cannot take other snapshot, at this point...
@@ -847,7 +855,30 @@ protected void extractSilhouettes(){
 	 */
 	@FXML
 	protected void constructModel() {
-		//TODO
+		//System.out.println("height = " + this.processedExtractedImage.size().height + ", width = " + this.processedExtractedImage.size().width);
+		for(BufferedImage convertedMat : this.bufferedImagesForTest) {	
+			//System.out.println("Converted mat width = " + convertedMat.getWidth() + ", height = " + convertedMat.getHeight());
+			int[][] sourceArray = IntersectionTest.getBinaryArray(convertedMat);
+			//System.out.println("binary array rows = " + sourceArray.length + ", cols = " + sourceArray[0].length);
+			for (int x = 0; x < sourceArray.length; x++) {
+				for (int y = 0; y < sourceArray[x].length; y++) {
+					//System.out.print(sourceArray[x][y] + " ");
+				}
+				//System.out.println("");
+			}
+			sourceArrays.add(sourceArray);
+			int[][] transformedArray = IntersectionTest.getTransformedArray(sourceArray);
+			//System.out.println("transformedArray array rows = " + transformedArray.length + ", cols = " + transformedArray[0].length);
+			// print the contents of transformedArray
+			for (int x = 0; x < transformedArray.length; x++) {
+				for (int y = 0; y < transformedArray[x].length; y++) {
+					//System.out.print(transformedArray[x][y] + " ");
+				}
+				//System.out.println("");
+			}
+			transformedArrays.add(transformedArray);
+		}
+			
 	}
 
 	/**
@@ -863,13 +894,13 @@ protected void extractSilhouettes(){
 		//cameraPositionZ = 300;
 		cameraPosition.positionAxisX = 0;
 		cameraPosition.positionAxisY = 0;
-		cameraPosition.positionAxisZ = 300;
+		cameraPosition.positionAxisZ = 0;
 		
 		Octree octree = new Octree(boxSize);
-		octree.generateOctreeTest(boxSize);
+		octree.generateOctreeTest(boxSize, 3);
 
 		// try not create another volume renderer object to recompute the octree visualization
-		volumeRenderer = new VolumeRenderer(octree);
+		volumeRenderer = new VolumeRenderer(octree, this.sourceArrays, this.transformedArrays);
 		volumeRenderer.generateVolumeScene();
 		rootGroup.setCenter(volumeRenderer.getSubScene());
 	}

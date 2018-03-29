@@ -17,8 +17,7 @@ import nl.tue.vc.voxelengine.VolumeRenderer;
  * transformation and anti transformation.
  *
  */
-public class ObjectRecognizer extends Application
-{
+public class ObjectRecognizer extends Application {
 	// the main stage
 	private Stage primaryStage;
 
@@ -30,10 +29,8 @@ public class ObjectRecognizer extends Application
 	
 	
 	@Override
-	public void start(Stage primaryStage)
-	{
-		try
-		{
+	public void start(Stage primaryStage) {
+		try {
 			// load the FXML resource
 			FXMLLoader loader = new FXMLLoader(getClass().getResource("ObjectRecognizer.fxml"));
 			ApplicationConfiguration appConfig = ApplicationConfiguration.getInstance();
@@ -41,7 +38,7 @@ public class ObjectRecognizer extends Application
 			volumeRenderer.generateVolumeScene();
 			volumeScene = volumeRenderer.getSubScene();			
 			rootGroup = (BorderPane) loader.load();
-			
+
 			// set a whitesmoke background
 			rootGroup.setStyle("-fx-background-color: whitesmoke;");
 			rootGroup.setCenter(volumeScene);
@@ -60,18 +57,15 @@ public class ObjectRecognizer extends Application
 			controller.setRootGroup(rootGroup);
 			controller.setVolumeRenderer(volumeRenderer);
 			controller.init();
-		}
-		catch (Exception e)
-		{
+		} catch (Exception e) {
 			e.printStackTrace();
 		}
 	}
 
-	public static void main(String[] args)
-	{
-		String libPath = System.getProperty("java.library.path");
-		System.out.println("Library path; " + libPath);
-		System.out.println("Library; " + Core.NATIVE_LIBRARY_NAME);
+	public static void main(String[] args) {
+//		String libPath = System.getProperty("java.library.path");
+//		System.out.println("Library path; " + libPath);
+//		System.out.println("Library; " + Core.NATIVE_LIBRARY_NAME);
 		// load the native OpenCV library
 		System.loadLibrary(Core.NATIVE_LIBRARY_NAME);
 		

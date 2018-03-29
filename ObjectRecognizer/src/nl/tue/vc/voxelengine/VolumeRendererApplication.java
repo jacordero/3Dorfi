@@ -49,7 +49,7 @@ public class VolumeRendererApplication extends Application {
 				
 		// Add the shapes and the light to the group
 		
-		VolumeGenerator volumeGenerator = new VolumeGenerator(octree, boxParameters, new int[1][1], new int[1][1]);
+		VolumeGenerator volumeGenerator = new VolumeGenerator(octree, boxParameters);
 		Group root = volumeGenerator.getDefaultVolume(boxParameters);
 		
 	
