@@ -314,6 +314,7 @@ public class ObjectRecognizerController {
 		//segmentationAlgorithm;
 		segmentationAlgorithm.getItems().add("Watersheed");
 		segmentationAlgorithm.getItems().add("Binarization");
+		segmentationAlgorithm.getItems().add("Equalized");
 		segmentationAlgorithm.setValue("Watersheed");
 		
 		System.out.println(segmentationAlgorithm.getValue());
@@ -469,9 +470,18 @@ protected void extractSilhouettes(){
 			processedImages.add(silhouetteExtractor.getSegmentedImage());
 			processedImagesNames.add("sg_" + imgId);
 			processedImagesDescription.put("sg_" + imgId, processedImages.size() - 1);
-
+			
 		// show the processed images during the segmentation process
-		if (debugSegmentation.isSelected() && segmentationAlgorithm.getValue() == "Watersheed") {
+		if (debugSegmentation.isSelected()) {
+
+			processedImages.add(silhouetteExtractor.getEqualizedImage());
+			processedImagesNames.add("eq_" + imgId);
+			processedImagesDescription.put("eq_" + imgId, processedImages.size() - 1);
+
+			processedImages.add(silhouetteExtractor.getCleanedBinaryImage());
+			processedImagesNames.add("cb_" + imgId);
+			processedImagesDescription.put("cb_" + imgId, processedImages.size() - 1);
+
 			processedImages.add(silhouetteExtractor.getBinaryImage());
 			processedImagesNames.add("bi_" + imgId);
 			processedImagesDescription.put("bi_" + imgId, processedImages.size() - 1);
