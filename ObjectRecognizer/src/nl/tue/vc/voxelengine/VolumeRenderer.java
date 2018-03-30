@@ -39,7 +39,7 @@ public class VolumeRenderer {
 	
 	
 	public VolumeRenderer() {
-		this.octree = null;
+		this.octree = new Octree(100);
 		//this.octree = new Octree(ApplicationConfiguration.getInstance().getVolumeBoxSize());
 		configVolumeScene();
 		volumeGenerator = new VolumeGenerator(octree, volumeBoxParameters);
