@@ -1,6 +1,9 @@
 package nl.tue.vc.voxelengine;
 
 
+import java.awt.image.BufferedImage;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Random;
 
 import javafx.scene.paint.Color;
@@ -12,6 +15,7 @@ public class Octree {
 	private int boxSize;
 	private InternalNode node;
 	private BoxParameters boxParameters;
+	private List<BufferedImage> bufferedImagesForTest;
 	
 	/**
 	 *        +---------+-----------+
@@ -30,8 +34,9 @@ public class Octree {
 	
 	public Octree(int boxSize) {
 		this.boxSize = boxSize;
-		root = new InternalNode(Color.GRAY, boxSize);
-		this.node = new InternalNode(Color.GRAY, boxSize);
+		root = new InternalNode(Color.BLACK, boxSize);
+		this.node = new InternalNode(Color.BLACK, boxSize);
+		bufferedImagesForTest = new ArrayList<BufferedImage>();
 	}
 	
 	public Node getRoot() {
@@ -141,5 +146,13 @@ public class Octree {
 
 	public void setBoxParameters(BoxParameters boxParameters) {
 		this.boxParameters = boxParameters;
+	}
+
+	public List<BufferedImage> getBufferedImagesForTest() {
+		return bufferedImagesForTest;
+	}
+
+	public void setBufferedImagesForTest(List<BufferedImage> bufferedImagesForTest) {
+		this.bufferedImagesForTest = bufferedImagesForTest;
 	}
 }

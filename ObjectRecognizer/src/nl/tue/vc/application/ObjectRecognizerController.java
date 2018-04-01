@@ -867,6 +867,7 @@ protected void extractSilhouettes(){
 	protected void constructModel() {
 		//System.out.println("height = " + this.processedExtractedImage.size().height + ", width = " + this.processedExtractedImage.size().width);
 		for(BufferedImage convertedMat : this.bufferedImagesForTest) {	
+			System.out.println("-------- Image Bounds ----- " + convertedMat.getMinX() + " ----- " + convertedMat.getGraphics());
 			//System.out.println("Converted mat width = " + convertedMat.getWidth() + ", height = " + convertedMat.getHeight());
 			int[][] sourceArray = IntersectionTest.getBinaryArray(convertedMat);
 			//System.out.println("binary array rows = " + sourceArray.length + ", cols = " + sourceArray[0].length);
@@ -907,8 +908,8 @@ protected void extractSilhouettes(){
 		cameraPosition.positionAxisZ = 0;
 		
 		Octree octree = new Octree(boxSize);
-		octree.generateOctreeTest(boxSize, 3);
-
+		octree.generateOctreeTest(boxSize, 10);
+		octree.setBufferedImagesForTest(this.bufferedImagesForTest);
 		// try not create another volume renderer object to recompute the octree visualization
 		volumeRenderer = new VolumeRenderer(octree, this.sourceArrays, this.transformedArrays);
 		volumeRenderer.generateVolumeScene();

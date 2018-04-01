@@ -1,12 +1,25 @@
 package nl.tue.vc.voxelengine;
 
+import java.awt.image.BufferedImage;
+import java.io.File;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
+import javax.imageio.ImageIO;
+
+import javafx.embed.swing.SwingFXUtils;
+import javafx.geometry.Bounds;
 import javafx.scene.Group;
+import javafx.scene.image.Image;
 import javafx.scene.paint.Color;
+import javafx.scene.paint.ImagePattern;
 import javafx.scene.paint.PhongMaterial;
 import javafx.scene.shape.Box;
+import javafx.scene.shape.Rectangle;
+import nl.tue.vc.application.ApplicationConfiguration;
+
+import java.lang.Math;
 
 public class VolumeGenerator {
 
@@ -14,11 +27,13 @@ public class VolumeGenerator {
 	private Group octreeVolume;
 	private List<int[][]> sourceArrays;
 	private List<int[][]> transformedArrays;
+	private List<BufferedImage> bufferedImagesForTest;
 
 	public VolumeGenerator(Octree octree, BoxParameters boxParameters) 
 	{
 		this.octree = octree;
-
+		this.bufferedImagesForTest = this.octree.getBufferedImagesForTest();
+		System.out.println("BufferedImagesForTest: " + this.bufferedImagesForTest.size());
 		if (octree == null) {
 			this.octreeVolume = getDefaultVolume(boxParameters);
 		} else {
@@ -29,6 +44,8 @@ public class VolumeGenerator {
 	public VolumeGenerator(Octree octree, BoxParameters boxParameters, List<int[][]> sourceBinaryArrays,
 			List<int[][]> transformedBinaryArrays) {
 		this.octree = octree;
+		this.bufferedImagesForTest = this.octree.getBufferedImagesForTest();
+		System.out.println("BufferedImagesForTest: " + this.bufferedImagesForTest.size());
 		this.sourceArrays = sourceBinaryArrays;
 		this.transformedArrays = transformedBinaryArrays;
 
@@ -331,37 +348,80 @@ public class VolumeGenerator {
 				+ boxParameters.getBoxSize() + "\n");
 		
 		Color diffuseColor = nodeColor;
+		//============================================================================================================================================================================
+		//get the scene dimensions
+		ApplicationConfiguration appConfig = ApplicationConfiguration.getInstance();
+		int sceneWidth = appConfig.getVolumeSceneWidth();
+		int sceneHeight = appConfig.getVolumeSceneHeight();
+		int sceneDepth = appConfig.getVolumeSceneDepth();
+		int volumeBoxSize = appConfig.getVolumeBoxSize();
 		
+		//define BoxParameters for the image
+		BoxParameters imageBoxParameters = new BoxParameters();		
+		imageBoxParameters.setBoxSize(volumeBoxSize);
+		imageBoxParameters.setCenterX(sceneWidth/2);
+		imageBoxParameters.setCenterY(sceneHeight/2);
+		imageBoxParameters.setCenterZ(sceneDepth/2);
+		
+		//String file_path = "C:\\Tools\\eclipse\\workspace\\objectrecognizer\\ObjectRecognizer\\images\\football.jpg";
+		//File input = new File(file_path);
+		//Image img = new Image(input.toURI().toString());
+		
+		
+		
+		
+//============================================================================================================================================================================		
 		if(testIntersection) {
 			int focalLength = 1;
-//			int xCoordLowerLeft = posx-(boxParameters.getCenterX()/2);
-//			int yCoordLowerLeft = posy+(boxParameters.getCenterY()/2);
-//			int zCoordLowerLeft = posz-(boxParameters.getCenterZ()/2);
-//			System.out.println("xCoordLowerLeft: " + xCoordLowerLeft + ", yCoordLowerLeft: " + yCoordLowerLeft + ", zCoordLowerLeft: " + zCoordLowerLeft);
-			int projectedX = posx/posz;//xCoordLowerLeft*(focalLength/zCoordLowerLeft);
-			int projectedY = posy/posz;//yCoordLowerLeft*(focalLength/zCoordLowerLeft);
+			int xCoordLowerLeft = posx-(boxParameters.getCenterX()/2);
+			int yCoordLowerLeft = posy-(boxParameters.getCenterY()/2);
+			int zCoordLowerLeft = posz-(boxParameters.getCenterZ()/2);
+			System.out.println("xCoordLowerLeft: " + xCoordLowerLeft + ", yCoordLowerLeft: " + yCoordLowerLeft + ", zCoordLowerLeft: " + zCoordLowerLeft);
+			
+			int projectedX = xCoordLowerLeft/zCoordLowerLeft;//*(focalLength/zCoordLowerLeft);
+			int projectedY = yCoordLowerLeft/zCoordLowerLeft;//*(focalLength/zCoordLowerLeft);
 			System.out.println("Projected x: " + projectedX + ", projected y: " + projectedY);
 
 			// TODO: Test the computation of the transformed value for different generated volumes.
 			int lowerLeftYValue = projectedY;// + boxParameters.getBoxSize();
 			int transformedValue;
-			for (int[][] transformedArray : transformedArrays) {
-				if (projectedX >= transformedArray.length || projectedX<0 || lowerLeftYValue >= transformedArray[0].length) {
-					transformedValue = -1;
-					System.out.println("Something weird happened here!!!");
-				} else {
-					transformedValue = transformedArray[projectedX][lowerLeftYValue];
-				}
+			for (int i=0; i<transformedArrays.size();i++) {
+//				if (projectedX >= transformedArray.length || projectedX<0 || lowerLeftYValue >= transformedArray[0].length) {
+//					transformedValue = -1;
+//					System.out.println("Something weird happened here!!!");
+//				} else {
+				
+				int[][] transformedArray = transformedArrays.get(i);
+				
+				//define the image object and it's corresponding rectangle
+				Image img = SwingFXUtils.toFXImage(this.bufferedImagesForTest.get(i), null);
+				Rectangle imageRect = new Rectangle();
+				imageRect.setX(imageBoxParameters.getCenterX() - (imageBoxParameters.getCenterX()/2));
+				imageRect.setY(imageBoxParameters.getCenterY() - (imageBoxParameters.getCenterY()/2));
+				imageRect.setWidth(img.getWidth());
+				imageRect.setHeight(img.getHeight());
+				imageRect.setFill(new ImagePattern(img));
+				
+				Bounds boxBounds = box.getBoundsInLocal();
+				System.out.println("Bounds local ----- " + boxBounds);
+				System.out.println("Bounds Image local ----- " + imageRect.getBoundsInLocal());
+				
+				int xVal = projectedX;//Math.abs(((int) (imageRect.getX())-projectedX-1));
+				int yVal = projectedY;//Math.abs((int) (imageRect.getY())-projectedY-1);
+				System.out.println("imageRect x: " + imageRect.getX() + ", imageRect y: " + imageRect.getY());
+				System.out.println("Getting transformed value for x = " + xVal + ", y = " + yVal);
+				transformedValue = transformedArray[xVal][yVal];
+				//}
 
 				System.out.println("transformedValue: " + transformedValue);
 
 				if (transformedValue >= boxParameters.getBoxSize()) {
-					diffuseColor = Color.BLACK;
+					diffuseColor = getPaintColor(nodeColor, Color.BLACK);
 				} else if((transformedValue < boxParameters.getBoxSize()) && (transformedValue > 0)) {
-					diffuseColor = Color.GRAY;
+					diffuseColor = getPaintColor(nodeColor, Color.GRAY);
 				}
 				else {
-					diffuseColor = Color.WHITE;
+					diffuseColor = getPaintColor(nodeColor, Color.WHITE);
 				}
 				
 			}
@@ -375,8 +435,29 @@ public class VolumeGenerator {
 		// Color diffuseColor = nodeColor;
 		textureMaterial.setDiffuseColor(diffuseColor);
 		box.setMaterial(textureMaterial);
-		
+		Bounds boxBounds = box.getBoundsInLocal();
+//		System.out.println("Bounds local ----- " + boxBounds);
+//		System.out.println("Bounds parent ----- " + box.getBoundsInParent());
+//		System.out.println("Bounds layout ----- " + box.getLayoutBounds());
 		return box;
+	}
+	
+	public Color getPaintColor(Color currentColor, Color newColor) {
+		Color result = Color.GRAY;
+		if(currentColor == Color.BLACK) {
+			result = newColor;
+		}
+		else if(currentColor == Color.GRAY) {
+			if(newColor==Color.WHITE)
+				result = Color.WHITE;
+			else
+				result = currentColor;
+		}
+		else {
+			result = Color.WHITE;
+		}
+		
+		return result;
 	}
 
 	public Group getVolume() {
@@ -389,8 +470,21 @@ public class VolumeGenerator {
 		deltas.deltaY = 0;
 		deltas.deltaZ = 0;
 		Box box = generateVoxel(boxParameters, deltas, Color.CYAN, false);
+		
 		Group volume = new Group();
 		volume.getChildren().addAll(box);
+		
+		String file_path = "C:\\Tools\\eclipse\\workspace\\objectrecognizer\\ObjectRecognizer\\images\\football.jpg";
+		File input = new File(file_path);
+		Rectangle rec = new Rectangle();
+		rec.setX(5+boxParameters.getCenterX()-(boxParameters.getBoxSize()/2));
+		rec.setY(boxParameters.getCenterY());//-(boxParameters.getBoxSize()/2));
+		rec.setWidth(boxParameters.getBoxSize());
+		rec.setHeight(boxParameters.getBoxSize());
+		Image img = new Image(input.toURI().toString());
+		rec.setFill(new ImagePattern(img));
+		//volume.getChildren().add(rec);
+		
 		return volume;
 	}
 
@@ -408,6 +502,14 @@ public class VolumeGenerator {
 
 	public void setTransformedArrays(List<int[][]> transformedBinaryArray) {
 		this.transformedArrays = transformedBinaryArray;
+	}
+
+	public List<BufferedImage> getBufferedImagesForTest() {
+		return bufferedImagesForTest;
+	}
+
+	public void setBufferedImagesForTest(List<BufferedImage> bufferedImagesForTest) {
+		this.bufferedImagesForTest = bufferedImagesForTest;
 	}
 
 }
