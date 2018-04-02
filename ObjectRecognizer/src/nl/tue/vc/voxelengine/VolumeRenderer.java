@@ -42,20 +42,20 @@ public class VolumeRenderer {
 		this.octree = new Octree(100);
 		//this.octree = new Octree(ApplicationConfiguration.getInstance().getVolumeBoxSize());
 		configVolumeScene();
-		volumeGenerator = new VolumeGenerator(octree, volumeBoxParameters);
+		//volumeGenerator = new VolumeGenerator(octree, volumeBoxParameters);
 	}
 	
 	public VolumeRenderer(Octree octree) {
 		this.octree = octree;
 		configVolumeScene();
-		volumeGenerator = new VolumeGenerator(octree, volumeBoxParameters);
+		//volumeGenerator = new VolumeGenerator(octree, volumeBoxParameters);
 	}
 	
 	public VolumeRenderer(Octree octree, List<int[][]> sourceBinaryArrays,
 			List<int[][]> transformedBinaryArrays) {
 		this.octree = octree;
 		configVolumeScene();
-		volumeGenerator = new VolumeGenerator(octree, volumeBoxParameters, sourceBinaryArrays, transformedBinaryArrays);
+		//volumeGenerator = new VolumeGenerator(octree, volumeBoxParameters, sourceBinaryArrays, transformedBinaryArrays);
 	}
 	
 	private void configVolumeScene() {
@@ -122,6 +122,22 @@ public class VolumeRenderer {
 		//setListeners(true);
 	}
 	
+	public void generateVolumeScene(Group root3D) {
+		RotateTransition rotation = new RotateTransition(Duration.seconds(20), root3D);
+		rotation.setCycleCount(Animation.INDEFINITE);
+		rotation.setFromAngle(0);
+		rotation.setToAngle(360);
+		rotation.setAutoReverse(false);
+		rotation.setAxis(Rotate.Y_AXIS);
+		rotation.play();
+		
+		
+		subScene = new SubScene(root3D, sceneWidth, sceneHeight, true, SceneAntialiasing.BALANCED);
+		subScene.setCamera(camera);
+		//subScene.setFill(Color.CADETBLUE);
+		subScene.setFill(Color.WHITE);
+		//setListeners(true);
+	}
 	
 	public SubScene getSubScene() {
 		return subScene;
@@ -135,6 +151,14 @@ public class VolumeRenderer {
 		camera.setTranslateX(cameraPosition.positionAxisX);
 		camera.setTranslateY(cameraPosition.positionAxisY);
 		camera.setTranslateZ(cameraPosition.positionAxisZ);
+	}
+
+	public BoxParameters getVolumeBoxParameters() {
+		return volumeBoxParameters;
+	}
+
+	public void setVolumeBoxParameters(BoxParameters volumeBoxParameters) {
+		this.volumeBoxParameters = volumeBoxParameters;
 	}
 		
 }

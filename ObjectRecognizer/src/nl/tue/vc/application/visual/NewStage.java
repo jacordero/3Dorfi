@@ -61,7 +61,7 @@ public class NewStage {
 		boxParameters.setCenterZ(SCENE_DEPTH / 2);
 
 		Octree octree = new Octree(boxSize);
-		octree.generateOctreeFractal(boxSize, level);
+		octree.generateOctreeFractal(level);
 		System.out.println(octree.getRoot().toString());
 		List<int[][]> sourceArrays = new ArrayList<int[][]>();
 		sourceArrays.add(sourceArray);

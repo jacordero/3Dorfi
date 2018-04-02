@@ -797,13 +797,16 @@ private void updateView(ImageView view, Image image){
 		cameraPosition.positionAxisX = 0;
 		cameraPosition.positionAxisY = 0;
 		cameraPosition.positionAxisZ = 0;
-		
-		Octree octree = new Octree(boxSize);
-		octree.generateOctreeTest(boxSize, 10);
+		ApplicationConfiguration appConfig = ApplicationConfiguration.getInstance();
+		Octree octree = new Octree(boxSize, appConfig.getVolumeBoxParameters());
+		octree.generateOctreeFractal(0);
 		octree.setBufferedImagesForTest(this.bufferedImagesForTest);
+		octree.setSourceArrays(this.sourceArrays);
+		octree.setTransformedArrays(this.transformedArrays);
 		// try not create another volume renderer object to recompute the octree visualization
 		volumeRenderer = new VolumeRenderer(octree, this.sourceArrays, this.transformedArrays);
-		volumeRenderer.generateVolumeScene();
+		//octree.setBoxParameters(volumeRenderer.getVolumeBoxParameters());
+		volumeRenderer.generateVolumeScene(octree.getOctreeTestVolume(3));
 		rootGroup.setCenter(volumeRenderer.getSubScene());
 	}
 	
