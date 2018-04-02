@@ -799,14 +799,14 @@ private void updateView(ImageView view, Image image){
 		cameraPosition.positionAxisZ = 0;
 		ApplicationConfiguration appConfig = ApplicationConfiguration.getInstance();
 		Octree octree = new Octree(boxSize, appConfig.getVolumeBoxParameters());
-		octree.generateOctreeFractal(0);
+		octree.generateOctreeFractal(5);
 		octree.setBufferedImagesForTest(this.bufferedImagesForTest);
 		octree.setSourceArrays(this.sourceArrays);
 		octree.setTransformedArrays(this.transformedArrays);
 		// try not create another volume renderer object to recompute the octree visualization
 		volumeRenderer = new VolumeRenderer(octree, this.sourceArrays, this.transformedArrays);
 		//octree.setBoxParameters(volumeRenderer.getVolumeBoxParameters());
-		volumeRenderer.generateVolumeScene(octree.getOctreeTestVolume(3));
+		volumeRenderer.generateVolumeScene(octree.getOctreeVolume());
 		rootGroup.setCenter(volumeRenderer.getSubScene());
 	}
 	

@@ -6,8 +6,12 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
 
+import org.opencv.core.Mat;
+
 import javafx.embed.swing.SwingFXUtils;
 import javafx.geometry.Bounds;
+import javafx.geometry.Point2D;
+import javafx.geometry.Point3D;
 import javafx.scene.Group;
 import javafx.scene.image.Image;
 import javafx.scene.paint.Color;
@@ -30,10 +34,18 @@ public class Octree {
 	private List<int[][]> transformedArrays;
 
 	/**
-	 * +---------+-----------+ + 2 + 3 + | + -------+-----------+ | + 6 + 7 + | 3 |
-	 * --------------------- | + | | | | 7 + | | 6 | 7 | + | 1 +
-	 * --------------------+ | + | | | 5 + | 4 | 5 | + --------------------+
-	 * 
+	 *        +---------+-----------+
+	 *       +     2   +    3     + |
+	 *     + -------+-----------+   |
+	 *   +    6   +     7    +  | 3 |
+	 *  ---------------------   | + |
+	 *  |        |          | 7 +   |
+	 *  |    6   |    7     | + | 1 + 
+	 *  --------------------+   | + 
+	 *  |        |          | 5 + 
+	 *  |    4   |    5     | + 
+	 *  --------------------+ 
+	 *    
 	 */
 
 	public Octree(int boxSize) {
@@ -132,28 +144,28 @@ public class Octree {
 
 	private Node generateInternalNode(int boxSize) {
 
-		node.getChildren()[0] = new InternalNode(Color.GREEN, boxSize / 2);
+		node.getChildren()[0] = new Leaf(Color.GREEN, boxSize / 2);
 
 		// create node 1
-		node.getChildren()[1] = new InternalNode(Color.RED, boxSize / 2);
+		node.getChildren()[1] = new Leaf(Color.RED, boxSize / 2);
 
 		// create node 2
-		node.getChildren()[2] = new InternalNode(Color.YELLOW, boxSize / 2);
+		node.getChildren()[2] = new Leaf(Color.YELLOW, boxSize / 2);
 
 		// create node 3
-		node.getChildren()[3] = new InternalNode(Color.BLACK, boxSize / 2);
+		node.getChildren()[3] = new Leaf(Color.BLACK, boxSize / 2);
 
 		// create node 4
-		node.getChildren()[4] = new InternalNode(Color.GRAY, boxSize / 2);
+		node.getChildren()[4] = new Leaf(Color.GRAY, boxSize / 2);
 
 		// create node 5
-		node.getChildren()[5] = new InternalNode(Color.PURPLE, boxSize / 2);
+		node.getChildren()[5] = new Leaf(Color.PURPLE, boxSize / 2);
 
 		// create node 6
-		node.getChildren()[6] = new InternalNode(Color.BLUE, boxSize / 2);
+		node.getChildren()[6] = new Leaf(Color.BLUE, boxSize / 2);
 
 		// create node 7
-		node.getChildren()[7] = new InternalNode(Color.MAROON, boxSize / 2);
+		node.getChildren()[7] = new Leaf(Color.MAROON, boxSize / 2);
 
 		return node;
 	}
@@ -224,8 +236,8 @@ public class Octree {
 			for (int i = 0; i < children.length; i++) {
 				// compute deltaX, deltaY, and deltaZ for new voxels
 				Node childNode = children[i];
-				childNode.setBoxParameters(newParameters);
 				if (childNode != null) {
+					childNode.setBoxParameters(newParameters);
 					DeltaStruct displacementDirections = computeDeltaDirections(i);
 					childNode.setDeltaStruct(displacementDirections);
 					List<Box> innerBoxes = generateVolumeAux(childNode, newParameters, displacementDirections);
@@ -326,40 +338,102 @@ public class Octree {
 		int posx = boxParameters.getCenterX() + (deltas.deltaX * boxParameters.getBoxSize() / 2);
 		int posy = boxParameters.getCenterY() + (deltas.deltaY * boxParameters.getBoxSize() / 2);
 		int posz = boxParameters.getCenterZ() + (deltas.deltaZ * boxParameters.getBoxSize() / 2);
-
-		// ============================================================================================================================================================================
-		// get the scene dimensions
-		ApplicationConfiguration appConfig = ApplicationConfiguration.getInstance();
-		int sceneWidth = appConfig.getVolumeSceneWidth();
-		int sceneHeight = appConfig.getVolumeSceneHeight();
-		int sceneDepth = appConfig.getVolumeSceneDepth();
-		int volumeBoxSize = appConfig.getVolumeBoxSize();
-
-		// define BoxParameters for the image
-		BoxParameters imageBoxParameters = new BoxParameters();
-		imageBoxParameters.setBoxSize(volumeBoxSize);
-		imageBoxParameters.setCenterX(sceneWidth / 2);
-		imageBoxParameters.setCenterY(sceneHeight / 2);
-		imageBoxParameters.setCenterZ(sceneDepth / 2);
-		// ============================================================================================================================================================================
-
-		int focalLength = 1;
-		int xCoordLowerLeft = posx - (boxParameters.getCenterX() / 2);
-		int yCoordLowerLeft = posy - (boxParameters.getCenterY() / 2);
-		int zCoordLowerLeft = posz - (boxParameters.getCenterZ() / 2);
-		System.out.println("xCoordLowerLeft: " + xCoordLowerLeft + ", yCoordLowerLeft: " + yCoordLowerLeft
-				+ ", zCoordLowerLeft: " + zCoordLowerLeft);
-
-		if(zCoordLowerLeft<0)
-			zCoordLowerLeft *= -1;
 		
-		int projectedX = xCoordLowerLeft / zCoordLowerLeft;// *(focalLength/zCoordLowerLeft);
-		int projectedY = yCoordLowerLeft / zCoordLowerLeft;// *(focalLength/zCoordLowerLeft);
-		System.out.println("Projected x: " + projectedX + ", projected y: " + projectedY);
+		System.out.println("center: [" + boxParameters.getCenterX() + ", " + boxParameters.getCenterY()
+				+ ", " + boxParameters.getCenterZ()+"]");
 
+		System.out.println("deltas: [" + deltas.deltaX + ", " + deltas.deltaY
+		+ ", " + deltas.deltaZ+"]");
+		
+		int focalLength = 1;
+		
+		/**
+		 * compute the coordinates of all 8 corners of the cube according to the following numbering 
+		 *       
+		 *     5 ------------------ 6   
+		 *    /|                   / |
+		 *  1 -|------------------ 2 |
+		 *   | |                  |  |
+		 *   | |                  |  |
+		 *   | 7 -----------------|- 8
+		 *   |/                   | / 
+		 *  3 ------------------- 4 
+		 *    
+		 */
+		int centerX = boxParameters.getCenterX();
+		int centerY = boxParameters.getCenterY();
+		int centerZ = boxParameters.getCenterZ();
+		int halfSize = boxParameters.getBoxSize()/2;
+		
+		Point3D boxCorner1 = new Point3D(centerX - halfSize, centerY + halfSize, centerZ + halfSize);
+		Point3D boxCorner2 = new Point3D(centerX + halfSize, centerY + halfSize, centerZ + halfSize);
+		Point3D boxCorner3 = new Point3D(centerX - halfSize, centerY - halfSize, centerZ + halfSize);
+		Point3D boxCorner4 = new Point3D(centerX + halfSize, centerY - halfSize, centerZ + halfSize);
+		Point3D boxCorner5 = new Point3D(centerX - halfSize, centerY + halfSize, centerZ - halfSize);
+		Point3D boxCorner6 = new Point3D(centerX + halfSize, centerY + halfSize, centerZ - halfSize);
+		Point3D boxCorner7 = new Point3D(centerX - halfSize, centerY - halfSize, centerZ - halfSize);
+		Point3D boxCorner8 = new Point3D(centerX + halfSize, centerY - halfSize, centerZ - halfSize);
+		
+	
+		System.out.println("====== boxCorner1: [" + boxCorner1.getX() + ", " + boxCorner1.getY()
+		+ ", " + boxCorner1.getZ() +"]");
+		System.out.println("====== boxCorner2: [" + boxCorner2.getX() + ", " + boxCorner2.getY()
+		+ ", " + boxCorner2.getZ() +"]");
+		System.out.println("====== boxCorner3: [" + boxCorner3.getX() + ", " + boxCorner3.getY()
+		+ ", " + boxCorner3.getZ() +"]");
+		System.out.println("====== boxCorner4: [" + boxCorner4.getX() + ", " + boxCorner4.getY()
+		+ ", " + boxCorner4.getZ() +"]");
+		System.out.println("====== boxCorner5: [" + boxCorner5.getX() + ", " + boxCorner5.getY()
+		+ ", " + boxCorner5.getZ() +"]");
+		System.out.println("====== boxCorner6: [" + boxCorner6.getX() + ", " + boxCorner6.getY()
+		+ ", " + boxCorner6.getZ() +"]");
+		System.out.println("====== boxCorner7: [" + boxCorner7.getX() + ", " + boxCorner7.getY()
+		+ ", " + boxCorner7.getZ() +"]");
+		System.out.println("====== boxCorner8: [" + boxCorner8.getX() + ", " + boxCorner8.getY()
+		+ ", " + boxCorner8.getZ() +"]");
+
+		Point2D projectedCorner1 = new Point2D(focalLength*boxCorner1.getX()/boxCorner1.getZ(), focalLength*boxCorner1.getY()/boxCorner1.getZ());
+		Point2D projectedCorner2 = new Point2D(focalLength*boxCorner2.getX()/boxCorner2.getZ(), focalLength*boxCorner2.getY()/boxCorner2.getZ());
+		Point2D projectedCorner3 = new Point2D(focalLength*boxCorner3.getX()/boxCorner3.getZ(), focalLength*boxCorner3.getY()/boxCorner3.getZ());
+		Point2D projectedCorner4 = new Point2D(focalLength*boxCorner4.getX()/boxCorner4.getZ(), focalLength*boxCorner4.getY()/boxCorner4.getZ());
+		Point2D projectedCorner5 = new Point2D(focalLength*boxCorner5.getX()/boxCorner5.getZ(), focalLength*boxCorner5.getY()/boxCorner5.getZ());
+		Point2D projectedCorner6 = new Point2D(focalLength*boxCorner6.getX()/boxCorner6.getZ(), focalLength*boxCorner6.getY()/boxCorner6.getZ());
+		Point2D projectedCorner7 = new Point2D(focalLength*boxCorner7.getX()/boxCorner7.getZ(), focalLength*boxCorner7.getY()/boxCorner7.getZ());
+		Point2D projectedCorner8 = new Point2D(focalLength*boxCorner8.getX()/boxCorner8.getZ(), focalLength*boxCorner8.getY()/boxCorner8.getZ());
+		
+		System.out.println("====== projectedCorner1: [" + projectedCorner1.getX() + ", " + projectedCorner1.getY() +"]");
+		System.out.println("====== projectedCorner2: [" + projectedCorner2.getX() + ", " + projectedCorner2.getY() +"]");
+		System.out.println("====== projectedCorner3: [" + projectedCorner3.getX() + ", " + projectedCorner3.getY() +"]");
+		System.out.println("====== projectedCorner4: [" + projectedCorner4.getX() + ", " + projectedCorner4.getY() +"]");
+		System.out.println("====== projectedCorner5: [" + projectedCorner5.getX() + ", " + projectedCorner5.getY() +"]");
+		System.out.println("====== projectedCorner6: [" + projectedCorner6.getX() + ", " + projectedCorner6.getY() +"]");
+		System.out.println("====== projectedCorner7: [" + projectedCorner7.getX() + ", " + projectedCorner7.getY() +"]");
+		System.out.println("====== projectedCorner8: [" + projectedCorner8.getX() + ", " + projectedCorner8.getY() +"]");
+		
+//		int projectedX = xCoordLowerLeft / zCoordLowerLeft;// *(focalLength/zCoordLowerLeft);
+//		int projectedY = yCoordLowerLeft / zCoordLowerLeft;// *(focalLength/zCoordLowerLeft);
+//		System.out.println("Projected x: " + projectedX + ", projected y: " + projectedY);
+
+		// ============================================================================================================================================================================
+				// get the scene dimensions
+				ApplicationConfiguration appConfig = ApplicationConfiguration.getInstance();
+				int sceneWidth = appConfig.getVolumeSceneWidth();
+				int sceneHeight = appConfig.getVolumeSceneHeight();
+				int sceneDepth = appConfig.getVolumeSceneDepth();
+				int volumeBoxSize = appConfig.getVolumeBoxSize();
+
+				// define BoxParameters for the image
+				BoxParameters imageBoxParameters = new BoxParameters();
+				imageBoxParameters.setBoxSize(volumeBoxSize);
+				imageBoxParameters.setCenterX(sceneWidth / 2);
+				imageBoxParameters.setCenterY(sceneHeight / 2);
+				imageBoxParameters.setCenterZ(sceneDepth / 2);
+				// ============================================================================================================================================================================
+
+		
 		// TODO: Test the computation of the transformed value for different generated
 		// volumes.
-		int lowerLeftYValue = projectedY;// + boxParameters.getBoxSize();
+		//int lowerLeftYValue = projectedY;// + boxParameters.getBoxSize();
 		int transformedValue;
 		Color diffuseColor = Color.GRAY;
 		for (int i = 0; i < this.getBufferedImagesForTest().size(); i++) {
@@ -374,24 +448,24 @@ public class Octree {
 			// define the image object and it's corresponding rectangle
 			Image img = SwingFXUtils.toFXImage(this.bufferedImagesForTest.get(i), null);
 			Rectangle imageRect = new Rectangle();
-			imageRect.setX(imageBoxParameters.getCenterX() - (imageBoxParameters.getCenterX() / 2));
-			imageRect.setY(imageBoxParameters.getCenterY() - (imageBoxParameters.getCenterY() / 2));
+			imageRect.setX(imageBoxParameters.getCenterX() - (img.getWidth() / 2));
+			imageRect.setY(imageBoxParameters.getCenterY() - (img.getHeight() / 2));
 			imageRect.setWidth(img.getWidth());
 			imageRect.setHeight(img.getHeight());
 			imageRect.setFill(new ImagePattern(img));
+			
+//			Bounds boxBounds = box.getBoundsInLocal();
+//			System.out.println("Bounds local ----- " + boxBounds);
+//			System.out.println("Bounds Image local ----- " + imageRect.getBoundsInLocal());
 
-			Bounds boxBounds = box.getBoundsInLocal();
-			System.out.println("Bounds local ----- " + boxBounds);
-			System.out.println("Bounds Image local ----- " + imageRect.getBoundsInLocal());
-
-			int xVal = projectedX;// Math.abs(((int) (imageRect.getX())-projectedX-1));
-			int yVal = projectedY;// Math.abs((int) (imageRect.getY())-projectedY-1);
+			int xVal = (int) Math.round(projectedCorner3.getX()) + centerX/2; //projectedX;// Math.abs(((int) (imageRect.getX())-projectedX-1));
+			int yVal = (int) Math.round(projectedCorner3.getY()) + centerY/2; //projectedY;// Math.abs((int) (imageRect.getY())-projectedY-1);
 			System.out.println("imageRect x: " + imageRect.getX() + ", imageRect y: " + imageRect.getY());
 			System.out.println("Getting transformed value for x = " + xVal + ", y = " + yVal);
 			transformedValue = transformedArray[xVal][yVal];
 			// }
 
-			System.out.println("transformedValue: " + transformedValue);
+			System.out.println("transformedValue: " + transformedValue + " boxSize: " + boxParameters.getBoxSize());
 
 			if (transformedValue >= boxParameters.getBoxSize()) {
 				diffuseColor = getPaintColor(nodeColor, Color.BLACK);
@@ -402,11 +476,11 @@ public class Octree {
 			}
 
 		}
-
+		
 		box.setTranslateX(posx);
 		box.setTranslateY(posy);
 		box.setTranslateZ(posz);
-
+		
 		PhongMaterial textureMaterial = new PhongMaterial();
 		// Color diffuseColor = nodeColor;
 		textureMaterial.setDiffuseColor(diffuseColor);
