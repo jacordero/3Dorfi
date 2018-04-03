@@ -43,7 +43,7 @@ public class ApplicationConfiguration {
 		cameraPosition.positionAxisX = -70;
 		cameraPosition.positionAxisY = -50;
 		cameraPosition.positionAxisZ = 100;
-		volumeBoxSize = 100;
+		volumeBoxSize = 256;
 		
 		silhouetteConfiguration = new HashMap<String, Integer>();
 		silhouetteConfiguration.put("imageWidthFirstPixel", 30);

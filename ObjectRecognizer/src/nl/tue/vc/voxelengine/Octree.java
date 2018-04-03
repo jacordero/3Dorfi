@@ -79,12 +79,13 @@ public class Octree {
 		return root;
 	}
 
-	public void generateOctreeFractal(int level) {
+	public Node generateOctreeFractal(int level) {
 		DeltaStruct deltas = root.getDeltaStruct();
 		BoxParameters params = root.getBoxParameters();
 		root = generateOctreeFractalAux(level);
 		root.setBoxParameters(params);
 		root.setDeltaStruct(deltas);
+		return root;
 	}
 
 	public void generateOctreeTest(int parentBoxSize) {
@@ -144,28 +145,28 @@ public class Octree {
 
 	private Node generateInternalNode(int boxSize) {
 
-		node.getChildren()[0] = new Leaf(Color.GREEN, boxSize / 2);
+		node.getChildren()[0] = new Leaf(Color.BLACK, boxSize / 2);
 
 		// create node 1
-		node.getChildren()[1] = new Leaf(Color.RED, boxSize / 2);
+		node.getChildren()[1] = new Leaf(Color.BLACK, boxSize / 2);
 
 		// create node 2
-		node.getChildren()[2] = new Leaf(Color.YELLOW, boxSize / 2);
+		node.getChildren()[2] = new Leaf(Color.BLACK, boxSize / 2);
 
 		// create node 3
 		node.getChildren()[3] = new Leaf(Color.BLACK, boxSize / 2);
 
 		// create node 4
-		node.getChildren()[4] = new Leaf(Color.GRAY, boxSize / 2);
+		node.getChildren()[4] = new Leaf(Color.BLACK, boxSize / 2);
 
 		// create node 5
-		node.getChildren()[5] = new Leaf(Color.PURPLE, boxSize / 2);
+		node.getChildren()[5] = new Leaf(Color.BLACK, boxSize / 2);
 
 		// create node 6
-		node.getChildren()[6] = new Leaf(Color.BLUE, boxSize / 2);
+		node.getChildren()[6] = new Leaf(Color.BLACK, boxSize / 2);
 
 		// create node 7
-		node.getChildren()[7] = new Leaf(Color.MAROON, boxSize / 2);
+		node.getChildren()[7] = new Leaf(Color.BLACK, boxSize / 2);
 
 		return node;
 	}
@@ -204,11 +205,16 @@ public class Octree {
 
 	public Group generateVolume() {
 		Group volume = new Group();
-		Node root = getRoot();
-
-		System.out.println("Children: " + root.getChildren().length);
-		List<Box> voxels = generateVolumeAux(root, getBoxParameters(), root.getDeltaStruct());
-		volume.getChildren().addAll(voxels);
+		int level = 2;
+		for(int i=1; i<=level;i++) {
+			System.out.println("###################### Iteration " + i + " ########################");
+			Node root = generateOctreeFractal(i);
+			System.out.println("Children: " + root.getChildren().length);
+			List<Box> voxels = generateVolumeAux(root, getBoxParameters(), root.getDeltaStruct());
+			voxels = generateVolumeAux(root, getBoxParameters(), root.getDeltaStruct());
+			volume.getChildren().addAll(voxels);
+		}
+		
 		return volume;
 	}
 
@@ -266,6 +272,7 @@ public class Octree {
 		for (int i = 0; i < children.length; i++) {
 			Node childNode = children[i];
 			if (childNode != null) {
+				Node[] childNodes = childNode.getChildren();
 				System.out.println("Root Child node: " + childNode);
 				childNode.setBoxParameters(newParameters);
 				DeltaStruct displacementDirections = computeDeltaDirections(i);
@@ -286,10 +293,7 @@ public class Octree {
 				return voxels;
 			}
 
-			// if(initLevel==0)
-			// {
-			// currentNode.setColor(Color.GRAY);
-			// }
+			System.out.println("***************** level = " + initLevel + ", Node color = " + currentNode.getColor());
 
 			if (currentNode.getColor() == Color.GRAY) {
 				currentNode.getChildren()[0] = new InternalNode(Color.BLACK, currentNode.getBoxSize() / 2);
@@ -312,7 +316,7 @@ public class Octree {
 				for (int i = 0; i < children.length; i++) {
 					Node childNode = children[i];
 					if (childNode != null) {
-						System.out.println("Child node: " + childNode);
+						System.out.println("Child node in generateTestedVolumeAux: " + childNode);
 						childNode.setBoxParameters(newParameters);
 						DeltaStruct displacementDirections = computeDeltaDirections(i);
 						childNode.setDeltaStruct(displacementDirections);
@@ -375,21 +379,21 @@ public class Octree {
 		Point3D boxCorner8 = new Point3D(centerX + halfSize, centerY - halfSize, centerZ - halfSize);
 		
 	
-		System.out.println("====== boxCorner1: [" + boxCorner1.getX() + ", " + boxCorner1.getY()
+		System.out.println("boxCorner1: [" + boxCorner1.getX() + ", " + boxCorner1.getY()
 		+ ", " + boxCorner1.getZ() +"]");
-		System.out.println("====== boxCorner2: [" + boxCorner2.getX() + ", " + boxCorner2.getY()
+		System.out.println("boxCorner2: [" + boxCorner2.getX() + ", " + boxCorner2.getY()
 		+ ", " + boxCorner2.getZ() +"]");
-		System.out.println("====== boxCorner3: [" + boxCorner3.getX() + ", " + boxCorner3.getY()
+		System.out.println("boxCorner3: [" + boxCorner3.getX() + ", " + boxCorner3.getY()
 		+ ", " + boxCorner3.getZ() +"]");
-		System.out.println("====== boxCorner4: [" + boxCorner4.getX() + ", " + boxCorner4.getY()
+		System.out.println("boxCorner4: [" + boxCorner4.getX() + ", " + boxCorner4.getY()
 		+ ", " + boxCorner4.getZ() +"]");
-		System.out.println("====== boxCorner5: [" + boxCorner5.getX() + ", " + boxCorner5.getY()
+		System.out.println("boxCorner5: [" + boxCorner5.getX() + ", " + boxCorner5.getY()
 		+ ", " + boxCorner5.getZ() +"]");
-		System.out.println("====== boxCorner6: [" + boxCorner6.getX() + ", " + boxCorner6.getY()
+		System.out.println("boxCorner6: [" + boxCorner6.getX() + ", " + boxCorner6.getY()
 		+ ", " + boxCorner6.getZ() +"]");
-		System.out.println("====== boxCorner7: [" + boxCorner7.getX() + ", " + boxCorner7.getY()
+		System.out.println("boxCorner7: [" + boxCorner7.getX() + ", " + boxCorner7.getY()
 		+ ", " + boxCorner7.getZ() +"]");
-		System.out.println("====== boxCorner8: [" + boxCorner8.getX() + ", " + boxCorner8.getY()
+		System.out.println("boxCorner8: [" + boxCorner8.getX() + ", " + boxCorner8.getY()
 		+ ", " + boxCorner8.getZ() +"]");
 
 		Point2D projectedCorner1 = new Point2D(focalLength*boxCorner1.getX()/boxCorner1.getZ(), focalLength*boxCorner1.getY()/boxCorner1.getZ());
@@ -401,14 +405,14 @@ public class Octree {
 		Point2D projectedCorner7 = new Point2D(focalLength*boxCorner7.getX()/boxCorner7.getZ(), focalLength*boxCorner7.getY()/boxCorner7.getZ());
 		Point2D projectedCorner8 = new Point2D(focalLength*boxCorner8.getX()/boxCorner8.getZ(), focalLength*boxCorner8.getY()/boxCorner8.getZ());
 		
-		System.out.println("====== projectedCorner1: [" + projectedCorner1.getX() + ", " + projectedCorner1.getY() +"]");
-		System.out.println("====== projectedCorner2: [" + projectedCorner2.getX() + ", " + projectedCorner2.getY() +"]");
-		System.out.println("====== projectedCorner3: [" + projectedCorner3.getX() + ", " + projectedCorner3.getY() +"]");
-		System.out.println("====== projectedCorner4: [" + projectedCorner4.getX() + ", " + projectedCorner4.getY() +"]");
-		System.out.println("====== projectedCorner5: [" + projectedCorner5.getX() + ", " + projectedCorner5.getY() +"]");
-		System.out.println("====== projectedCorner6: [" + projectedCorner6.getX() + ", " + projectedCorner6.getY() +"]");
-		System.out.println("====== projectedCorner7: [" + projectedCorner7.getX() + ", " + projectedCorner7.getY() +"]");
-		System.out.println("====== projectedCorner8: [" + projectedCorner8.getX() + ", " + projectedCorner8.getY() +"]");
+		System.out.println("projectedCorner1: [" + projectedCorner1.getX() + ", " + projectedCorner1.getY() +"]");
+		System.out.println("projectedCorner2: [" + projectedCorner2.getX() + ", " + projectedCorner2.getY() +"]");
+		System.out.println("projectedCorner3: [" + projectedCorner3.getX() + ", " + projectedCorner3.getY() +"]");
+		System.out.println("projectedCorner4: [" + projectedCorner4.getX() + ", " + projectedCorner4.getY() +"]");
+		System.out.println("projectedCorner5: [" + projectedCorner5.getX() + ", " + projectedCorner5.getY() +"]");
+		System.out.println("projectedCorner6: [" + projectedCorner6.getX() + ", " + projectedCorner6.getY() +"]");
+		System.out.println("projectedCorner7: [" + projectedCorner7.getX() + ", " + projectedCorner7.getY() +"]");
+		System.out.println("projectedCorner8: [" + projectedCorner8.getX() + ", " + projectedCorner8.getY() +"]");
 		
 //		int projectedX = xCoordLowerLeft / zCoordLowerLeft;// *(focalLength/zCoordLowerLeft);
 //		int projectedY = yCoordLowerLeft / zCoordLowerLeft;// *(focalLength/zCoordLowerLeft);
