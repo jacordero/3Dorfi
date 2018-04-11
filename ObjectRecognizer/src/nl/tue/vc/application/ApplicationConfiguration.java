@@ -40,9 +40,9 @@ public class ApplicationConfiguration {
 		volumeSceneDepth = 200;
 		
 		cameraPosition = new CameraPosition();
-		cameraPosition.positionAxisX = -70;
-		cameraPosition.positionAxisY = -50;
-		cameraPosition.positionAxisZ = 100;
+		cameraPosition.positionAxisX = 0;
+		cameraPosition.positionAxisY = 0;
+		cameraPosition.positionAxisZ = 0;
 		volumeBoxSize = 256;
 		
 		silhouetteConfiguration = new HashMap<String, Integer>();

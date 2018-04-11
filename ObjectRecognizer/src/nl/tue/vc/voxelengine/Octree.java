@@ -205,15 +205,15 @@ public class Octree {
 
 	public Group generateVolume() {
 		Group volume = new Group();
-		int level = 2;
-		for(int i=1; i<=level;i++) {
-			System.out.println("###################### Iteration " + i + " ########################");
-			Node root = generateOctreeFractal(i);
+		//int level = 2;
+		//for(int i=0; i<level;i++) {
+			//System.out.println("###################### Iteration " + i+1 + " ########################");
+			Node root = generateOctreeFractal(3);
 			System.out.println("Children: " + root.getChildren().length);
 			List<Box> voxels = generateVolumeAux(root, getBoxParameters(), root.getDeltaStruct());
 			voxels = generateVolumeAux(root, getBoxParameters(), root.getDeltaStruct());
 			volume.getChildren().addAll(voxels);
-		}
+		//}
 		
 		return volume;
 	}
