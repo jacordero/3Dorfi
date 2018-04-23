@@ -102,22 +102,56 @@ public class Visualizer extends Application {
 		Box imagePlane = generateVoxel(400,300,1,300,300,0, Color.AQUA);
 		//volume.getChildren().addAll(imagePlane);
 		//boxParameters.setCenterZ(-1*boxParameters.getCenterZ());
-		Box box = generateVoxel(boxParameters.getCenterX(),boxParameters.getCenterY(),boxParameters.getCenterZ(),boxParameters.getBoxSize(),boxParameters.getBoxSize(),boxParameters.getBoxSize(), Color.BLUE);
+		//Box box = generateVoxel(boxParameters.getCenterX(),boxParameters.getCenterY(),boxParameters.getCenterZ(),boxParameters.getBoxSize(),boxParameters.getBoxSize(),boxParameters.getBoxSize(), Color.BLUE);
+		Box box = generateVoxel(boxParameters.getCenterX(),boxParameters.getCenterY(),boxParameters.getCenterZ(),8,10,6, Color.BLUE);
 		volume.getChildren().addAll(box);
+		box.setScaleX(10);
+		box.setScaleY(10);
+		box.setScaleZ(10);
 		
 		int centerX = boxParameters.getCenterX();
 		int centerY = boxParameters.getCenterY();
 		int centerZ = boxParameters.getCenterZ();
 		int halfSize = boxParameters.getBoxSize()/2;
 		
-		Point3D boxCorner1 = new Point3D(centerX - halfSize, centerY + halfSize, centerZ + halfSize);
-		Point3D boxCorner2 = new Point3D(centerX + halfSize, centerY + halfSize, centerZ + halfSize);
-		Point3D boxCorner3 = new Point3D(centerX - halfSize, centerY - halfSize, centerZ + halfSize);
-		Point3D boxCorner4 = new Point3D(centerX + halfSize, centerY - halfSize, centerZ + halfSize);
-		Point3D boxCorner5 = new Point3D(centerX - halfSize, centerY + halfSize, centerZ - halfSize);
-		Point3D boxCorner6 = new Point3D(centerX + halfSize, centerY + halfSize, centerZ - halfSize);
-		Point3D boxCorner7 = new Point3D(centerX - halfSize, centerY - halfSize, centerZ - halfSize);
-		Point3D boxCorner8 = new Point3D(centerX + halfSize, centerY - halfSize, centerZ - halfSize);
+		Point3D boxCorner1 = new Point3D(centerX - 40, centerY + halfSize, centerZ + 30);
+		Point3D boxCorner2 = new Point3D(centerX + 40, centerY + halfSize, centerZ + 30);
+		Point3D boxCorner3 = new Point3D(centerX - 40, centerY - halfSize, centerZ + 30);
+		Point3D boxCorner4 = new Point3D(centerX + 40, centerY - halfSize, centerZ + 30);
+		Point3D boxCorner5 = new Point3D(centerX - 40, centerY + halfSize, centerZ - 30);
+		Point3D boxCorner6 = new Point3D(centerX + 40, centerY + halfSize, centerZ - 30);
+		Point3D boxCorner7 = new Point3D(centerX - 40, centerY - halfSize, centerZ - 30);
+		Point3D boxCorner8 = new Point3D(centerX + 40, centerY - halfSize, centerZ - 30);
+		
+//		Point3D boxCorner1 = new Point3D(8,10,6);
+//		Point3D boxCorner2 = new Point3D(0,10,6);
+//		Point3D boxCorner3 = new Point3D(0,10,0);
+//		Point3D boxCorner4 = new Point3D(8,10,0);
+//		Point3D boxCorner5 = new Point3D(8,0,6);
+//		Point3D boxCorner6 = new Point3D(0,0,6);
+//		Point3D boxCorner7 = new Point3D(0,0,0);
+//		Point3D boxCorner8 = new Point3D(8,0,0);
+//		
+//		double[][] translationMatrix1 = { { 10, 0, 0 }, { 0, 10, 0 }, { 0, 0, 10} };
+//	    boxCorner1 = Matrix.multiplyPoint(boxCorner1, translationMatrix1);
+//		boxCorner2 = Matrix.multiplyPoint(boxCorner2, translationMatrix1);
+//		boxCorner3 = Matrix.multiplyPoint(boxCorner3, translationMatrix1);
+//		boxCorner4 = Matrix.multiplyPoint(boxCorner4, translationMatrix1);
+//		boxCorner5 = Matrix.multiplyPoint(boxCorner5, translationMatrix1);
+//		boxCorner6 = Matrix.multiplyPoint(boxCorner6, translationMatrix1);
+//		boxCorner7 = Matrix.multiplyPoint(boxCorner7, translationMatrix1);
+//		boxCorner8 = Matrix.multiplyPoint(boxCorner8, translationMatrix1);
+//		
+//		double[][] translationMatrix2 = { { 1, 0, 0 }, { 0, 1, 0 }, { 0, 0, 1} };
+//	    boxCorner1 = Matrix.multiplyPoint(boxCorner1, translationMatrix2);
+//		boxCorner2 = Matrix.multiplyPoint(boxCorner2, translationMatrix2);
+//		boxCorner3 = Matrix.multiplyPoint(boxCorner3, translationMatrix2);
+//		boxCorner4 = Matrix.multiplyPoint(boxCorner4, translationMatrix2);
+//		boxCorner5 = Matrix.multiplyPoint(boxCorner5, translationMatrix2);
+//		boxCorner6 = Matrix.multiplyPoint(boxCorner6, translationMatrix2);
+//		boxCorner7 = Matrix.multiplyPoint(boxCorner7, translationMatrix2);
+//		boxCorner8 = Matrix.multiplyPoint(boxCorner8, translationMatrix2);
+		
 		System.out.println("boxCorner1: [" + boxCorner1.getX() + ", " + boxCorner1.getY()
 		+ ", " + boxCorner1.getZ() +"]");
 		System.out.println("boxCorner2: [" + boxCorner2.getX() + ", " + boxCorner2.getY()
@@ -134,15 +168,30 @@ public class Visualizer extends Application {
 		+ ", " + boxCorner7.getZ() +"]");
 		System.out.println("boxCorner8: [" + boxCorner8.getX() + ", " + boxCorner8.getY()
 		+ ", " + boxCorner8.getZ() +"]");
-				
-		Sphere pointCorner1 = getPoint(centerX - halfSize, centerY + halfSize, centerZ + halfSize, Color.RED);
-		Sphere pointCorner2 = getPoint(centerX + halfSize, centerY + halfSize, centerZ + halfSize, Color.GREEN);
-		Sphere pointCorner3 = getPoint(centerX - halfSize, centerY - halfSize, centerZ + halfSize, Color.YELLOW);
-		Sphere pointCorner4 = getPoint(centerX + halfSize, centerY - halfSize, centerZ + halfSize, Color.BLUE);
-		Sphere pointCorner5 = getPoint(centerX - halfSize, centerY + halfSize, centerZ - halfSize, Color.BLACK);
-		Sphere pointCorner6 = getPoint(centerX + halfSize, centerY + halfSize, centerZ - halfSize, Color.BROWN);
-		Sphere pointCorner7 = getPoint(centerX - halfSize, centerY - halfSize, centerZ - halfSize, Color.CYAN);
-		Sphere pointCorner8 = getPoint(centerX + halfSize, centerY - halfSize, centerZ - halfSize, Color.PURPLE);
+		
+		Sphere pointCorner1 = getPoint(boxCorner1.getX(), boxCorner1.getY(), boxCorner1.getZ(), Color.RED);
+		Sphere pointCorner2 = getPoint(boxCorner2.getX(), boxCorner2.getY(), boxCorner2.getZ(), Color.GREEN);
+		Sphere pointCorner3 = getPoint(boxCorner3.getX(), boxCorner3.getY(), boxCorner3.getZ(), Color.YELLOW);
+		Sphere pointCorner4 = getPoint(boxCorner4.getX(), boxCorner4.getY(), boxCorner4.getZ(), Color.BLUE);
+		Sphere pointCorner5 = getPoint(boxCorner5.getX(), boxCorner5.getY(), boxCorner5.getZ(), Color.BLACK);
+		Sphere pointCorner6 = getPoint(boxCorner6.getX(), boxCorner6.getY(), boxCorner6.getZ(), Color.BROWN);
+		Sphere pointCorner7 = getPoint(boxCorner7.getX(), boxCorner7.getY(), boxCorner7.getZ(), Color.CYAN);
+		Sphere pointCorner8 = getPoint(boxCorner8.getX(), boxCorner8.getY(), boxCorner8.getZ(), Color.PURPLE);
+		
+		Line l1 = new Line(boxCorner1.getX(), boxCorner1.getY(), boxCorner2.getX(), boxCorner2.getY());
+		l1.setTranslateZ(boxCorner1.getZ());
+	    l1.setStroke(Color.RED);
+	    volume.getChildren().addAll(l1);
+		
+//		Sphere pointCorner1 = getPoint(centerX - halfSize, centerY + halfSize, centerZ + halfSize, Color.RED);
+//		Sphere pointCorner2 = getPoint(centerX + halfSize, centerY + halfSize, centerZ + halfSize, Color.GREEN);
+//		Sphere pointCorner3 = getPoint(centerX - halfSize, centerY - halfSize, centerZ + halfSize, Color.YELLOW);
+//		Sphere pointCorner4 = getPoint(centerX + halfSize, centerY - halfSize, centerZ + halfSize, Color.BLUE);
+//		Sphere pointCorner5 = getPoint(centerX - halfSize, centerY + halfSize, centerZ - halfSize, Color.BLACK);
+//		Sphere pointCorner6 = getPoint(centerX + halfSize, centerY + halfSize, centerZ - halfSize, Color.BROWN);
+//		Sphere pointCorner7 = getPoint(centerX - halfSize, centerY - halfSize, centerZ - halfSize, Color.CYAN);
+//		Sphere pointCorner8 = getPoint(centerX + halfSize, centerY - halfSize, centerZ - halfSize, Color.PURPLE);
+		
 	    volume.getChildren().addAll(pointCorner1);
 	    volume.getChildren().addAll(pointCorner2);
 	    volume.getChildren().addAll(pointCorner3);
@@ -210,16 +259,16 @@ public class Visualizer extends Application {
 	    Bounds b = polygon.getBoundsInLocal();
 	    BoundingBox polygonBox = new BoundingBox(projectedCorner3.getX(), projectedCorner3.getY(), b.getWidth(),b.getHeight());
 	    
-	    volume.getChildren().addAll(polygon);
+	    //volume.getChildren().addAll(polygon);
 		
-		volume.getChildren().addAll(projPointCorner1);
-	    volume.getChildren().addAll(projPointCorner2);
-	    volume.getChildren().addAll(projPointCorner3);
-	    volume.getChildren().addAll(projPointCorner4);
-	    volume.getChildren().addAll(projPointCorner5);
-	    volume.getChildren().addAll(projPointCorner6);
-	    volume.getChildren().addAll(projPointCorner7);
-	    volume.getChildren().addAll(projPointCorner8);
+//		volume.getChildren().addAll(projPointCorner1);
+//	    volume.getChildren().addAll(projPointCorner2);
+//	    volume.getChildren().addAll(projPointCorner3);
+//	    volume.getChildren().addAll(projPointCorner4);
+//	    volume.getChildren().addAll(projPointCorner5);
+//	    volume.getChildren().addAll(projPointCorner6);
+//	    volume.getChildren().addAll(projPointCorner7);
+//	    volume.getChildren().addAll(projPointCorner8);
 				
 		//String file_path = "C:\\Tools\\eclipse\\workspace\\objectrecognizer\\ObjectRecognizer\\images\\football.jpg";
 		//File input = new File(file_path);
@@ -230,11 +279,13 @@ public class Visualizer extends Application {
 		//rec.setHeight(200);
 		//Image img = new Image(input.toURI().toString());
 		//rec.setFill(new ImagePattern(img));
-		rec.setFill(Color.AQUA);
-		rec.setX(polygonBox.getMinX());
-		rec.setY(polygonBox.getMinY());
-		rec.setWidth(polygonBox.getWidth());
-		rec.setHeight(polygonBox.getHeight());
+		
+		
+//		rec.setFill(Color.AQUA);
+//		rec.setX(polygonBox.getMinX());
+//		rec.setY(polygonBox.getMinY());
+//		rec.setWidth(polygonBox.getWidth());
+//		rec.setHeight(polygonBox.getHeight());
 		//volume.getChildren().addAll(rec);
 		
 		//y-axis

@@ -53,6 +53,7 @@ import nl.tue.vc.imgproc.CameraController;
 import nl.tue.vc.imgproc.HistogramGenerator;
 import nl.tue.vc.application.visual.NewStage;
 import nl.tue.vc.imgproc.SilhouetteExtractor;
+import nl.tue.vc.voxelengine.BoxParameters;
 import nl.tue.vc.voxelengine.CameraPosition;
 import nl.tue.vc.voxelengine.Octree;
 import nl.tue.vc.voxelengine.VolumeRenderer;
@@ -237,7 +238,7 @@ public class ObjectRecognizerController {
 		//segmentationAlgorithm;
 		segmentationAlgorithm.getItems().add("Watersheed");
 		segmentationAlgorithm.getItems().add("Binarization");
-		segmentationAlgorithm.setValue("Watersheed");
+		segmentationAlgorithm.setValue("Binarization");
 		
 		System.out.println(segmentationAlgorithm.getValue());
 
@@ -758,16 +759,17 @@ private void updateView(ImageView view, Image image){
 	protected void constructModel() {
 		//System.out.println("height = " + this.processedExtractedImage.size().height + ", width = " + this.processedExtractedImage.size().width);
 		for(BufferedImage convertedMat : this.bufferedImagesForTest) {	
-			System.out.println("-------- Image Bounds ----- " + convertedMat.getMinX() + " ----- " + convertedMat.getGraphics());
+			//System.out.println("-------- Image Bounds ----- " + convertedMat.getMinX() + " ----- " + convertedMat.getGraphics());
 			//System.out.println("Converted mat width = " + convertedMat.getWidth() + ", height = " + convertedMat.getHeight());
 			int[][] sourceArray = IntersectionTest.getBinaryArray(convertedMat);
-			//System.out.println("binary array rows = " + sourceArray.length + ", cols = " + sourceArray[0].length);
+			System.out.println("binary array rows = " + sourceArray.length + ", cols = " + sourceArray[0].length);
 			for (int x = 0; x < sourceArray.length; x++) {
 				for (int y = 0; y < sourceArray[x].length; y++) {
 					//System.out.print(sourceArray[x][y] + " ");
 				}
 				//System.out.println("");
 			}
+			
 			sourceArrays.add(sourceArray);
 			int[][] transformedArray = IntersectionTest.getTransformedArray(sourceArray);
 			//System.out.println("transformedArray array rows = " + transformedArray.length + ", cols = " + transformedArray[0].length);
@@ -789,7 +791,7 @@ private void updateView(ImageView view, Image image){
 	 */
 	@FXML
 	protected void visualizeModel() {
-		int boxSize = 256;
+		int boxSize = 10;
 		CameraPosition cameraPosition = new CameraPosition();
 		//cameraPositionX = 320;
 		//cameraPositionY = 240;
@@ -797,8 +799,14 @@ private void updateView(ImageView view, Image image){
 		cameraPosition.positionAxisX = 0;
 		cameraPosition.positionAxisY = 0;
 		cameraPosition.positionAxisZ = 0;
-		ApplicationConfiguration appConfig = ApplicationConfiguration.getInstance();
-		Octree octree = new Octree(boxSize, appConfig.getVolumeBoxParameters());
+//		ApplicationConfiguration appConfig = ApplicationConfiguration.getInstance();
+//		Octree octree = new Octree(boxSize, appConfig.getVolumeBoxParameters());
+		BoxParameters volumeBoxParameters = new BoxParameters();		
+		volumeBoxParameters.setBoxSize(boxSize);
+		volumeBoxParameters.setCenterX(5);
+		volumeBoxParameters.setCenterY(5);
+		volumeBoxParameters.setCenterZ(5);
+		Octree octree = new Octree(boxSize, volumeBoxParameters);
 		//octree.generateOctreeFractal(3);
 		octree.setBufferedImagesForTest(this.bufferedImagesForTest);
 		octree.setSourceArrays(this.sourceArrays);
@@ -807,7 +815,7 @@ private void updateView(ImageView view, Image image){
 		volumeRenderer = new VolumeRenderer(octree, this.sourceArrays, this.transformedArrays);
 		//octree.setBoxParameters(volumeRenderer.getVolumeBoxParameters());
 		volumeRenderer.generateVolumeScene(octree.getOctreeVolume());
-		//volumeRenderer.generateVolumeScene(octree.getOctreeTestVolume(3));
+		//volumeRenderer.generateVolumeScene(octree.getProjections(volumeBoxParameters));
 		rootGroup.setCenter(volumeRenderer.getSubScene());
 	}
 	

@@ -223,21 +223,12 @@ public class VolumeGenerator {
 
 		if (currentNode.isLeaf()) {
 			// working with leafs
-			// System.out.println(">> Leaf ..");
-			// ignore nodes with white color
 			if (currentNode.getColor() != Color.WHITE) {
 				Box box = generateVoxel(currentParameters, currentDeltas, currentNode.getColor(), false);
 				voxels.add(box);
 			}
-			// currentNode.setColor(Color.GRAY);
-			// return voxels;
-			// System.out.println("<< Leaf ..");
 		} else {
-			// currentNode.setColor(Color.GRAY);
-			// working internal nodes
-			// System.out.println(">> Internal node ..");
 			Node[] children = currentNode.getChildren();
-
 			int newBoxSize = currentParameters.getBoxSize() / 2;
 
 			BoxParameters newParameters = new BoxParameters();
@@ -315,9 +306,6 @@ public class VolumeGenerator {
 		return deltas;
 	}
 
-	// Make the X, Y, and Z coordinates start at the corner of the first (0) node
-	// and translate the rest of the nodes to their respective positions
-	// Get rid of the center stuff
 	private Box generateVoxel(BoxParameters boxParameters, DeltaStruct deltas, Color nodeColor, Boolean testIntersection) {
 		Box box = new Box(boxParameters.getBoxSize(), boxParameters.getBoxSize(), boxParameters.getBoxSize());
 
@@ -329,86 +317,26 @@ public class VolumeGenerator {
 				+ boxParameters.getCenterY());
 		System.out.println("Position {x: " + posx + ", y: " + posy + ", z: " + posz + "}, Size: "
 				+ boxParameters.getBoxSize() + "\n");
-		
 		Color diffuseColor = nodeColor;
-		//============================================================================================================================================================================
-		//get the scene dimensions
-		ApplicationConfiguration appConfig = ApplicationConfiguration.getInstance();
-		int sceneWidth = appConfig.getVolumeSceneWidth();
-		int sceneHeight = appConfig.getVolumeSceneHeight();
-		int sceneDepth = appConfig.getVolumeSceneDepth();
-		int volumeBoxSize = appConfig.getVolumeBoxSize();
-		
-		//define BoxParameters for the image
-		BoxParameters imageBoxParameters = new BoxParameters();		
-		imageBoxParameters.setBoxSize(volumeBoxSize);
-		imageBoxParameters.setCenterX(sceneWidth/2);
-		imageBoxParameters.setCenterY(sceneHeight/2);
-		imageBoxParameters.setCenterZ(sceneDepth/2);
-		
-		//String file_path = "C:\\Tools\\eclipse\\workspace\\objectrecognizer\\ObjectRecognizer\\images\\football.jpg";
-		//File input = new File(file_path);
-		//Image img = new Image(input.toURI().toString());
-		
-		
-		
-		
-//============================================================================================================================================================================		
-		if(testIntersection) {
-			int focalLength = 1;
-			int xCoordLowerLeft = posx-(boxParameters.getCenterX()/2);
-			int yCoordLowerLeft = posy-(boxParameters.getCenterY()/2);
-			int zCoordLowerLeft = posz-(boxParameters.getCenterZ()/2);
-			System.out.println("xCoordLowerLeft: " + xCoordLowerLeft + ", yCoordLowerLeft: " + yCoordLowerLeft + ", zCoordLowerLeft: " + zCoordLowerLeft);
-			
-			int projectedX = xCoordLowerLeft/zCoordLowerLeft;//*(focalLength/zCoordLowerLeft);
-			int projectedY = yCoordLowerLeft/zCoordLowerLeft;//*(focalLength/zCoordLowerLeft);
-			System.out.println("Projected x: " + projectedX + ", projected y: " + projectedY);
 
-			// TODO: Test the computation of the transformed value for different generated volumes.
-			int lowerLeftYValue = projectedY;// + boxParameters.getBoxSize();
 			int transformedValue;
-			for (int i=0; i<transformedArrays.size();i++) {
-//				if (projectedX >= transformedArray.length || projectedX<0 || lowerLeftYValue >= transformedArray[0].length) {
-//					transformedValue = -1;
-//					System.out.println("Something weird happened here!!!");
-//				} else {
-				
-				int[][] transformedArray = transformedArrays.get(i);
-				
-				//define the image object and it's corresponding rectangle
-				Image img = SwingFXUtils.toFXImage(this.bufferedImagesForTest.get(i), null);
-				Rectangle imageRect = new Rectangle();
-				imageRect.setX(imageBoxParameters.getCenterX() - (imageBoxParameters.getCenterX()/2));
-				imageRect.setY(imageBoxParameters.getCenterY() - (imageBoxParameters.getCenterY()/2));
-				imageRect.setWidth(img.getWidth());
-				imageRect.setHeight(img.getHeight());
-				imageRect.setFill(new ImagePattern(img));
-				
-				Bounds boxBounds = box.getBoundsInLocal();
-				System.out.println("Bounds local ----- " + boxBounds);
-				System.out.println("Bounds Image local ----- " + imageRect.getBoundsInLocal());
-				
-				int xVal = projectedX;//Math.abs(((int) (imageRect.getX())-projectedX-1));
-				int yVal = projectedY;//Math.abs((int) (imageRect.getY())-projectedY-1);
-				System.out.println("imageRect x: " + imageRect.getX() + ", imageRect y: " + imageRect.getY());
-				System.out.println("Getting transformed value for x = " + xVal + ", y = " + yVal);
-				transformedValue = transformedArray[xVal][yVal];
-				//}
-
-				System.out.println("transformedValue: " + transformedValue);
-
-				if (transformedValue >= boxParameters.getBoxSize()) {
-					diffuseColor = getPaintColor(nodeColor, Color.BLACK);
-				} else if((transformedValue < boxParameters.getBoxSize()) && (transformedValue > 0)) {
-					diffuseColor = getPaintColor(nodeColor, Color.GRAY);
-				}
-				else {
-					diffuseColor = getPaintColor(nodeColor, Color.WHITE);
-				}
-				
-			}
-		} 
+//			for (int i=0; i<transformedArrays.size();i++) {
+////				
+//				int[][] transformedArray = transformedArrays.get(i);
+//				transformedValue = transformedArray[xVal][yVal];
+//				
+//				System.out.println("transformedValue: " + transformedValue);
+//
+//				if (transformedValue >= boxParameters.getBoxSize()) {
+//					diffuseColor = getPaintColor(nodeColor, Color.BLACK);
+//				} else if((transformedValue < boxParameters.getBoxSize()) && (transformedValue > 0)) {
+//					diffuseColor = getPaintColor(nodeColor, Color.GRAY);
+//				}
+//				else {
+//					diffuseColor = getPaintColor(nodeColor, Color.WHITE);
+//				}
+//				
+//			}
 		
 		box.setTranslateX(posx);
 		box.setTranslateY(posy);
@@ -419,9 +347,6 @@ public class VolumeGenerator {
 		textureMaterial.setDiffuseColor(diffuseColor);
 		box.setMaterial(textureMaterial);
 		Bounds boxBounds = box.getBoundsInLocal();
-//		System.out.println("Bounds local ----- " + boxBounds);
-//		System.out.println("Bounds parent ----- " + box.getBoundsInParent());
-//		System.out.println("Bounds layout ----- " + box.getLayoutBounds());
 		return box;
 	}
 	
