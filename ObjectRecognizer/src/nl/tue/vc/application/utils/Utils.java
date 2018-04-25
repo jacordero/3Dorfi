@@ -78,7 +78,7 @@ public final class Utils
 	 *            the {@link Mat} object in BGR or grayscale
 	 * @return the corresponding {@link BufferedImage}
 	 */
-	private static BufferedImage matToBufferedImage(Mat original)
+	public static BufferedImage matToBufferedImage(Mat original)
 	{
 		// init
 		BufferedImage image = null;

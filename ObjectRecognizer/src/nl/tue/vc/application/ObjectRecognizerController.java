@@ -1,17 +1,13 @@
 package nl.tue.vc.application;
 
 import java.awt.image.BufferedImage;
-import java.awt.image.Raster;
 import java.io.File;
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Timer;
 import java.util.TimerTask;
-
-import javax.imageio.ImageIO;
 
 import org.opencv.calib3d.Calib3d;
 import org.opencv.core.Core;
@@ -29,6 +25,8 @@ import org.opencv.imgproc.Imgproc;
 import org.opencv.videoio.VideoCapture;
 
 import javafx.application.Platform;
+import javafx.beans.value.ChangeListener;
+import javafx.beans.value.ObservableValue;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.fxml.FXML;
@@ -50,8 +48,10 @@ import nl.tue.vc.application.utils.Utils;
 import nl.tue.vc.application.visual.IntersectionTest;
 import nl.tue.vc.imgproc.CameraController;
 import nl.tue.vc.imgproc.HistogramGenerator;
-import nl.tue.vc.application.visual.NewStage;
 import nl.tue.vc.imgproc.SilhouetteExtractor;
+import nl.tue.vc.projection.CameraProjectionTest;
+import nl.tue.vc.projection.TransformMatrices;
+import nl.tue.vc.voxelengine.BoxParameters;
 import nl.tue.vc.voxelengine.CameraPosition;
 import nl.tue.vc.voxelengine.Octree;
 import nl.tue.vc.voxelengine.VolumeRenderer;
@@ -93,6 +93,10 @@ public class ObjectRecognizerController {
 	//private Button cameraButton;
 	@FXML
 	private Button applyButton;
+	
+	@FXML
+	private Button calibrateExtrinsicParamsButton;
+	
 	@FXML
 	private Button snapshotButton;
 	// the FXML area for showing the current frame (before calibration)
@@ -139,6 +143,14 @@ public class ObjectRecognizerController {
 	@FXML
 	private ImageView cameraFrameView;
 
+	@FXML
+	private Slider fieldOfViewSlider;
+	
+	@FXML
+	private Slider worldRotationYAngleSlider;
+	
+	private int fieldOfView;
+	private TransformMatrices transformMatrices;
 	
 	// old timer
 	private Timer calibrationTimer;
@@ -213,8 +225,12 @@ public class ObjectRecognizerController {
 	private Image defaultVideoImage;
 
 	public static int SECOND = 1000;
+	private double sceneWidth;
+	private double sceneHeight;
 	
 	public ObjectRecognizerController() {
+		this.sceneWidth = 400;//650.5;//440;
+		this.sceneHeight = 290;//328.0;//320;
 		silhouetteExtractor = new SilhouetteExtractor();
 		cameraController = new CameraController();
 		cameraFrame = new Mat();
@@ -223,6 +239,7 @@ public class ObjectRecognizerController {
 		videoTimerActive = false;
 		calibrationTimer = new Timer();
 		calibrationTimerActive = false;
+		transformMatrices = new TransformMatrices(sceneWidth, sceneHeight, 32.3);
 	}
 
 	@FXML
@@ -316,6 +333,7 @@ public class ObjectRecognizerController {
 		segmentationAlgorithm.getItems().add("Binarization");
 		segmentationAlgorithm.getItems().add("Equalized");
 		segmentationAlgorithm.setValue("Watersheed");
+		segmentationAlgorithm.setValue("Binarization");
 		
 		System.out.println(segmentationAlgorithm.getValue());
 
@@ -333,6 +351,36 @@ public class ObjectRecognizerController {
 		loadedImagesView.setMaxWidth(140);
 		this.vboxRight.getChildren().add(processedImagesView);
 		processedImagesView.setMaxWidth(140);
+		
+		fieldOfViewSlider.valueProperty().addListener((observable, oldValue, newValue) -> {
+			System.out.println("Field of view changed (newValue: " +  newValue.intValue() + ")");
+			fieldOfView = newValue.intValue();
+		});
+
+
+		fieldOfViewSlider.valueChangingProperty().addListener(new ChangeListener<Boolean>() {
+			@Override
+			public void changed(ObservableValue<? extends Boolean> obs, Boolean wasChanging, Boolean isNowChanging) {
+				if (!isNowChanging) {
+					System.out.println("It stopped changing");
+					transformMatrices.updateFieldOfView(fieldOfViewSlider.getValue());
+					renderModel();
+				}
+			}
+		});
+		
+		worldRotationYAngleSlider.valueChangingProperty().addListener(new ChangeListener<Boolean>() {
+			@Override
+			public void changed(ObservableValue<? extends Boolean> obs, Boolean wasChanging, Boolean isNowChanging) {
+				if (!isNowChanging) {
+					System.out.println("Rotation around Y angle was stopped");
+					
+					transformMatrices.updateWorldRotationYAngle(worldRotationYAngleSlider.getValue());
+					//transformMatrices.updateFieldOfView(fieldOfViewSlider.getValue());
+					renderModel();
+				}
+			}
+		});
 	}
 	
 	
@@ -384,7 +432,8 @@ public class ObjectRecognizerController {
 				if (file != null) {
 					ImageView imageView = new ImageView();
 					// read the image in gray scale
-					this.image = Imgcodecs.imread(file.getAbsolutePath(), Imgcodecs.CV_LOAD_IMAGE_GRAYSCALE);
+					//this.image = Imgcodecs.imread(file.getAbsolutePath(), Imgcodecs.CV_LOAD_IMAGE_GRAYSCALE);
+					this.image = Imgcodecs.imread(file.getAbsolutePath(), Imgcodecs.CV_LOAD_IMAGE_COLOR);
 					
 					// load the images into the listview
 					String imgName = file.getName().split("\\.")[0];
@@ -831,6 +880,18 @@ protected void extractSilhouettes(){
 	}
 
 
+	@FXML
+	private void calibrateCameraForExtrinsicParams() {
+		System.out.println("*** Calibrating camera to find extrinsic parameters ***");
+		if (loadedImages.size() > 0) {
+			CameraProjectionTest.project(loadedImages.get(0));
+		} else {
+			System.out.println("*** Load calibration image ***");
+		}
+		//loadedImages
+	}
+	
+	
 	/**
 	 * The effective camera calibration, to be performed once in the program
 	 * execution
@@ -867,16 +928,17 @@ protected void extractSilhouettes(){
 	protected void constructModel() {
 		//System.out.println("height = " + this.processedExtractedImage.size().height + ", width = " + this.processedExtractedImage.size().width);
 		for(BufferedImage convertedMat : this.bufferedImagesForTest) {	
-			System.out.println("-------- Image Bounds ----- " + convertedMat.getMinX() + " ----- " + convertedMat.getGraphics());
+			//System.out.println("-------- Image Bounds ----- " + convertedMat.getMinX() + " ----- " + convertedMat.getGraphics());
 			//System.out.println("Converted mat width = " + convertedMat.getWidth() + ", height = " + convertedMat.getHeight());
 			int[][] sourceArray = IntersectionTest.getBinaryArray(convertedMat);
-			//System.out.println("binary array rows = " + sourceArray.length + ", cols = " + sourceArray[0].length);
+			System.out.println("binary array rows = " + sourceArray.length + ", cols = " + sourceArray[0].length);
 			for (int x = 0; x < sourceArray.length; x++) {
 				for (int y = 0; y < sourceArray[x].length; y++) {
 					//System.out.print(sourceArray[x][y] + " ");
 				}
 				//System.out.println("");
 			}
+			
 			sourceArrays.add(sourceArray);
 			int[][] transformedArray = IntersectionTest.getTransformedArray(sourceArray);
 			//System.out.println("transformedArray array rows = " + transformedArray.length + ", cols = " + transformedArray[0].length);
@@ -898,7 +960,11 @@ protected void extractSilhouettes(){
 	 */
 	@FXML
 	protected void visualizeModel() {
-		int boxSize = 256;
+		renderModel();
+	}
+
+	public void renderModel() {
+		int boxSize = 10;
 		CameraPosition cameraPosition = new CameraPosition();
 		//cameraPositionX = 320;
 		//cameraPositionY = 240;
@@ -906,13 +972,25 @@ protected void extractSilhouettes(){
 		cameraPosition.positionAxisX = 0;
 		cameraPosition.positionAxisY = 0;
 		cameraPosition.positionAxisZ = 0;
-		
-		Octree octree = new Octree(boxSize);
-		octree.generateOctreeTest(boxSize, 10);
+//		ApplicationConfiguration appConfig = ApplicationConfiguration.getInstance();
+//		Octree octree = new Octree(boxSize, appConfig.getVolumeBoxParameters());
+		BoxParameters volumeBoxParameters = new BoxParameters();		
+		volumeBoxParameters.setBoxSize(boxSize);
+		volumeBoxParameters.setCenterX(5);
+		volumeBoxParameters.setCenterY(5);
+		volumeBoxParameters.setCenterZ(5);
+		Octree octree = new Octree(boxSize, volumeBoxParameters);
+		//octree.generateOctreeFractal(3);
 		octree.setBufferedImagesForTest(this.bufferedImagesForTest);
+		octree.setSourceArrays(this.sourceArrays);
+		octree.setTransformedArrays(this.transformedArrays);
+		octree.setFieldOfView(this.fieldOfView);
+		octree.setTransformMatrices(this.transformMatrices);
 		// try not create another volume renderer object to recompute the octree visualization
 		volumeRenderer = new VolumeRenderer(octree, this.sourceArrays, this.transformedArrays);
-		volumeRenderer.generateVolumeScene();
+		//octree.setBoxParameters(volumeRenderer.getVolumeBoxParameters());
+		//volumeRenderer.generateVolumeScene(octree.getOctreeVolume());
+		volumeRenderer.generateVolumeScene(octree.getProjections(volumeBoxParameters));
 		rootGroup.setCenter(volumeRenderer.getSubScene());
 	}
 	
