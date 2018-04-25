@@ -37,6 +37,8 @@ public class Octree {
 	private Group octreeVolume;
 	private List<int[][]> sourceArrays;
 	private List<int[][]> transformedArrays;
+	private TransformMatrices transformMatrices;
+	private int fieldOfView;
 
 	/**
 	 *        +---------+-----------+
@@ -59,6 +61,8 @@ public class Octree {
 		this.node = new InternalNode(Color.BLACK, boxSize);
 		bufferedImagesForTest = new ArrayList<BufferedImage>();
 		this.octreeVolume = new Group();
+		this.fieldOfView = 32;
+		this.transformMatrices = new TransformMatrices(400, 290, fieldOfView);
 	}
 
 	public Octree(int boxSize, int level, BoxParameters boxParameters) {
@@ -66,11 +70,12 @@ public class Octree {
 	}
 
 	public Octree(int boxSize, BoxParameters boxParameters) {
-		this.boxSize = boxSize;
-		root = new InternalNode(Color.BLACK, boxSize);
-		this.node = new InternalNode(Color.BLACK, boxSize);
-		bufferedImagesForTest = new ArrayList<BufferedImage>();
-		this.octreeVolume = new Group();
+		this(boxSize);
+		//this.boxSize = boxSize;
+		//root = new InternalNode(Color.BLACK, boxSize);
+		//this.node = new InternalNode(Color.BLACK, boxSize);
+		//bufferedImagesForTest = new ArrayList<BufferedImage>();
+		//this.octreeVolume = new Group();
 		DeltaStruct deltas = new DeltaStruct();
 		deltas.deltaX = 0;
 		deltas.deltaY = 0;
@@ -285,7 +290,7 @@ public class Octree {
 	public Group getProjections(BoxParameters boxParameters) {
 		ArrayList<Vector3D> projectedPoints = new ArrayList<>();
 		
-		TransformMatrices transformMatrices = new TransformMatrices(400, 290, 32.3);
+		//TransformMatrices transformMatrices = new TransformMatrices(400, 290, 32.3);
 		VolumeModel volumeModel = new VolumeModel(boxParameters);
 		
 		double leftMostPos = transformMatrices.screenWidth;
@@ -488,7 +493,7 @@ public class Octree {
 	public IntersectionStatus testIntersection(BoxParameters boxParameters) {
 		ArrayList<Vector3D> projectedPoints = new ArrayList<>();
 		IntersectionStatus status = IntersectionStatus.INSIDE;
-		TransformMatrices transformMatrices = new TransformMatrices(400, 290, 32.3);
+		//TransformMatrices transformMatrices = new TransformMatrices(400, 290, 32.3);
 		VolumeModel volumeModel = new VolumeModel(boxParameters);
 		
 		double leftMostPos = transformMatrices.screenWidth;
@@ -554,7 +559,7 @@ public class Octree {
 	public Group getProjections() {
 		ArrayList<Vector3D> projectedPoints = new ArrayList<>();
 		
-		TransformMatrices transformMatrices = new TransformMatrices(400, 290, 42.3);
+		//TransformMatrices transformMatrices = new TransformMatrices(400, 290, 22.3);
 		VolumeModel volumeModel = new VolumeModel();
 		
 		double leftMostPos = transformMatrices.screenWidth;
@@ -848,7 +853,7 @@ public class Octree {
 		
 		ArrayList<Vector3D> projectedPoints = new ArrayList<>();
 		
-		TransformMatrices transformMatrices = new TransformMatrices(400, 290, 32.3);
+		//TransformMatrices transformMatrices = new TransformMatrices(400, 290, 32.3);
 		VolumeModel volumeModel = new VolumeModel(boxParameters);
 		
 		double leftMostPos = transformMatrices.screenWidth;
@@ -1108,5 +1113,21 @@ public class Octree {
 
 	public void setTransformedArrays(List<int[][]> transformedBinaryArray) {
 		this.transformedArrays = transformedBinaryArray;
+	}
+
+	public TransformMatrices getTransformMatrices() {
+		return transformMatrices;
+	}
+
+	public void setTransformMatrices(TransformMatrices transformMatrices) {
+		this.transformMatrices = transformMatrices;
+	}
+
+	public int getFieldOfView() {
+		return fieldOfView;
+	}
+
+	public void setFieldOfView(int fieldOfView) {
+		this.fieldOfView = fieldOfView;
 	}
 }

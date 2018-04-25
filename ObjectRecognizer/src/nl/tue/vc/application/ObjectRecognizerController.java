@@ -29,6 +29,8 @@ import org.opencv.imgproc.Imgproc;
 import org.opencv.videoio.VideoCapture;
 
 import javafx.application.Platform;
+import javafx.beans.value.ChangeListener;
+import javafx.beans.value.ObservableValue;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.fxml.FXML;
@@ -53,6 +55,7 @@ import nl.tue.vc.imgproc.CameraController;
 import nl.tue.vc.imgproc.HistogramGenerator;
 import nl.tue.vc.application.visual.NewStage;
 import nl.tue.vc.imgproc.SilhouetteExtractor;
+import nl.tue.vc.projection.TransformMatrices;
 import nl.tue.vc.voxelengine.BoxParameters;
 import nl.tue.vc.voxelengine.CameraPosition;
 import nl.tue.vc.voxelengine.Octree;
@@ -132,6 +135,15 @@ public class ObjectRecognizerController {
 	@FXML
 	private CheckBox debugSegmentation;
 	
+	@FXML
+	private Slider fieldOfViewSlider;
+	
+	@FXML
+	private Slider worldRotationYAngleSlider;
+	
+	private int fieldOfView;
+	private TransformMatrices transformMatrices;
+	
 	// old timer
 	private Timer timer;
 	// a timer for acquiring the video stream
@@ -202,13 +214,18 @@ public class ObjectRecognizerController {
 	private Timer videoTimer;
 
 	public static int SECOND = 1000;
+	private double sceneWidth;
+	private double sceneHeight;
 	
 	public ObjectRecognizerController() {
+		this.sceneWidth = 400;//650.5;//440;
+		this.sceneHeight = 290;//328.0;//320;
 		silhouetteExtractor = new SilhouetteExtractor();
 		cameraController = new CameraController();
 		cameraFrame = new Mat();
 		cameraFrameView = new ImageView();
 		videoTimer = new Timer();
+		transformMatrices = new TransformMatrices(sceneWidth, sceneHeight, 32.3);
 	}
 
 	@FXML
@@ -249,6 +266,36 @@ public class ObjectRecognizerController {
 		loadedImagesView.setMaxWidth(140);
 		this.vboxRight.getChildren().add(processedImagesView);
 		processedImagesView.setMaxWidth(140);
+		
+		fieldOfViewSlider.valueProperty().addListener((observable, oldValue, newValue) -> {
+			System.out.println("Field of view changed (newValue: " +  newValue.intValue() + ")");
+			fieldOfView = newValue.intValue();
+		});
+
+
+		fieldOfViewSlider.valueChangingProperty().addListener(new ChangeListener<Boolean>() {
+			@Override
+			public void changed(ObservableValue<? extends Boolean> obs, Boolean wasChanging, Boolean isNowChanging) {
+				if (!isNowChanging) {
+					System.out.println("It stopped changing");
+					transformMatrices.updateFieldOfView(fieldOfViewSlider.getValue());
+					renderModel();
+				}
+			}
+		});
+		
+		worldRotationYAngleSlider.valueChangingProperty().addListener(new ChangeListener<Boolean>() {
+			@Override
+			public void changed(ObservableValue<? extends Boolean> obs, Boolean wasChanging, Boolean isNowChanging) {
+				if (!isNowChanging) {
+					System.out.println("Rotation around Y angle was stopped");
+					
+					transformMatrices.updateWorldRotationYAngle(worldRotationYAngleSlider.getValue());
+					//transformMatrices.updateFieldOfView(fieldOfViewSlider.getValue());
+					renderModel();
+				}
+			}
+		});
 	}
 	
 	
@@ -791,6 +838,10 @@ private void updateView(ImageView view, Image image){
 	 */
 	@FXML
 	protected void visualizeModel() {
+		renderModel();
+	}
+
+	public void renderModel() {
 		int boxSize = 10;
 		CameraPosition cameraPosition = new CameraPosition();
 		//cameraPositionX = 320;
@@ -811,11 +862,13 @@ private void updateView(ImageView view, Image image){
 		octree.setBufferedImagesForTest(this.bufferedImagesForTest);
 		octree.setSourceArrays(this.sourceArrays);
 		octree.setTransformedArrays(this.transformedArrays);
+		octree.setFieldOfView(this.fieldOfView);
+		octree.setTransformMatrices(this.transformMatrices);
 		// try not create another volume renderer object to recompute the octree visualization
 		volumeRenderer = new VolumeRenderer(octree, this.sourceArrays, this.transformedArrays);
 		//octree.setBoxParameters(volumeRenderer.getVolumeBoxParameters());
-		volumeRenderer.generateVolumeScene(octree.getOctreeVolume());
-		//volumeRenderer.generateVolumeScene(octree.getProjections(volumeBoxParameters));
+		//volumeRenderer.generateVolumeScene(octree.getOctreeVolume());
+		volumeRenderer.generateVolumeScene(octree.getProjections(volumeBoxParameters));
 		rootGroup.setCenter(volumeRenderer.getSubScene());
 	}
 	
