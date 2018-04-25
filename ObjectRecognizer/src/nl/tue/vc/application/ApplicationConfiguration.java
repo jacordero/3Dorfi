@@ -3,6 +3,7 @@ package nl.tue.vc.application;
 import java.util.HashMap;
 import java.util.Map;
 
+import nl.tue.vc.voxelengine.BoxParameters;
 import nl.tue.vc.voxelengine.CameraPosition;
 
 public class ApplicationConfiguration {
@@ -25,6 +26,8 @@ public class ApplicationConfiguration {
 	
 	private Map<String, Integer> silhouetteConfiguration;
 	
+	private BoxParameters volumeBoxParameters;
+	
 	
 	
 	// private constructor to make this a singleton
@@ -37,10 +40,10 @@ public class ApplicationConfiguration {
 		volumeSceneDepth = 200;
 		
 		cameraPosition = new CameraPosition();
-		cameraPosition.positionAxisX = -70;
-		cameraPosition.positionAxisY = -50;
-		cameraPosition.positionAxisZ = 100;
-		volumeBoxSize = 100;
+		cameraPosition.positionAxisX = 0;
+		cameraPosition.positionAxisY = 0;
+		cameraPosition.positionAxisZ = 0;
+		volumeBoxSize = 256;
 		
 		silhouetteConfiguration = new HashMap<String, Integer>();
 		silhouetteConfiguration.put("imageWidthFirstPixel", 30);
@@ -48,6 +51,12 @@ public class ApplicationConfiguration {
 		silhouetteConfiguration.put("imageHeightFirstPixel", 20);
 		silhouetteConfiguration.put("imageHeightLastPixel", 280);
 		silhouetteConfiguration.put("binaryThreshold", 80);
+		
+		volumeBoxParameters = new BoxParameters();		
+		volumeBoxParameters.setBoxSize(volumeBoxSize);
+		volumeBoxParameters.setCenterX(volumeSceneWidth/2);
+		volumeBoxParameters.setCenterY(volumeSceneHeight/2);
+		volumeBoxParameters.setCenterZ(volumeSceneDepth/2);
 	}
 	
 	public static ApplicationConfiguration getInstance() {
@@ -116,5 +125,13 @@ public class ApplicationConfiguration {
 	
 	public Map<String, Integer> getSilhouetteConfiguration(){
 		return silhouetteConfiguration;
+	}
+
+	public BoxParameters getVolumeBoxParameters() {
+		return volumeBoxParameters;
+	}
+
+	public void setVolumeBoxParameters(BoxParameters volumeBoxParameters) {
+		this.volumeBoxParameters = volumeBoxParameters;
 	}
 }

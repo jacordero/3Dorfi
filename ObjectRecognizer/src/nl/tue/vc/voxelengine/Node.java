@@ -7,6 +7,8 @@ public abstract class Node {
 	protected Color color;
 	
 	protected int boxSize;
+	protected BoxParameters boxParameters;
+	protected DeltaStruct deltaStruct;
 	
 	public Color getColor() {
 		return color;
@@ -31,6 +33,22 @@ public abstract class Node {
 	@Override
 	public String toString() {
 		return "{BoxSize: " + boxSize + ", Color: " + color.toString() +"}";
+	}
+
+	public BoxParameters getBoxParameters() {
+		return boxParameters;
+	}
+
+	public void setBoxParameters(BoxParameters boxParameters) {
+		this.boxParameters = boxParameters;
+	}
+
+	public DeltaStruct getDeltaStruct() {
+		return deltaStruct;
+	}
+
+	public void setDeltaStruct(DeltaStruct deltaStruct) {
+		this.deltaStruct = deltaStruct;
 	}
 	
 }
