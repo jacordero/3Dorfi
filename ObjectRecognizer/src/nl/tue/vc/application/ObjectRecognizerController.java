@@ -34,7 +34,6 @@ import javafx.collections.ObservableList;
 import javafx.fxml.FXML;
 import javafx.scene.control.Button;
 import javafx.scene.control.CheckBox;
-import javafx.scene.control.ChoiceBox;
 import javafx.scene.control.ComboBox;
 import javafx.scene.control.Label;
 import javafx.scene.control.ListCell;
@@ -90,8 +89,8 @@ public class ObjectRecognizerController {
 	@FXML
 	private Button visualizeButton;
 	// a FXML button for performing the antitransformation
-	@FXML
-	private Button cameraButton;
+	//@FXML
+	//private Button cameraButton;
 	@FXML
 	private Button applyButton;
 	@FXML
@@ -131,12 +130,24 @@ public class ObjectRecognizerController {
 	@FXML
 	private CheckBox debugSegmentation;
 	
+	@FXML
+	private CheckBox turnOnCamera;
+	
+	@FXML
+	private CheckBox calibrateCamera;
+	
+	@FXML
+	private ImageView cameraFrameView;
+
+	
 	// old timer
-	private Timer timer;
+	private Timer calibrationTimer;
+	private boolean calibrationTimerActive;
 	// a timer for acquiring the video stream
-	private Timer imageTimer;
+	
+	private Timer imageTimer;	
 	// the OpenCV object that performs the video capture
-	private VideoCapture capture;
+	private VideoCapture calibrationCapture;
 	// a flag to change the button behavior
 	private boolean cameraActive;
 	// the saved chessboard image
@@ -195,10 +206,11 @@ public class ObjectRecognizerController {
 	
 	private Mat cameraFrame;
 	
-	@FXML
-	private ImageView cameraFrameView;
-
 	private Timer videoTimer;
+
+	private boolean videoTimerActive;
+	
+	private Image defaultVideoImage;
 
 	public static int SECOND = 1000;
 	
@@ -208,6 +220,9 @@ public class ObjectRecognizerController {
 		cameraFrame = new Mat();
 		cameraFrameView = new ImageView();
 		videoTimer = new Timer();
+		videoTimerActive = false;
+		calibrationTimer = new Timer();
+		calibrationTimerActive = false;
 	}
 
 	@FXML
@@ -233,16 +248,86 @@ public class ObjectRecognizerController {
 			updateBinaryThreshold(newValue.intValue());
 		});		
 		
+		// configuration of the camera
+		turnOnCamera.setOnAction((event) -> {
+		    boolean selected = turnOnCamera.isSelected();
+		    if (selected) {
+		    	System.out.println("******* Turn on camera is selected!!!");
+		    	if (calibrateCamera.isSelected()) {
+		    		startCameraCalibration();
+		    	} else {
+		    		startVideo();
+		    	}
+		    } else {
+		    	System.out.println("******* Turn on camera is unselected!!!");
+		    	if (calibrationTimerActive) {
+			    	calibrationTimer.cancel();
+			    	calibrationTimerActive = false;
+		    	}
+		    	if (calibrationCapture.isOpened()) {
+			    	calibrationCapture.release();		    		
+		    	}
+		    	
+		    	stopVideo();
+		    	System.out.println("Timers are cancelled!");
+		    	cameraFrameView.setImage(new Image("bkg_img.jpg"));
+		    }
+		    //System.out.println("CheckBox Action (selected: " + selected + ")");
+		});
 		
+		// Camera calibration is selected
+		calibrateCamera.setOnAction((event) -> {
+			boolean selected = calibrateCamera.isSelected();
+			if (selected) {
+				System.out.println("********** Calibrate camera is selected!!!");
+				if (turnOnCamera.isSelected()) {
+					// cancel basic video display
+					stopVideo();
+					startCameraCalibration();
+					//stopCameraCalibration();
+				}
+			} else {
+				System.out.println("********** Calibrate camera is unselected!!!");
+				if (calibrationTimerActive) {
+					calibrationTimer.cancel();
+					calibrationTimerActive = false;
+				}
+				if (calibrationCapture.isOpened()) {
+					calibrationCapture.release();
+				}
+				
+				if (turnOnCamera.isSelected()) {
+					startVideo();
+				}
+			}
+		});
+		
+		// Set default image
+		try {
+		   defaultVideoImage = new Image("bkg_img.jpg");
+		} catch (Exception e) {
+			e.printStackTrace();
+		    defaultVideoImage = null;
+		}		
+		
+		cameraFrameView.setImage(defaultVideoImage);
 		//segmentationAlgorithm;
 		segmentationAlgorithm.getItems().add("Watersheed");
 		segmentationAlgorithm.getItems().add("Binarization");
+		segmentationAlgorithm.getItems().add("Equalized");
 		segmentationAlgorithm.setValue("Watersheed");
 		
 		System.out.println(segmentationAlgorithm.getValue());
 
+		/*
+		if (calibrateCamera.isSelected()) {
+			startCameraCalibration();			
+		} else {
+			startVideo();
+		}
+		*/
 		
-		startVideo();
+
 		//this.vboxLeft.getChildren().add(cameraFrameView);
 		this.vboxLeft.getChildren().add(loadedImagesView);
 		loadedImagesView.setMaxWidth(140);
@@ -259,7 +344,7 @@ public class ObjectRecognizerController {
 		this.image = new Mat();
 		this.planes = new ArrayList<>();
 		this.complexImage = new Mat();
-		this.capture = new VideoCapture();
+		this.calibrationCapture = new VideoCapture();
 		this.cameraActive = false;
 		this.obj = new MatOfPoint3f();
 		this.imageCorners = new MatOfPoint2f();
@@ -330,12 +415,12 @@ public class ObjectRecognizerController {
             public void updateItem(String name, boolean empty) {
                 super.updateItem(name, empty);
                 if (empty) {
-                	System.out.println("Null information");
+                	//System.out.println("Null information");
                     setText(null);
                     setGraphic(null);
                 } else {
                 	int imagePosition = loadedImagesDescription.get(name);
-                	System.out.println("Name: " + name +", Position: " + imagePosition);
+                	//System.out.println("Name: " + name +", Position: " + imagePosition);
                 	imageView.setImage(Utils.mat2Image(loadedImages.get(imagePosition)));
 					imageView.setFitWidth(100);
 					imageView.setPreserveRatio(true);
@@ -378,15 +463,25 @@ protected void extractSilhouettes(){
 			bufferedImagesForTest.add(IntersectionTest.Mat2BufferedImage(silhouetteExtractor.getBinaryImage()));
 		} catch (Exception e) {
 			// TODO Auto-generated catch block
+			System.out.println("Something went really wrong!!!");
 			e.printStackTrace();
 		}
 		
 			processedImages.add(silhouetteExtractor.getSegmentedImage());
 			processedImagesNames.add("sg_" + imgId);
 			processedImagesDescription.put("sg_" + imgId, processedImages.size() - 1);
-
+			
 		// show the processed images during the segmentation process
-		if (debugSegmentation.isSelected() && segmentationAlgorithm.getValue() == "Watersheed") {
+		if (debugSegmentation.isSelected()) {
+
+			processedImages.add(silhouetteExtractor.getEqualizedImage());
+			processedImagesNames.add("eq_" + imgId);
+			processedImagesDescription.put("eq_" + imgId, processedImages.size() - 1);
+
+			processedImages.add(silhouetteExtractor.getCleanedBinaryImage());
+			processedImagesNames.add("cb_" + imgId);
+			processedImagesDescription.put("cb_" + imgId, processedImages.size() - 1);
+
 			processedImages.add(silhouetteExtractor.getBinaryImage());
 			processedImagesNames.add("bi_" + imgId);
 			processedImagesDescription.put("bi_" + imgId, processedImages.size() - 1);
@@ -448,17 +543,6 @@ protected void extractSilhouettes(){
 	this.vboxRight.getChildren().add(processedImagesView);
 }
 
-private void updateView(ImageView view, Image image){
-	
-	this.updateImageView(view, image);
-	// set a fixed width
-	this.transformedImage.setFitWidth(250);
-	// preserve image ratio
-	this.transformedImage.setPreserveRatio(true);
-	//Thread.sleep(milliseconds);		
-}
-
-
 	/**
 	 * Store all the chessboard properties, update the UI and prepare other
 	 * needed variables
@@ -472,22 +556,27 @@ private void updateView(ImageView view, Image image){
 		int numSquares = this.numCornersHor * this.numCornersVer;
 		for (int j = 0; j < numSquares; j++)
 			obj.push_back(new MatOfPoint3f(new Point3(j / this.numCornersHor, j % this.numCornersVer, 0.0f)));
-		this.cameraButton.setDisable(false);
+		//this.cameraButton.setDisable(false);
 	}
 
 	/**
 	 * The action triggered by pushing the button on the GUI
 	 */
 	@FXML
-	protected void startCamera()
+	protected void startCamera() {
+		
+	}
+	
+	
+	
+	private void startCameraCalibration()
 	{
 		if (!this.cameraActive)
 		{
 			// start the video capture
-			this.capture.open(1);
-
+			this.calibrationCapture.open(1);
 			// is the video stream available?
-			if (this.capture.isOpened())
+			if (this.calibrationCapture.isOpened())
 			{
 				this.cameraActive = true;
 
@@ -496,32 +585,34 @@ private void updateView(ImageView view, Image image){
 					@Override
 					public void run()
 					{
-						CamStream=grabFrame();
+						CamStream=grabFrameCalibration();
 						// show the original frames
 						Platform.runLater(new Runnable() {
 							@Override
 				            public void run() {
-								originalFrame.setImage(CamStream);
+								cameraFrameView.setImage(CamStream);
 								// set fixed width
-								originalFrame.setFitWidth(380);
+								cameraFrameView.setFitWidth(100);
 								// preserve image ratio
-								originalFrame.setPreserveRatio(true);
+								cameraFrameView.setPreserveRatio(true);
 								// show the original frames
 								calibratedFrame.setImage(undistoredImage);
 								// set fixed width
-								calibratedFrame.setFitWidth(380);
+								calibratedFrame.setFitWidth(100);
 								// preserve image ratio
 								calibratedFrame.setPreserveRatio(true);
 				            	}
 							});
-
+						
+						//System.out.println("Calibration timer is running!");
 					}
 				};
-				this.timer = new Timer();
-				this.timer.schedule(frameGrabber, 0, 33);
+				calibrationTimer = new Timer();
+				calibrationTimer.schedule(frameGrabber, 0, 33);
+				calibrationTimerActive = true;
 
 				// update the button content
-				this.cameraButton.setText("Stop Camera");
+				//this.cameraButton.setText("Stop Camera");
 			}
 			else
 			{
@@ -534,17 +625,17 @@ private void updateView(ImageView view, Image image){
 			// the camera is not active at this point
 			this.cameraActive = false;
 			// update again the button content
-			this.cameraButton.setText("Start Camera");
+			//this.cameraButton.setText("Start Camera");
 			// stop the timer
-			if (this.timer != null)
+			if (calibrationTimer != null)
 			{
-				this.timer.cancel();
-				this.timer = null;
+				calibrationTimer.cancel();
+				calibrationTimer = null;
 			}
 			// release the camera
-			this.capture.release();
+			this.calibrationCapture.release();
 			// clean the image areas
-			originalFrame.setImage(null);
+			cameraFrameView.setImage(null);
 			calibratedFrame.setImage(null);
 		}
 	}
@@ -554,19 +645,19 @@ private void updateView(ImageView view, Image image){
 	 *
 	 * @return the {@link Image} to show
 	 */
-	private Image grabFrame()
+	private Image grabFrameCalibration()
 	{
 		// init everything
 		Image imageToShow = null;
 		Mat frame = new Mat();
 
 		// check if the capture is open
-		if (this.capture.isOpened())
+		if (this.calibrationCapture.isOpened())
 		{
 			try
 			{
 				// read the current frame
-				this.capture.read(frame);
+				this.calibrationCapture.read(frame);
 
 				// if the frame is not empty, process it
 				if (!frame.empty())
@@ -599,8 +690,9 @@ private void updateView(ImageView view, Image image){
 	}
 
 	
-	@FXML
+	//@FXML
 	protected void startVideo() {
+		
 		cameraController.startCamera();
 		TimerTask frameGrabber = new TimerTask() {
 		
@@ -626,12 +718,24 @@ private void updateView(ImageView view, Image image){
 						}
 		            }
 				});
+				//System.out.println("videoTimer is running!");
 			}
 		};
 
-		videoTimer.schedule(frameGrabber, 0, 33);		
+		//System.out.println("Video timer is running!");
+		videoTimer = new Timer();
+		videoTimer.schedule(frameGrabber, 0, 33);
+		videoTimerActive = true;
 	}
 
+	private void stopVideo() {
+		if (videoTimerActive) {
+			videoTimer.cancel();
+			videoTimerActive = false;
+		}
+		cameraController.release();
+	}
+	
 	
 	/**
 	 * Take a snapshot to be used for the calibration process
@@ -639,41 +743,40 @@ private void updateView(ImageView view, Image image){
 	@FXML
 	protected void takeSnapshot() {
 		
-		TimerTask frameGrabber = new TimerTask() {
-			@Override
-			public void run() {
-				cameraController.startCamera();
-				loadedImages.add(cameraController.grabFrame());
-				loadedImagesNames.add("sc_" + loadedImages.size());
-				loadedImagesDescription.put("sc_" + loadedImages.size(), loadedImages.size() - 1);
-				showLoadedImages();
+		// take snapshots for the camera calibration process
+		if (calibrateCamera.isSelected()) {
+			if (this.successes < this.boardsNumber)
+			{
+				// save all the needed values
+				this.imagePoints.add(imageCorners);
+				imageCorners = new MatOfPoint2f();
+				this.objectPoints.add(obj);
+				this.successes++;
 			}
-		};
-		
-		imageTimer = new Timer();
-		imageTimer.schedule(frameGrabber, 1*SECOND);		
-	}
-	
-	/*
-	@FXML
-	protected void takeSnapshot()
-	{
-		if (this.successes < this.boardsNumber)
-		{
-			// save all the needed values
-			this.imagePoints.add(imageCorners);
-			imageCorners = new MatOfPoint2f();
-			this.objectPoints.add(obj);
-			this.successes++;
-		}
 
-		// reach the correct number of images needed for the calibration
-		if (this.successes == this.boardsNumber)
-		{
-			this.calibrateCamera();
+			// reach the correct number of images needed for the calibration
+			if (this.successes == this.boardsNumber)
+			{
+				this.calibrateCamera();
+			}
+						
+		} // take snapshots for the silhouette extraction process 
+		else {
+			TimerTask frameGrabber = new TimerTask() {
+				@Override
+				public void run() {
+					cameraController.startCamera();
+					loadedImages.add(cameraController.grabFrame());
+					loadedImagesNames.add("sc_" + loadedImages.size());
+					loadedImagesDescription.put("sc_" + loadedImages.size(), loadedImages.size() - 1);
+					showLoadedImages();
+				}
+			};
+			
+			imageTimer = new Timer();
+			imageTimer.schedule(frameGrabber, 1*SECOND);					
 		}
-	}*/
-	
+	}
 	
 
 	/**
@@ -686,6 +789,8 @@ private void updateView(ImageView view, Image image){
 	 */
 	private void findAndDrawPoints(Mat frame)
 	{
+		
+		System.out.println("*** findAndDrawPoints!!!");
 		// init
 		Mat grayImage = new Mat();
 
@@ -693,6 +798,7 @@ private void updateView(ImageView view, Image image){
 		// process
 		if (this.successes < this.boardsNumber)
 		{
+			System.out.println("**** Successes < boardsNumber!!!");
 			// convert the frame in gray scale
 			Imgproc.cvtColor(frame, grayImage, Imgproc.COLOR_BGR2GRAY);
 			// the size of the chessboard
@@ -703,6 +809,7 @@ private void updateView(ImageView view, Image image){
 			// all the required corners have been found...
 			if (found)
 			{
+				System.out.println("**** found!!!");
 				// optimization
 				TermCriteria term = new TermCriteria(TermCriteria.EPS | TermCriteria.MAX_ITER, 30, 0.1);
 				Imgproc.cornerSubPix(grayImage, imageCorners, new Size(11, 11), new Size(-1, -1), term);
@@ -713,6 +820,8 @@ private void updateView(ImageView view, Image image){
 
 				// enable the option for taking a snapshot
 				this.snapshotButton.setDisable(false);
+				// take the snapshot
+				//takeSnapshot();
 			}
 			else
 			{
