@@ -25,6 +25,8 @@ import org.opencv.imgproc.Imgproc;
 import org.opencv.videoio.VideoCapture;
 
 import javafx.application.Platform;
+import javafx.beans.value.ChangeListener;
+import javafx.beans.value.ObservableValue;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.fxml.FXML;
@@ -47,6 +49,7 @@ import nl.tue.vc.application.visual.IntersectionTest;
 import nl.tue.vc.imgproc.CameraController;
 import nl.tue.vc.imgproc.HistogramGenerator;
 import nl.tue.vc.imgproc.SilhouetteExtractor;
+import nl.tue.vc.projection.CameraProjectionTest;
 import nl.tue.vc.projection.TransformMatrices;
 import nl.tue.vc.voxelengine.BoxParameters;
 import nl.tue.vc.voxelengine.CameraPosition;
@@ -90,6 +93,10 @@ public class ObjectRecognizerController {
 	//private Button cameraButton;
 	@FXML
 	private Button applyButton;
+	
+	@FXML
+	private Button calibrateExtrinsicParamsButton;
+	
 	@FXML
 	private Button snapshotButton;
 	// the FXML area for showing the current frame (before calibration)
@@ -136,6 +143,7 @@ public class ObjectRecognizerController {
 	@FXML
 	private ImageView cameraFrameView;
 
+	@FXML
 	private Slider fieldOfViewSlider;
 	
 	@FXML
@@ -424,7 +432,8 @@ public class ObjectRecognizerController {
 				if (file != null) {
 					ImageView imageView = new ImageView();
 					// read the image in gray scale
-					this.image = Imgcodecs.imread(file.getAbsolutePath(), Imgcodecs.CV_LOAD_IMAGE_GRAYSCALE);
+					//this.image = Imgcodecs.imread(file.getAbsolutePath(), Imgcodecs.CV_LOAD_IMAGE_GRAYSCALE);
+					this.image = Imgcodecs.imread(file.getAbsolutePath(), Imgcodecs.CV_LOAD_IMAGE_COLOR);
 					
 					// load the images into the listview
 					String imgName = file.getName().split("\\.")[0];
@@ -871,6 +880,18 @@ protected void extractSilhouettes(){
 	}
 
 
+	@FXML
+	private void calibrateCameraForExtrinsicParams() {
+		System.out.println("*** Calibrating camera to find extrinsic parameters ***");
+		if (loadedImages.size() > 0) {
+			CameraProjectionTest.project(loadedImages.get(0));
+		} else {
+			System.out.println("*** Load calibration image ***");
+		}
+		//loadedImages
+	}
+	
+	
 	/**
 	 * The effective camera calibration, to be performed once in the program
 	 * execution

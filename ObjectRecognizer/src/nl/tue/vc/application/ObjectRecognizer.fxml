@@ -9,7 +9,7 @@
 <?import javafx.scene.layout.BorderPane?>
 <?import javafx.scene.text.*?>
 
-<BorderPane xmlns="http://javafx.com/javafx/8" xmlns:fx="http://javafx.com/fxml/1" fx:controller="nl.tue.vc.application.ObjectRecognizerController">
+<BorderPane prefHeight="640.0" prefWidth="960.0" xmlns="http://javafx.com/javafx/8" xmlns:fx="http://javafx.com/fxml/1" fx:controller="nl.tue.vc.application.ObjectRecognizerController">
 	<top>
 		<VBox>
    <children>
@@ -27,6 +27,11 @@
       				<Label text="Vertical corners #" />
       				<TextField fx:id="numVertCorners" maxWidth="50" text="6" />
       				<Button fx:id="applyButton" alignment="center" onAction="#updateSettings" text="Apply" />
+                  <Button fx:id="calibrateExtrinsicParamsButton" mnemonicParsing="false" onAction="#calibrateCameraForExtrinsicParams" text="Calibrate">
+                     <HBox.margin>
+                        <Insets left="10.0" />
+                     </HBox.margin>
+                  </Button>
       </children>
    			</HBox>
             <VBox prefWidth="100.0">
