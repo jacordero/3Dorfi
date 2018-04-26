@@ -44,7 +44,7 @@ public class InternalNode extends Node{
 		StringBuilder builder = new StringBuilder();
 		builder.append("Internal node -> " + super.toString() + "\n");
 		for(int i = 0; i < children.length; i++) {
-			builder.append(children[i].toString() + "\n");
+			//builder.append(children[i].toString() + "\n");
 		}
 		return builder.toString();
 	}

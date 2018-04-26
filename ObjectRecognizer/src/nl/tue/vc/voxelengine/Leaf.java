@@ -19,7 +19,7 @@ public class Leaf extends Node{
 
 	@Override
 	Node[] getChildren() {
-		return null;
+		return new Node[8];
 	}
 	
 	@Override

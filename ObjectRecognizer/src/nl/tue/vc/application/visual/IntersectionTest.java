@@ -157,12 +157,14 @@ public class IntersectionTest {
 	public static int[][] getBinaryArray(BufferedImage img_param) {
 		// to binary
 		Raster raster = IntersectionTest.binarizeImage(img_param).getData();
-		int[][] result = new int[raster.getWidth()][raster.getHeight()];
-		//System.out.println("raster height: " + img_param.getWidth() + " raster width: " + img_param.getHeight());
-		for (int x = 0; x < raster.getWidth(); x++) {
-			for (int y = 0; y < raster.getHeight(); y++) {
+		int[][] result = new int[raster.getHeight()][raster.getWidth()];
+//		System.out.println("raster width: " + img_param.getWidth() + " raster height: " + img_param.getHeight());
+//		System.out.println("result array rows = " + result.length + ", cols = " + result[0].length);
+//		System.out.println("raster minx, y = " + raster.getMinX() + ", " + raster.getMinY());
+		for (int x = 0; x < raster.getHeight(); x++) {
+			for (int y = 0; y < raster.getWidth(); y++) {
 				//System.out.println("pixel(" + x + ", " + y + ")" );
-				result[x][y] = (int)raster.getSampleDouble(x, y, 0);
+				result[x][y] = (int)raster.getSampleDouble(y, x, 0);
 				//System.out.println("pixel(" + x + ", " + y + ") = " + raster.getSampleDouble(x, y, 0));
 			}
 		}
