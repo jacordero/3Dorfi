@@ -1,4 +1,4 @@
-package nl.tue.vc.projection;
+package nl.tue.vc.imgproc;
 
 import java.awt.image.BufferedImage;
 import java.io.File;
@@ -21,27 +21,28 @@ import org.opencv.core.TermCriteria;
 import org.opencv.imgproc.Imgproc;
 
 import nl.tue.vc.application.utils.Utils;
+import nl.tue.vc.projection.ProjectionGenerator;
 
-public class CameraProjectionTest {
+public class CameraCalibrator {
+
+
+	private MatOfPoint3f chessboardCornerPoints;
+
+	private Mat intrinsicParameters; 
+
+	private MatOfDouble distorsionCoefficients;
+	
+	private Size chessboardPatternSize;
 
 	
+	// Object points
 	
-	public static void project(Mat calibrationImage) {
+	public CameraCalibrator() {
+			configure();
+	}
 	
-		// convert to grayscale
-		Mat grayImage = new Mat();			
-		if (calibrationImage.channels() == 3) {
-			Imgproc.cvtColor(calibrationImage, grayImage, Imgproc.COLOR_BGR2GRAY);
-		} else {
-			calibrationImage.copyTo(grayImage);
-		}		
-		
-		System.out.println("Size of the image:[ width = " + calibrationImage.cols() + ", height = " + calibrationImage.rows() + "]");
-		
-		
-		
-		// Object points
-		Point3[] arrayOfPoints = new Point3[] {
+	private void configure() {
+		Point3[] arrayOfCornerPoints = new Point3[] {
 				new Point3(0, 0, 0), new Point3(1, 0, 0), new Point3(2, 0, 0), new Point3(3, 0, 0),
 				new Point3(4, 0, 0), new Point3(5, 0, 0), new Point3(6, 0, 0), new Point3(7, 0, 0),
 				new Point3(8, 0, 0), new Point3(0, 0, 1), new Point3(1, 0, 1), new Point3(2, 0, 1),
@@ -55,28 +56,11 @@ public class CameraProjectionTest {
 				new Point3(4, 0, 4), new Point3(5, 0, 4), new Point3(6, 0, 4), new Point3(7, 0, 4),
 				new Point3(8, 0, 4), new Point3(0, 0, 5), new Point3(1, 0, 5), new Point3(2, 0, 5),
 				new Point3(3, 0, 5), new Point3(4, 0, 5), new Point3(5, 0, 5), new Point3(6, 0, 5),
-				new Point3(7, 0, 5), new Point3(8, 0, 5)
+				new Point3(7, 0, 5), new Point3(8, 0, 5)				
 		};
-
-		MatOfPoint3f objectPoints = new MatOfPoint3f(arrayOfPoints);
-
-//		cube_points = np.float32([[0, 0, 0], [3, 0, 0], [3, 0, 2], [0, 0, 2],
-//		                          [0, 5, 0], [3, 5, 0], [3, 5, 2], [0, 5, 2]])
-
-		Point3[] arrayOfCubePoints = new Point3[] {
-				new Point3(0, 0, 0), new Point3(3, 0, 0), new Point3(3, 0, 2), new Point3(0, 0, 2),
-				new Point3(0, 5, 0), new Point3(3, 5, 0), new Point3(3, 5, 2), new Point3(0, 5, 2)
-		};
+		chessboardCornerPoints = new MatOfPoint3f(arrayOfCornerPoints);
 		
-		MatOfPoint3f cubePoints = new MatOfPoint3f(arrayOfCubePoints);
-		
-		/**
-		intrinsic_params = np.matrix([[1422.6417, 0, 640.4154],
-		                              [0, 1418.4124, 446.3054],
-		                              [0, 0, 1]])
-		**/
-		// Matrix with intrinsic parameters
-		Mat intrinsicParameters = new Mat(new Size(3, 3), CvType.CV_32FC1);
+		intrinsicParameters = new Mat(new Size(3, 3), CvType.CV_32FC1);
 		intrinsicParameters.put(0, 0, new float[] {(float) 1422.6417});
 		intrinsicParameters.put(0, 1, new float[] {0});
 		intrinsicParameters.put(0, 2, new float[] {(float) 640.4154});
@@ -86,46 +70,55 @@ public class CameraProjectionTest {
 		intrinsicParameters.put(2, 0, new float[] {(float) 0});
 		intrinsicParameters.put(2, 1, new float[] {(float) 0});
 		intrinsicParameters.put(2, 2, new float[] {(float) 1});		
+
+		distorsionCoefficients = new MatOfDouble(new double[] {-0.0379, 0.2845, 0.0006, -0.0024});
+		chessboardPatternSize = new Size(9, 6);
+	}
+	
+	
+	public ProjectionGenerator calibrate(Mat calibrationImage, boolean debugProjectionParameters) {
+
+		Mat grayImage = new Mat();			
+		if (calibrationImage.channels() == 3) {
+			Imgproc.cvtColor(calibrationImage, grayImage, Imgproc.COLOR_BGR2GRAY);
+		} else {
+			calibrationImage.copyTo(grayImage);
+		}		
 		
-		// Distorsion coefficients
-		// distorsion_coeffs = np.array([-0.0379, 0.2845, 0.0006, -0.0024])
-		MatOfDouble distCoeffs = new MatOfDouble(new double[] {-0.0379, 0.2845, 0.0006, -0.0024});
+		System.out.println("Size of the image:[ width = " + calibrationImage.cols() + ", height = " + calibrationImage.rows() + "]");		
 		
-		// Rotation and translation vectors
-		Mat rotationVector = new Mat();
-		Mat translationVector = new Mat();
-		
-		System.out.println("Find chessboard patterns");
 		MatOfPoint2f corners = new MatOfPoint2f();
-		Size patternSize = new Size(9, 6);
+		boolean cornersFound = Calib3d.findChessboardCorners(calibrationImage, chessboardPatternSize, corners);
 		
-		boolean cornersFound = Calib3d.findChessboardCorners(calibrationImage, patternSize, corners);
 		if (cornersFound) {
-			System.out.println("**** Corners were found ****");
+			//System.out.println("**** Corners were found ****");
 			List<Point> cornerPoints = corners.toList();
 			for (Point corner: cornerPoints){
 				System.out.println(corner);
 			}
 			
-			
 			Size cornersWindowSize = new Size(7, 7);
 			Size zeroZone = new Size(-1, -1);
-			TermCriteria criteria = new TermCriteria(TermCriteria.EPS + TermCriteria.MAX_ITER, 30, 0.001);
-			
-			
+			TermCriteria criteria = new TermCriteria(TermCriteria.EPS + TermCriteria.MAX_ITER, 30, 0.001);	
 			Imgproc.cornerSubPix(grayImage, corners, cornersWindowSize, zeroZone, criteria);
 			
 			// check for the refined corners
+			/**
 			System.out.println("Refined corners");
 			for (Point corner: corners.toList()) {
 				System.out.println(corner);
 			}
+			**/
 			
 			// compute the projection matrix and vector using the solvePnpRansac function
-			boolean extrinsicParametersFound = Calib3d.solvePnPRansac(objectPoints, corners, intrinsicParameters,
-                    distCoeffs, rotationVector, translationVector);
+			Mat rotationVector = new Mat();
+			Mat translationVector = new Mat();
+
+			boolean extrinsicParametersFound = Calib3d.solvePnPRansac(chessboardCornerPoints, corners, intrinsicParameters,
+                    distorsionCoefficients, rotationVector, translationVector);
 			
 			if (extrinsicParametersFound) {
+				/**
 				System.out.println("Extrinsic Parameters Found!!!");
 				double[] firstRotationParam = new double[1];
 				rotationVector.get(0, 0, firstRotationParam);
@@ -143,19 +136,40 @@ public class CameraProjectionTest {
 				translationVector.get(2, 0, thirdTranslationParam);
 				System.out.println("Translation vector: [" + firstTranslationParam[0] + ", " + secondTranslationParam[0] + ", " + thirdTranslationParam[0] + "]");
 				//System.out.println(translationVector);
+				**/
 				
-				// Project points
-				MatOfPoint2f projectedPoints = new MatOfPoint2f();
-				Calib3d.projectPoints(cubePoints, rotationVector, translationVector, 
-						intrinsicParameters, distCoeffs, projectedPoints);
-		
-				drawProjectedPoints(calibrationImage, projectedPoints);
-			}
+				
+				if (debugProjectionParameters) {
+					testCameraCalibration(calibrationImage, rotationVector, translationVector, 
+							intrinsicParameters, distorsionCoefficients);					
+				}
+				
+				return new ProjectionGenerator(rotationVector, translationVector, intrinsicParameters, distorsionCoefficients);
+							}
 		}	
+		return null;
+
 	}
 	
-	public static void drawProjectedPoints(Mat image, MatOfPoint2f projectedPoints) {
+	private void testCameraCalibration(Mat calibrationImage, Mat rotationVector, Mat translationVector,
+			Mat intrinsicParameters, MatOfDouble distorsionCoefficients) {
 		
+		Point3[] arrayOfCubePoints = new Point3[] {
+				new Point3(0, 0, 0), new Point3(3, 0, 0), new Point3(3, 0, 2), new Point3(0, 0, 2),
+				new Point3(0, 5, 0), new Point3(3, 5, 0), new Point3(3, 5, 2), new Point3(0, 5, 2)
+		};
+		
+		MatOfPoint3f cubePoints = new MatOfPoint3f(arrayOfCubePoints);
+
+		MatOfPoint2f projectedPoints = new MatOfPoint2f();
+		Calib3d.projectPoints(cubePoints, rotationVector, translationVector, 
+				intrinsicParameters, distorsionCoefficients, projectedPoints);
+
+		drawProjectedPoints(calibrationImage, projectedPoints);
+		
+	}
+	
+	private void drawProjectedPoints(Mat image, MatOfPoint2f projectedPoints) {
 		List<Point> points = projectedPoints.toList();
 		int pointRadius = 10;
 		Scalar red = new Scalar(0, 0, 255);
@@ -201,10 +215,6 @@ public class CameraProjectionTest {
 		    System.out.println("There was an error while saving projected image!!");
 		}
 		
-		//imgToSave.
-		//Imgproc.circle(img, center, radius, color);
-		//Calib3d.drawChessboardCorners(frame, boardSize, imageCorners, found);
-
 	}
 	
 }

@@ -19,7 +19,7 @@
    				</padding>
       <children>
                   <CheckBox fx:id="turnOnCamera" mnemonicParsing="false" text="Start cam" />
-                  <CheckBox fx:id="calibrateCamera" mnemonicParsing="false" text="Calibrate" />
+                  <CheckBox fx:id="enableCameraCalibration" mnemonicParsing="false" text="Calibrate" />
       				<Label text="Boards #" />
       				<TextField fx:id="numBoards" maxWidth="50" text="20" />
       				<Label text="Horizontal corners #" />
@@ -149,7 +149,7 @@
 				<Insets left="10" right="10" />
 			</padding>
 			<children>
-				<ImageView fx:id="calibratedFrame" />
+				<ImageView fx:id="calibrationFrame" />
 			</children>
 		</VBox>
 	</right>
@@ -160,8 +160,8 @@
 			</padding>
 			<children>
 				<Button alignment="center" onAction="#loadImage" text="Load Images" />
-				<Button fx:id="extractButton" alignment="center" onAction="#extractSilhouettes" text="Extract Silhouettes" />
 				<Button fx:id="snapshotButton" alignment="center" onAction="#takeSnapshot" text="Take snapshot" />
+				<Button fx:id="extractButton" alignment="center" onAction="#extractSilhouettes" text="Extract Silhouettes" />
             <Button fx:id="refreshButton" mnemonicParsing="false" onAction="#clearLoadedImages" text="Refresh">
                <HBox.margin>
                   <Insets />

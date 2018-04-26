@@ -99,4 +99,16 @@ public final class Utils
 
 		return image;
 	}
+	
+	public static void debug(String str, boolean printInfo) {
+		if (printInfo) {
+			System.out.print(str);
+		}
+	}
+	
+	public static void debugNewLine(String str, boolean printInfo) {
+		if (printInfo) {
+			System.out.println(str);
+		}
+	}
 }
