@@ -218,7 +218,7 @@ public class Octree {
 		//int level = 2;
 		//for(int i=0; i<level;i++) {
 			//System.out.println("###################### Iteration " + i+1 + " ########################");
-			Node root = generateOctreeFractal(0);
+			Node root = generateOctreeFractal(2);
 			System.out.println("Children: " + root.getChildren().length);
 			//List<Box> voxels = generateVolumeAux(root, getBoxParameters(), root.getDeltaStruct());
 			Group voxels = generateVolumeAux(root, getBoxParameters(), root.getDeltaStruct());
@@ -239,7 +239,22 @@ public class Octree {
 		if (currentNode.isLeaf()) {
 			currentNode.setBoxParameters(currentParameters);
 			currentNode.setDeltaStruct(currentDeltas);
-			Box box = generateVoxel(currentParameters, currentDeltas, currentNode.getColor());
+			//Box box = generateVoxel(currentParameters, currentDeltas, currentNode.getColor());
+			//voxels.getChildren().addAll(box);
+			
+			Color boxColor = Color.GRAY;
+			IntersectionStatus status = testIntersection(currentParameters);
+			Box box = new Box();
+			if(status == IntersectionStatus.INSIDE) {
+				boxColor = getPaintColor(currentNode.getColor(), Color.BLACK);
+				box = generateVoxel(currentParameters, currentDeltas, boxColor);
+			} else if(status == IntersectionStatus.PARTIAL){
+				boxColor = getPaintColor(currentNode.getColor(), Color.GRAY);
+				box = generateVoxel(currentParameters, currentDeltas, boxColor);
+			} else {
+				boxColor = getPaintColor(currentNode.getColor(), Color.WHITE);
+				box = generateVoxel(currentParameters, currentDeltas, boxColor);
+			}
 			voxels.getChildren().addAll(box);
 			System.out.println("Root is leaf");
 		} else {
@@ -270,8 +285,8 @@ public class Octree {
 					} else if(status == IntersectionStatus.PARTIAL){
 						boxColor = getPaintColor(childNode.getColor(), Color.GRAY);
 						box = generateVoxel(newParameters, displacementDirections, boxColor);
-//						Group innerBoxes = generateVolumeAux(childNode, newParameters, displacementDirections);
-//						voxels.getChildren().addAll(innerBoxes);
+						Group innerBoxes = generateVolumeAux(childNode, newParameters, displacementDirections);
+						voxels.getChildren().addAll(innerBoxes);
 					} else {
 						boxColor = getPaintColor(childNode.getColor(), Color.WHITE);
 						box = generateVoxel(newParameters, displacementDirections, boxColor);
@@ -347,6 +362,12 @@ public class Octree {
 		int[][] transformedArray = transformedArrays.get(0);
 		int xVal = (int) boundingBox.getX();
 		int yVal = (int) (boundingBox.getY()+boundingBox.getHeight());
+		if(xVal < 0) {
+			xVal = 0;
+		}
+		if(yVal < 0) {
+			yVal = 0;
+		}
 		System.out.println("xVal = " + xVal + ", yVal = " + yVal);
 		int transformedValue = transformedArray[xVal][yVal];
 		
@@ -532,6 +553,12 @@ public class Octree {
 		int[][] transformedArray = transformedArrays.get(0);
 		int xVal = (int) boundingBox.getX();
 		int yVal = (int) (boundingBox.getY()+boundingBox.getHeight());
+		if(xVal < 0) {
+			xVal = 0;
+		}
+		if(yVal < 0) {
+			yVal = 0;
+		}
 		System.out.println("xVal = " + xVal + ", yVal = " + yVal);
 		int transformedValue = transformedArray[xVal][yVal];
 		
@@ -814,24 +841,22 @@ public class Octree {
 	private Box generateVoxel(BoxParameters boxParameters, DeltaStruct deltas, Color nodeColor) {
 		//get the scene dimensions
 		ApplicationConfiguration appConfig = ApplicationConfiguration.getInstance();
-		int sceneWidth = appConfig.getVolumeSceneWidth();
-		int sceneHeight = appConfig.getVolumeSceneHeight();
-		int sceneDepth = appConfig.getVolumeSceneDepth();
+		int sceneWidth = 400;//appConfig.getVolumeSceneWidth();
+		int sceneHeight = 290;//appConfig.getVolumeSceneHeight();
+		int sceneDepth = 100;//appConfig.getVolumeSceneDepth();
 //		int volumeBoxSize = appConfig.getVolumeBoxSize();
 		int scalingParameter = 1;
 		Box box = new Box(boxParameters.getBoxSize()*scalingParameter, boxParameters.getBoxSize()*scalingParameter, boxParameters.getBoxSize()*scalingParameter);
 		scalingParameter = 1;
-		int posx = (sceneWidth/2 + (deltas.deltaX * boxParameters.getBoxSize() / 2))*scalingParameter;
-		int posy = (sceneHeight/2 + (deltas.deltaY * boxParameters.getBoxSize() / 2))*scalingParameter;
-		int posz = (sceneDepth/2 + (deltas.deltaZ * boxParameters.getBoxSize() / 2))*scalingParameter;
+		int posx = (sceneWidth + (deltas.deltaX * boxParameters.getBoxSize() / 2))*scalingParameter;
+		int posy = (sceneHeight + (deltas.deltaY * boxParameters.getBoxSize() / 2))*scalingParameter;
+		int posz = (sceneDepth + (deltas.deltaZ * boxParameters.getBoxSize() / 2))*scalingParameter;
 		
 		System.out.println("center: [" + boxParameters.getCenterX() + ", " + boxParameters.getCenterY()
 				+ ", " + boxParameters.getCenterZ()+"]");
 
 		System.out.println("deltas: [" + deltas.deltaX + ", " + deltas.deltaY
 		+ ", " + deltas.deltaZ+"]");
-		
-		int focalLength = 1;
 		
 		/**
 		 * compute the coordinates of all 8 corners of the cube according to the following numbering 

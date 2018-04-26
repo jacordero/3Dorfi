@@ -842,7 +842,7 @@ private void updateView(ImageView view, Image image){
 	}
 
 	public void renderModel() {
-		int boxSize = 10;
+		int boxSize = 16;
 		CameraPosition cameraPosition = new CameraPosition();
 		//cameraPositionX = 320;
 		//cameraPositionY = 240;
@@ -854,9 +854,9 @@ private void updateView(ImageView view, Image image){
 //		Octree octree = new Octree(boxSize, appConfig.getVolumeBoxParameters());
 		BoxParameters volumeBoxParameters = new BoxParameters();		
 		volumeBoxParameters.setBoxSize(boxSize);
-		volumeBoxParameters.setCenterX(5);
-		volumeBoxParameters.setCenterY(5);
-		volumeBoxParameters.setCenterZ(5);
+		volumeBoxParameters.setCenterX(8);
+		volumeBoxParameters.setCenterY(8);
+		volumeBoxParameters.setCenterZ(8);
 		Octree octree = new Octree(boxSize, volumeBoxParameters);
 		//octree.generateOctreeFractal(3);
 		octree.setBufferedImagesForTest(this.bufferedImagesForTest);
@@ -867,8 +867,8 @@ private void updateView(ImageView view, Image image){
 		// try not create another volume renderer object to recompute the octree visualization
 		volumeRenderer = new VolumeRenderer(octree, this.sourceArrays, this.transformedArrays);
 		//octree.setBoxParameters(volumeRenderer.getVolumeBoxParameters());
-		//volumeRenderer.generateVolumeScene(octree.getOctreeVolume());
-		volumeRenderer.generateVolumeScene(octree.getProjections(volumeBoxParameters));
+		volumeRenderer.generateVolumeScene(octree.getOctreeVolume());
+		//volumeRenderer.generateVolumeScene(octree.getProjections(volumeBoxParameters));
 		rootGroup.setCenter(volumeRenderer.getSubScene());
 	}
 	
