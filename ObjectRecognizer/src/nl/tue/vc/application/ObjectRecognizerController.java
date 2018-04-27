@@ -143,6 +143,7 @@ public class ObjectRecognizerController {
 	@FXML
 	private ImageView cameraFrameView;
 
+	@FXML
 	private Slider fieldOfViewSlider;
 	
 	@FXML
