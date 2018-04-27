@@ -358,7 +358,6 @@ public class ObjectRecognizerController {
 		segmentationAlgorithm.getItems().add("Watersheed");
 		segmentationAlgorithm.getItems().add("Binarization");
 		segmentationAlgorithm.getItems().add("Equalized");
-		segmentationAlgorithm.setValue("Watersheed");
 		segmentationAlgorithm.setValue("Binarization");
 		
 		System.out.println(segmentationAlgorithm.getValue());
@@ -1000,7 +999,7 @@ protected void extractSilhouettes(){
 	}
 
 	public void renderModel() {
-		int boxSize = 10;
+		int boxSize = 16;
 		CameraPosition cameraPosition = new CameraPosition();
 		//cameraPositionX = 320;
 		//cameraPositionY = 240;
@@ -1012,9 +1011,9 @@ protected void extractSilhouettes(){
 //		Octree octree = new Octree(boxSize, appConfig.getVolumeBoxParameters());
 		BoxParameters volumeBoxParameters = new BoxParameters();		
 		volumeBoxParameters.setBoxSize(boxSize);
-		volumeBoxParameters.setCenterX(5);
-		volumeBoxParameters.setCenterY(5);
-		volumeBoxParameters.setCenterZ(5);
+		volumeBoxParameters.setCenterX(8);
+		volumeBoxParameters.setCenterY(8);
+		volumeBoxParameters.setCenterZ(8);
 		Octree octree = new Octree(boxSize, volumeBoxParameters);
 		//octree.generateOctreeFractal(3);
 		octree.setBufferedImagesForTest(this.bufferedImagesForTest);
@@ -1025,8 +1024,8 @@ protected void extractSilhouettes(){
 		// try not create another volume renderer object to recompute the octree visualization
 		volumeRenderer = new VolumeRenderer(octree, this.sourceArrays, this.transformedArrays);
 		//octree.setBoxParameters(volumeRenderer.getVolumeBoxParameters());
-		//volumeRenderer.generateVolumeScene(octree.getOctreeVolume());
-		volumeRenderer.generateVolumeScene(octree.getProjections(volumeBoxParameters));
+		volumeRenderer.generateVolumeScene(octree.getOctreeVolume());
+		//volumeRenderer.generateVolumeScene(octree.getProjections(volumeBoxParameters));
 		rootGroup.setCenter(volumeRenderer.getSubScene());
 	}
 	
