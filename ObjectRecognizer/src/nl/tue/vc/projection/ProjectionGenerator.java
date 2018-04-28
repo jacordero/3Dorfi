@@ -30,5 +30,4 @@ public class ProjectionGenerator {
 				intrinsicParameters, distorsionCoefficients, projectedPoints);
 		return projectedPoints;
 	}
-
 }
