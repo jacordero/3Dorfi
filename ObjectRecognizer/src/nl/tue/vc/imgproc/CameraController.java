@@ -1,8 +1,16 @@
 package nl.tue.vc.imgproc;
 
+import java.util.Timer;
+import java.util.TimerTask;
 
 import org.opencv.core.Mat;
+import org.opencv.core.MatOfPoint2f;
+import org.opencv.imgproc.Imgproc;
 import org.opencv.videoio.VideoCapture;
+
+import javafx.application.Platform;
+import javafx.scene.image.Image;
+import nl.tue.vc.application.utils.Utils;
 
 public class CameraController {
 
@@ -12,13 +20,18 @@ public class CameraController {
 	
 	private VideoCapture captureDevice;
 	
+	private Timer timer;
+	
 	private Mat lastPicture;
 		
 	public CameraController() {
 		isCameraActive = false;
 		captureDevice = new VideoCapture();
+		timer = new Timer();
 		lastPicture = new Mat();
 	}
+	
+	
 	
 	public void startCamera() {
 		if (!isCameraActive) {
@@ -34,7 +47,6 @@ public class CameraController {
 		}
 	}
 	
-	// TODO: add the calibration parameters here
 	public Mat grabFrame() {
 		Mat frame = new Mat();
 		if (captureDevice.isOpened()) {
@@ -48,16 +60,8 @@ public class CameraController {
 		return frame;
 	}
 	
-	public void release() {
-		if (captureDevice.isOpened()) {
-			captureDevice.release();			
-		}
-		isCameraActive = false;
-	}
-	
 	public Mat getLastPicture() {
 		return lastPicture;
 	}
-	
 	
 }

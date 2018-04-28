@@ -9,7 +9,7 @@
 <?import javafx.scene.layout.BorderPane?>
 <?import javafx.scene.text.*?>
 
-<BorderPane prefHeight="640.0" prefWidth="960.0" xmlns="http://javafx.com/javafx/8" xmlns:fx="http://javafx.com/fxml/1" fx:controller="nl.tue.vc.application.ObjectRecognizerController">
+<BorderPane xmlns="http://javafx.com/javafx/8" xmlns:fx="http://javafx.com/fxml/1" fx:controller="nl.tue.vc.application.ObjectRecognizerController">
 	<top>
 		<VBox>
    <children>
@@ -18,8 +18,11 @@
    					<Insets bottom="10" top="10" />
    				</padding>
       <children>
-                  <CheckBox fx:id="turnOnCamera" mnemonicParsing="false" text="Start cam" />
-                  <CheckBox fx:id="enableCameraCalibration" mnemonicParsing="false" text="Calibrate" />
+                  <Button fx:id="refreshButton" mnemonicParsing="false" onAction="#clearLoadedImages" text="Refresh">
+                     <HBox.margin>
+                        <Insets right="10.0" />
+                     </HBox.margin>
+                  </Button>
       				<Label text="Boards #" />
       				<TextField fx:id="numBoards" maxWidth="50" text="20" />
       				<Label text="Horizontal corners #" />
@@ -27,11 +30,6 @@
       				<Label text="Vertical corners #" />
       				<TextField fx:id="numVertCorners" maxWidth="50" text="6" />
       				<Button fx:id="applyButton" alignment="center" onAction="#updateSettings" text="Apply" />
-                  <Button fx:id="calibrateExtrinsicParamsButton" mnemonicParsing="false" onAction="#calibrateCameraForExtrinsicParams" text="Calibrate">
-                     <HBox.margin>
-                        <Insets left="10.0" />
-                     </HBox.margin>
-                  </Button>
       </children>
    			</HBox>
             <VBox prefWidth="100.0">
@@ -149,7 +147,9 @@
 				<Insets left="10" right="10" />
 			</padding>
 			<children>
-				<ImageView fx:id="calibrationFrame" />
+				<ImageView fx:id="calibratedFrame" />
+				<ImageView fx:id="transformedImage" />
+				<ImageView fx:id="antitransformedImage" />
 			</children>
 		</VBox>
 	</right>
@@ -160,13 +160,9 @@
 			</padding>
 			<children>
 				<Button alignment="center" onAction="#loadImage" text="Load Images" />
-				<Button fx:id="snapshotButton" alignment="center" onAction="#takeSnapshot" text="Take snapshot" />
 				<Button fx:id="extractButton" alignment="center" onAction="#extractSilhouettes" text="Extract Silhouettes" />
-            <Button fx:id="refreshButton" mnemonicParsing="false" onAction="#clearLoadedImages" text="Refresh">
-               <HBox.margin>
-                  <Insets />
-               </HBox.margin>
-            </Button>
+					<Button fx:id="cameraButton" alignment="center" disable="true" onAction="#startCamera" text="Start camera" />
+				<Button fx:id="snapshotButton" alignment="center" onAction="#takeSnapshot" text="Take snapshot" />
 				<Button fx:id="constructButton" mnemonicParsing="false" onAction="#constructModel" text="Construct 3D Model" />
 				<Button fx:id="visualizeButton" mnemonicParsing="false" onAction="#visualizeModel" text="Visualize Model" />
 			</children>
