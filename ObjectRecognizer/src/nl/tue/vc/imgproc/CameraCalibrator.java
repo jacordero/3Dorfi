@@ -25,7 +25,6 @@ import nl.tue.vc.projection.ProjectionGenerator;
 
 public class CameraCalibrator {
 
-
 	private MatOfPoint3f chessboardCornerPoints;
 
 	private Mat intrinsicParameters; 
