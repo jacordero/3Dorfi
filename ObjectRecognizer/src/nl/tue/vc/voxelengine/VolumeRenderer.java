@@ -103,7 +103,7 @@ public class VolumeRenderer {
 		if (octree == null) {
 			root3D = volumeGenerator.getDefaultVolume(volumeBoxParameters);
 		} else {
-			root3D = volumeGenerator.generateVolume(volumeBoxParameters);
+			root3D = volumeGenerator.generateVolume();
 		}
 		
 		RotateTransition rotation = new RotateTransition(Duration.seconds(20), root3D);
@@ -129,7 +129,7 @@ public class VolumeRenderer {
 		rotation.setToAngle(360);
 		rotation.setAutoReverse(false);
 		rotation.setAxis(Rotate.Y_AXIS);
-		rotation.play();
+		//rotation.play();
 		
 		
 		subScene = new SubScene(root3D, sceneWidth, sceneHeight, true, SceneAntialiasing.BALANCED);

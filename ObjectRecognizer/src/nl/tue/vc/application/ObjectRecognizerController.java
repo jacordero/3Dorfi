@@ -59,6 +59,7 @@ import nl.tue.vc.projection.TransformMatrices;
 import nl.tue.vc.voxelengine.BoxParameters;
 import nl.tue.vc.voxelengine.CameraPosition;
 import nl.tue.vc.voxelengine.Octree;
+import nl.tue.vc.voxelengine.VolumeGenerator;
 import nl.tue.vc.voxelengine.VolumeRenderer;
 
 /**
@@ -201,6 +202,7 @@ public class ObjectRecognizerController {
 	private BorderPane rootGroup;
 
 	private VolumeRenderer volumeRenderer;
+	private VolumeGenerator volumeGenerator;
 	
 	private SilhouetteExtractor silhouetteExtractor;
 	
@@ -867,8 +869,12 @@ private void updateView(ImageView view, Image image){
 		// try not create another volume renderer object to recompute the octree visualization
 		volumeRenderer = new VolumeRenderer(octree, this.sourceArrays, this.transformedArrays);
 		//octree.setBoxParameters(volumeRenderer.getVolumeBoxParameters());
-		volumeRenderer.generateVolumeScene(octree.getOctreeVolume());
+		volumeGenerator = new VolumeGenerator(octree, octree.getBoxParameters(), this.sourceArrays, this.transformedArrays);
+		volumeGenerator.setFieldOfView(this.fieldOfView);
+		volumeGenerator.setTransformMatrices(this.transformMatrices);
+		//volumeRenderer.generateVolumeScene(octree.getOctreeVolume());
 		//volumeRenderer.generateVolumeScene(octree.getProjections(volumeBoxParameters));
+		volumeRenderer.generateVolumeScene(volumeGenerator.generateVolume());
 		rootGroup.setCenter(volumeRenderer.getSubScene());
 	}
 	

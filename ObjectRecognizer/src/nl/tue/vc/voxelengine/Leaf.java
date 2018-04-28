@@ -12,7 +12,7 @@ public class Leaf extends Node{
 	}
 	
 	@Override
-	boolean isLeaf() {
+	public boolean isLeaf() {
 		// TODO Auto-generated method stub
 		return true;
 	}
