@@ -35,7 +35,7 @@ public class InternalNode extends Node{
 	}
 	
 	@Override
-	public boolean isLeaf() {
+	boolean isLeaf() {
 		return false;
 	}
 

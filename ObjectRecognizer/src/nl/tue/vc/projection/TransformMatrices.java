@@ -50,8 +50,8 @@ public class TransformMatrices {
 		buildProjectionMatrix();
 		
 		windowMatrix = new double[][] {
-			{screenWidth/2, 0, 0, 3*screenWidth/5},
-			{0, screenHeight/2, 0, screenHeight/3},
+			{screenWidth/2, 0, 0, screenWidth/2},
+			{0, screenHeight/2, 0, screenHeight/2},
 			{0, 0, 0.5, 0.5},
 			{0, 0, 0, 1}
 		};	
@@ -238,7 +238,9 @@ public class TransformMatrices {
 		Vector3D ndcVector = new Vector3D(vector.getX()/w, vector.getY()/w, vector.getZ()/w, 1.0);
 		ndcVector.setY(-1.0*ndcVector.getY());
 		//ndcVector.setX(-1.0*ndcVector.getX());
+
 		//return result;
+
 		return ndcVector;
 		
 	}

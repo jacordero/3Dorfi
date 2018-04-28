@@ -28,7 +28,7 @@ public abstract class Node {
 	
 	abstract Node[] getChildren();
 	
-	public abstract boolean isLeaf();
+	abstract boolean isLeaf();
 	
 	@Override
 	public String toString() {

@@ -218,7 +218,7 @@ public class Octree {
 		//int level = 2;
 		//for(int i=0; i<level;i++) {
 			//System.out.println("###################### Iteration " + i+1 + " ########################");
-			Node root = generateOctreeFractal(0);
+			Node root = generateOctreeFractal(2);
 			System.out.println("Children: " + root.getChildren().length);
 			//List<Box> voxels = generateVolumeAux(root, getBoxParameters(), root.getDeltaStruct());
 			Group voxels = generateVolumeAux(root, getBoxParameters(), root.getDeltaStruct());
@@ -239,86 +239,8 @@ public class Octree {
 		if (currentNode.isLeaf()) {
 			currentNode.setBoxParameters(currentParameters);
 			currentNode.setDeltaStruct(currentDeltas);
-			Box box = generateVoxel(currentParameters, currentDeltas, currentNode.getColor());
-			voxels.getChildren().addAll(box);
-			
-//			Color boxColor = Color.GRAY;
-//			IntersectionStatus status = testIntersection(currentParameters);
-//			Box box = new Box();
-//			if(status == IntersectionStatus.INSIDE) {
-//				boxColor = getPaintColor(currentNode.getColor(), Color.BLACK);
-//				box = generateVoxel(currentParameters, currentDeltas, boxColor);
-//			} else if(status == IntersectionStatus.PARTIAL){
-//				boxColor = getPaintColor(currentNode.getColor(), Color.GRAY);
-//				box = generateVoxel(currentParameters, currentDeltas, boxColor);
-//			} else {
-//				boxColor = getPaintColor(currentNode.getColor(), Color.WHITE);
-//				box = generateVoxel(currentParameters, currentDeltas, boxColor);
-//			}
-//			voxels.getChildren().addAll(box);
-			System.out.println("Root is leaf");
-		} else {
-			System.out.println("Root is Node");
-			Node[] children = currentNode.getChildren();
-			int newBoxSize = currentParameters.getBoxSize() / 2;
-			BoxParameters newParameters = new BoxParameters();
-			newParameters.setBoxSize(newBoxSize);
-			newParameters.setCenterX(currentParameters.getCenterX() + (currentDeltas.deltaX * newBoxSize));
-			newParameters.setCenterY(currentParameters.getCenterY() + (currentDeltas.deltaY * newBoxSize));
-			newParameters.setCenterZ(currentParameters.getCenterZ() + (currentDeltas.deltaZ * newBoxSize));
-
-			for (int i = 0; i < children.length; i++) {
-				// compute deltaX, deltaY, and deltaZ for new voxels
-				Node childNode = children[i];
-				if (childNode != null) {
-					childNode.setBoxParameters(newParameters);
-					DeltaStruct displacementDirections = computeDeltaDirections(i);
-					childNode.setDeltaStruct(displacementDirections);
-//					List<Box> innerBoxes = generateVolumeAux(childNode, newParameters, displacementDirections);
-//					voxels.addAll(innerBoxes);
-					
-					Group innerBoxes = generateVolumeAux(childNode, newParameters, displacementDirections);
-					voxels.getChildren().addAll(innerBoxes);
-					
-//					Color boxColor = Color.GRAY;
-//					IntersectionStatus status = testIntersection(newParameters);
-//					Box box = new Box();
-//					if(status == IntersectionStatus.INSIDE) {
-//						boxColor = getPaintColor(childNode.getColor(), Color.BLACK);
-//						box = generateVoxel(newParameters, displacementDirections, boxColor);
-//					} else if(status == IntersectionStatus.PARTIAL){
-//						boxColor = getPaintColor(childNode.getColor(), Color.GRAY);
-//						box = generateVoxel(newParameters, displacementDirections, boxColor);
-//						Group innerBoxes = generateVolumeAux(childNode, newParameters, displacementDirections);
-//						voxels.getChildren().addAll(innerBoxes);
-//					} else {
-//						boxColor = getPaintColor(childNode.getColor(), Color.WHITE);
-//						box = generateVoxel(newParameters, displacementDirections, boxColor);
-//					}
-//					voxels.getChildren().addAll(box);
-					
-//					
-					Group projections = getProjections(newParameters);
-					voxels.getChildren().addAll(projections);
-				}
-			}
-		}
-		return voxels;
-	}
-	
-	private Group testGeneratedVolumeAux(Node currentNode, BoxParameters currentParameters, DeltaStruct currentDeltas) {
-		//List<Box> voxels = new ArrayList<Box>();
-		Group voxels = new Group();
-
-		if (currentNode == null) {
-			return voxels;
-		}
-
-		if (currentNode.isLeaf()) {
-			currentNode.setBoxParameters(currentParameters);
-			currentNode.setDeltaStruct(currentDeltas);
-//			Box box = generateVoxel(currentParameters, currentDeltas, currentNode.getColor());
-//			voxels.getChildren().addAll(box);
+			//Box box = generateVoxel(currentParameters, currentDeltas, currentNode.getColor());
+			//voxels.getChildren().addAll(box);
 			
 			Color boxColor = Color.GRAY;
 			IntersectionStatus status = testIntersection(currentParameters);
@@ -392,17 +314,29 @@ public class Octree {
 		double bottomMostPos = 0;
 		
 		for (Vector3D vector: volumeModel.modelVertices) {
+			//System.out.println("\nVector in world coordinates");
+			//System.out.println(vector);
 			
 			Vector3D viewVector = transformMatrices.toViewCoordinates(vector);
-			Vector3D clipVector = transformMatrices.toClipCoordinates(viewVector);
+			//System.out.println("\nVector in view coordinates");
+			//System.out.println(viewVector);
 			
+			Vector3D clipVector = transformMatrices.toClipCoordinates(viewVector);
+			//System.out.println("\nVector in clip coordinates");
+			//System.out.println(clipVector);
 			if (Math.abs(clipVector.getX()) > Math.abs(clipVector.getW()) ||
 					Math.abs(clipVector.getY()) > Math.abs(clipVector.getW()) ||
 					Math.abs(clipVector.getZ()) > Math.abs(clipVector.getW())) {
+				//System.out.println("We should ignore: " + clipVector.toString());
 			}
 			
 			Vector3D ndcVector = transformMatrices.toNDCCoordinates(clipVector);
+			//System.out.println("\nVector in ndc coordinates");
+			//System.out.println(ndcVector);
+			
 			Vector3D windowVector = transformMatrices.toWindowCoordinates(ndcVector);
+			//System.out.println("\nVector in window coordinates");
+			//System.out.println(windowVector);
 			projectedPoints.add(windowVector);
 			
 			if (windowVector.getX() > rightMostPos) {
@@ -419,18 +353,6 @@ public class Octree {
 		}
 		
 		Group root2D = new Group();
-		
-		Image img = SwingFXUtils.toFXImage(this.bufferedImagesForTest.get(0), null);
-		Rectangle imageRect = new Rectangle();
-		imageRect.setX(0);//imageBoxParameters.getCenterX() - (img.getWidth() / 2));
-		imageRect.setY(0);//imageBoxParameters.getCenterY() - (img.getHeight() / 2));
-		imageRect.setWidth(img.getWidth());
-		System.out.println("img width: " + img.getWidth() + ", height: " + img.getHeight());
-		imageRect.setHeight(img.getHeight());
-		imageRect.setFill(new ImagePattern(img));
-		imageRect.setStroke(Color.BLACK);
-		//root2D.getChildren().add(imageRect);
-		
 		Rectangle boundingBox = new Rectangle(leftMostPos, topMostPos, rightMostPos - leftMostPos, bottomMostPos - topMostPos);		
 		boundingBox.setFill(Color.CHARTREUSE);
 		boundingBox.setStroke(Color.BLACK);
@@ -465,33 +387,20 @@ public class Octree {
 			System.out.println("Projection is outside");
 		}
 		
-		List<Color> cornerColors = new ArrayList<Color>(); 
-		cornerColors.add(Color.RED);
-		cornerColors.add(Color.BLACK);
-		cornerColors.add(Color.BLACK);
-		cornerColors.add(Color.BLACK);
-		cornerColors.add(Color.BLACK);
-		cornerColors.add(Color.BLACK);
-		cornerColors.add(Color.BLACK);
-		cornerColors.add(Color.BLACK);
+//		if (transformedValue >= boxParameters.getBoxSize()) {
+//			diffuseColor = getPaintColor(nodeColor, Color.BLACK);
+//		} else if((transformedValue < boxParameters.getBoxSize()) && (transformedValue > 0)) {
+//			diffuseColor = getPaintColor(nodeColor, Color.GRAY);
+//		}
+//		else {
+//			diffuseColor = getPaintColor(nodeColor, Color.WHITE);
+//		}
 		
-//		cornerColors.add(Color.RED);
-//		cornerColors.add(Color.BLACK);
-//		cornerColors.add(Color.GREEN);
-//		cornerColors.add(Color.YELLOW);
-//		cornerColors.add(Color.GRAY);
-//		cornerColors.add(Color.BROWN);
-//		cornerColors.add(Color.CYAN);
-//		cornerColors.add(Color.ORANGE);
-		
-		int i=0;
 		for (Vector3D point: projectedPoints) {
-			Ellipse circle = new Ellipse(point.getX(), point.getY(), 4, 4);
-			circle.setFill(cornerColors.get(i));
+			Ellipse circle = new Ellipse(point.getX(), point.getY(), 2, 2);
+			circle.setFill(Color.BLACK);
 			root2D.getChildren().add(circle);
-			i++;
 		}
-		
 		
 //		for (Vector3D point: volumeModel.modelVertices) {
 //			Ellipse circle = new Ellipse(point.getX(), point.getY(), 2, 2);
@@ -589,7 +498,16 @@ public class Octree {
 		textureMaterial.setDiffuseColor(Color.BLUE);
 		volume.setMaterial(textureMaterial);
 		//root2D.getChildren().add(volume);
-		
+		Image img = SwingFXUtils.toFXImage(this.bufferedImagesForTest.get(0), null);
+		Rectangle imageRect = new Rectangle();
+		imageRect.setX(0);//imageBoxParameters.getCenterX() - (img.getWidth() / 2));
+		imageRect.setY(0);//imageBoxParameters.getCenterY() - (img.getHeight() / 2));
+		imageRect.setWidth(img.getWidth());
+		System.out.println("img width: " + img.getWidth() + ", height: " + img.getHeight());
+		imageRect.setHeight(img.getHeight());
+		imageRect.setFill(new ImagePattern(img));
+		imageRect.setStroke(Color.BLACK);
+		root2D.getChildren().add(imageRect);
 		return root2D;
 	}
 	
@@ -1156,7 +1074,7 @@ public class Octree {
 		return volume;
 	}
 	
-	public DeltaStruct computeDeltaDirections(int index) {
+	private DeltaStruct computeDeltaDirections(int index) {
 		DeltaStruct deltas = new DeltaStruct();
 		switch (index) {
 		case 0:
