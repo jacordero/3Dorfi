@@ -51,6 +51,7 @@ import nl.tue.vc.imgproc.CameraController;
 import nl.tue.vc.imgproc.HistogramGenerator;
 import nl.tue.vc.imgproc.SilhouetteExtractor;
 import nl.tue.vc.projection.CameraProjectionTest;
+import nl.tue.vc.projection.OctreeProjectionTest;
 import nl.tue.vc.projection.ProjectionGenerator;
 import nl.tue.vc.projection.TransformMatrices;
 import nl.tue.vc.voxelengine.BoxParameters;
@@ -239,10 +240,12 @@ public class ObjectRecognizerController {
 	private Image defaultVideoImage;
 	
 	public static int SNAPSHOT_DELAY = 250;
+	public static final boolean TEST_PROJECTIONS = true;
 	private double sceneWidth;
 	private double sceneHeight;
 	
 	public ObjectRecognizerController() {
+		
 		this.sceneWidth = 400;//650.5;//440;
 		this.sceneHeight = 290;//328.0;//320;
 		silhouetteExtractor = new SilhouetteExtractor();
@@ -999,34 +1002,42 @@ protected void extractSilhouettes(){
 	}
 
 	public void renderModel() {
-		int boxSize = 16;
-		CameraPosition cameraPosition = new CameraPosition();
-		//cameraPositionX = 320;
-		//cameraPositionY = 240;
-		//cameraPositionZ = 300;
-		cameraPosition.positionAxisX = 0;
-		cameraPosition.positionAxisY = 0;
-		cameraPosition.positionAxisZ = 0;
-//		ApplicationConfiguration appConfig = ApplicationConfiguration.getInstance();
-//		Octree octree = new Octree(boxSize, appConfig.getVolumeBoxParameters());
-		BoxParameters volumeBoxParameters = new BoxParameters();		
-		volumeBoxParameters.setBoxSize(boxSize);
-		volumeBoxParameters.setCenterX(8);
-		volumeBoxParameters.setCenterY(8);
-		volumeBoxParameters.setCenterZ(8);
-		Octree octree = new Octree(boxSize, volumeBoxParameters);
-		//octree.generateOctreeFractal(3);
-		octree.setBufferedImagesForTest(this.bufferedImagesForTest);
-		octree.setSourceArrays(this.sourceArrays);
-		octree.setTransformedArrays(this.transformedArrays);
-		octree.setFieldOfView(this.fieldOfView);
-		octree.setTransformMatrices(this.transformMatrices);
-		// try not create another volume renderer object to recompute the octree visualization
-		volumeRenderer = new VolumeRenderer(octree, this.sourceArrays, this.transformedArrays);
-		//octree.setBoxParameters(volumeRenderer.getVolumeBoxParameters());
-		volumeRenderer.generateVolumeScene(octree.getOctreeVolume());
-		//volumeRenderer.generateVolumeScene(octree.getProjections(volumeBoxParameters));
-		rootGroup.setCenter(volumeRenderer.getSubScene());
+		if (TEST_PROJECTIONS){
+			OctreeProjectionTest projectionTest = new OctreeProjectionTest();
+			projectionTest.projectCubes();
+			rootGroup.setCenter(projectionTest.generateProjectionScene());			
+		} else {
+			int boxSize = 16;
+			CameraPosition cameraPosition = new CameraPosition();
+			//cameraPositionX = 320;
+			//cameraPositionY = 240;
+			//cameraPositionZ = 300;
+			cameraPosition.positionAxisX = 0;
+			cameraPosition.positionAxisY = 0;
+			cameraPosition.positionAxisZ = 0;
+//			ApplicationConfiguration appConfig = ApplicationConfiguration.getInstance();
+//			Octree octree = new Octree(boxSize, appConfig.getVolumeBoxParameters());
+			BoxParameters volumeBoxParameters = new BoxParameters();		
+			volumeBoxParameters.setBoxSize(boxSize);
+			volumeBoxParameters.setCenterX(8);
+			volumeBoxParameters.setCenterY(8);
+			volumeBoxParameters.setCenterZ(8);
+			Octree octree = new Octree(boxSize, volumeBoxParameters);
+			//octree.generateOctreeFractal(3);
+			octree.setBufferedImagesForTest(this.bufferedImagesForTest);
+			octree.setSourceArrays(this.sourceArrays);
+			octree.setTransformedArrays(this.transformedArrays);
+			octree.setFieldOfView(this.fieldOfView);
+			octree.setTransformMatrices(this.transformMatrices);
+			// try not create another volume renderer object to recompute the octree visualization
+			volumeRenderer = new VolumeRenderer(octree, this.sourceArrays, this.transformedArrays);
+			//octree.setBoxParameters(volumeRenderer.getVolumeBoxParameters());
+			volumeRenderer.generateVolumeScene(octree.getOctreeVolume());
+			//volumeRenderer.generateVolumeScene(octree.getProjections(volumeBoxParameters));
+
+			rootGroup.setCenter(volumeRenderer.getSubScene());
+
+		}
 	}
 	
 	private void updateCameraPositionAxisX(int positionX) {
