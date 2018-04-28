@@ -78,7 +78,7 @@ public final class Utils
 	 *            the {@link Mat} object in BGR or grayscale
 	 * @return the corresponding {@link BufferedImage}
 	 */
-	private static BufferedImage matToBufferedImage(Mat original)
+	public static BufferedImage matToBufferedImage(Mat original)
 	{
 		// init
 		BufferedImage image = null;
@@ -98,5 +98,17 @@ public final class Utils
 		System.arraycopy(sourcePixels, 0, targetPixels, 0, sourcePixels.length);
 
 		return image;
+	}
+	
+	public static void debug(String str, boolean printInfo) {
+		if (printInfo) {
+			System.out.print(str);
+		}
+	}
+	
+	public static void debugNewLine(String str, boolean printInfo) {
+		if (printInfo) {
+			System.out.println(str);
+		}
 	}
 }

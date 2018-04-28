@@ -19,6 +19,12 @@ public class TransformMatrices {
 	
 	private double[][] windowMatrix;
 	
+	private double[][] intrinsicParametersMatrix;
+	
+	private double[][] calibratedProjectionMatrix;
+	
+	private double[] distorsionParameters;
+	
 	private static final double DEG2RAD = 3.14159265/180;
 	
 	private final double near = 1.0;
@@ -31,6 +37,9 @@ public class TransformMatrices {
 	private double worldRotationYAngle;
 	
 	private boolean useDefaultViewMatrix = true;
+	
+	private static final int IMAGE_SCALING_FACTOR = 2;
+	
 	
 	public TransformMatrices(double screenWidth, double screenHeight, double fieldOfView) {
 		this.screenWidth = screenWidth;
@@ -45,6 +54,9 @@ public class TransformMatrices {
 	
 	
 	private void buildMatrices() {
+		// matrices obtained by using camera calibration procedure
+		buildCalibrationCameraMatrices();
+		
 		buildWorldRotationYMatrix();
 		buildViewMatrix();
 		buildProjectionMatrix();
@@ -55,6 +67,22 @@ public class TransformMatrices {
 			{0, 0, 0.5, 0.5},
 			{0, 0, 0, 1}
 		};	
+	}
+	
+	private void buildCalibrationCameraMatrices() {
+		intrinsicParametersMatrix = new double[][] {
+			{1422.6417 / IMAGE_SCALING_FACTOR, 0, 640.4154 / IMAGE_SCALING_FACTOR},
+			{0, 1418.4124 / IMAGE_SCALING_FACTOR, 446.3054 / IMAGE_SCALING_FACTOR},
+			{0, 0, 1}
+		};
+		
+		calibratedProjectionMatrix = new double[][] {
+			{0.0, 0.0, 0.0},
+			{0.0, 0.0, 0.0},
+			{0.0, 0.0, 0.0},
+		};
+		
+		distorsionParameters = new double[] {-0.0379, 0.2845, 0.0006, -0.0024};
 	}
 	
 	private void buildWorldRotationYMatrix() {

@@ -24,6 +24,10 @@ public class ApplicationConfiguration {
 	
 	private int volumeBoxSize;
 	
+	private int imageWidth;
+	
+	private int imageHeight;
+	
 	private Map<String, Integer> silhouetteConfiguration;
 	
 	private BoxParameters volumeBoxParameters;
@@ -32,6 +36,10 @@ public class ApplicationConfiguration {
 	
 	// private constructor to make this a singleton
 	private ApplicationConfiguration() {
+		// original width resolution: 1280, original height resolution: 960
+		imageWidth = 640;
+		imageHeight = 480;
+		
 		windowWidth = 960;
 		windowHeight = 680;
 		
@@ -121,6 +129,14 @@ public class ApplicationConfiguration {
 
 	public void setVolumeSceneDepth(int volumeSceneDepth) {
 		this.volumeSceneDepth = volumeSceneDepth;
+	}
+	
+	public int getImageWidth() {
+		return imageWidth;
+	}
+	
+	public int getImageHeight() {
+		return imageHeight;
 	}
 	
 	public Map<String, Integer> getSilhouetteConfiguration(){
