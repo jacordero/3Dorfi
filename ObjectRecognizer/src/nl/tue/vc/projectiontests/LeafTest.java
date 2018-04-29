@@ -1,17 +1,15 @@
-package nl.tue.vc.voxelengine;
+package nl.tue.vc.projectiontests;
 
 import javafx.scene.paint.Color;
 
-public class Leaf extends Node{
-
+public class LeafTest extends NodeTest {
 	
-	
-	public Leaf(Color color, double boxSize, double centerX, double centerY, double centerZ) {
+	public LeafTest(double boxSize, double centerX, double centerY, double centerZ) {
 		this.boxSize = boxSize;
 		this.positionCenterX = centerX;
 		this.positionCenterY = centerY;
 		this.positionCenterZ = centerZ;
-		this.color = color;
+		color = Color.BLACK;
 	}
 	
 	@Override
@@ -21,7 +19,7 @@ public class Leaf extends Node{
 	}
 
 	@Override
-	Node[] getChildren() {
+	NodeTest[] getChildren() {
 		return null;
 	}
 	

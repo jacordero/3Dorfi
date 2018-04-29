@@ -1,4 +1,4 @@
-package nl.tue.vc.projectiontests;
+package nl.tue.vc.projection;
 
 import javafx.scene.paint.Color;
 import nl.tue.vc.application.utils.Utils;

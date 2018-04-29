@@ -63,9 +63,6 @@ public class ObjectRecognizer extends Application {
 	}
 
 	public static void main(String[] args) {
-//		String libPath = System.getProperty("java.library.path");
-//		System.out.println("Library path; " + libPath);
-//		System.out.println("Library; " + Core.NATIVE_LIBRARY_NAME);
 		// load the native OpenCV library
 		System.loadLibrary(Core.NATIVE_LIBRARY_NAME);
 		

@@ -1,22 +1,22 @@
-package nl.tue.vc.voxelengine;
+package nl.tue.vc.projectiontests;
 
 import javafx.scene.paint.Color;
 import nl.tue.vc.application.utils.Utils;
-import nl.tue.vc.projectiontests.InternalNodeTest;
-import nl.tue.vc.projectiontests.LeafTest;
-import nl.tue.vc.projectiontests.NodeTest;
+import nl.tue.vc.voxelengine.DeltaStruct;
 
-public class InternalNode extends Node{
+public class InternalNodeTest extends NodeTest {
 
-	private Node[] children;
+	private NodeTest[] children;
 	
 	// this is here for testing purposes
 	//private NodeColor[] colors = {NodeColor.BLACK, NodeColor.BLACK, NodeColor.BLACK, NodeColor.WHITE,
 	//		NodeColor.BLACK, NodeColor.BLACK, NodeColor.BLACK, NodeColor.WHITE};
 	
-	public InternalNode(Color color, double boxSize, double parentCenterX, double parentCenterY, double parentCenterZ, int levels) {
-		this.color = color;
-		children = new Node[8];	
+	
+	
+	public InternalNodeTest(double boxSize, double parentCenterX, double parentCenterY, double parentCenterZ, int levels) {
+		this.color = Color.BLACK;
+		children = new NodeTest[8];	
 		this.boxSize = boxSize;
 		
 		positionCenterX = parentCenterX;
@@ -42,9 +42,9 @@ public class InternalNode extends Node{
 				Utils.debugNewLine("Node center: [" + newParentCenterX + ", " + newParentCenterY + ", " + newParentCenterZ + "]",  true);
 				
 				if (levels > 0){
-					children[i] = new InternalNode(color, childrenBoxSize, newParentCenterX, newParentCenterY, newParentCenterZ, levels - 1);
+					children[i] = new InternalNodeTest(childrenBoxSize, newParentCenterX, newParentCenterY, newParentCenterZ, levels - 1);
 				} else {
-					children[i] = new Leaf(color, childrenBoxSize, newParentCenterX, newParentCenterY, newParentCenterZ);
+					children[i] = new LeafTest(childrenBoxSize, newParentCenterX, newParentCenterY, newParentCenterZ);
 				} 
 			}			
 		}
@@ -55,12 +55,12 @@ public class InternalNode extends Node{
 	
 
 	
-	public void addChildren(Node[] children){
+	public void addChildren(NodeTest[] children){
 		this.children = children;
 	}
 	
 	@Override
-	public Node[] getChildren() {
+	public NodeTest[] getChildren() {
 		return children;
 	}
 	

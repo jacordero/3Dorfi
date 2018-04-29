@@ -1,4 +1,4 @@
-package nl.tue.vc.projection;
+package nl.tue.vc.projectiontests;
 
 import java.awt.image.BufferedImage;
 import java.io.File;
@@ -27,6 +27,7 @@ import javafx.scene.shape.Ellipse;
 import javafx.scene.shape.Rectangle;
 import nl.tue.vc.application.utils.Utils;
 import nl.tue.vc.imgproc.CameraCalibrator;
+import nl.tue.vc.projection.ProjectionGenerator;
 
 public class OctreeProjectionTest {
 

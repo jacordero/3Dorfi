@@ -1,4 +1,4 @@
-package nl.tue.vc.voxelengine;
+package nl.tue.vc.projectiontests;
 
 import org.opencv.core.MatOfPoint3f;
 import org.opencv.core.Point3;
@@ -6,7 +6,7 @@ import org.opencv.core.Point3;
 import javafx.scene.paint.Color;
 import nl.tue.vc.voxelengine.DeltaStruct;
 
-public abstract class Node {
+public abstract class NodeTest {
 
 	protected Color color;
 	
@@ -127,7 +127,7 @@ public abstract class Node {
 	}
 
 	
-	abstract Node[] getChildren();
+	abstract NodeTest[] getChildren();
 	
 	abstract boolean isLeaf();
 	
