@@ -58,7 +58,21 @@ public class InternalNode extends Node{
 		//initializeChildren();
 	}
 
-	
+	public InternalNode(Color color, double boxSize) {
+		this.color = color;
+		children = new Node[8];	
+		this.boxSize = boxSize;
+		
+		positionCenterX = 0;
+		positionCenterY = 0;
+		positionCenterZ = 0;
+		
+		this.boxParameters = new BoxParameters();		
+		this.boxParameters.setBoxSize((int)boxSize);
+		this.boxParameters.setCenterX((int)positionCenterX);
+		this.boxParameters.setCenterY((int)positionCenterY);
+		this.boxParameters.setCenterZ((int)positionCenterZ);
+	}
 
 	
 	public void addChildren(Node[] children){
@@ -81,7 +95,7 @@ public class InternalNode extends Node{
 		builder.append("Internal node -> " + super.toString() + "\n");
 		if (children != null){
 			for(int i = 0; i < children.length; i++) {
-				builder.append(children[i].toString() + "\n");
+				//builder.append(children[i].toString() + "\n");
 			}			
 		}
 		return builder.toString();

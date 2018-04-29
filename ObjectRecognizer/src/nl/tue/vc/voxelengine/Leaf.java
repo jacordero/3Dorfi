@@ -19,6 +19,19 @@ public class Leaf extends Node{
 		this.boxParameters.setCenterZ((int)centerZ);
 	}
 	
+	public Leaf(Color color, double boxSize) {
+		this.boxSize = boxSize;
+		this.positionCenterX = 0;
+		this.positionCenterY = 0;
+		this.positionCenterZ = 0;
+		this.color = color;
+		this.boxParameters = new BoxParameters();		
+		this.boxParameters.setBoxSize((int)boxSize);
+		this.boxParameters.setCenterX((int)positionCenterX);
+		this.boxParameters.setCenterY((int)positionCenterY);
+		this.boxParameters.setCenterZ((int)positionCenterZ);
+	}
+	
 	@Override
 	boolean isLeaf() {
 		// TODO Auto-generated method stub
