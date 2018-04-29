@@ -80,6 +80,11 @@ public class IntersectionTest {
 		}
 	}
 
+	public static int[][] computeDistanceTransform(int[][] binaryArray) {
+		DistanceTransformGenerator dtg = new DistanceTransformGenerator(binaryArray);
+		return dtg.getDistanceTransform();
+	}
+	
 	public static int[][] getTransformedArray(int[][] binaryArray) {
 		int[][] transformedArray = new int[binaryArray.length][binaryArray[0].length];
 		// populate transformedArray
@@ -90,6 +95,25 @@ public class IntersectionTest {
 		}
 		return transformedArray;
 	}
+	
+	public static void compareDistanceTransformMethods(int[][] binaryArray){
+		int[][] firstTransform = getTransformedArray(binaryArray);
+		int[][] secondTransform = computeDistanceTransform(binaryArray);
+		
+		boolean equalContent = true;
+		for (int i = 0; i < binaryArray.length; i++){
+			for (int j = 0; j < binaryArray[0].length; j++){
+				if (firstTransform[i][j] != secondTransform[i][j]){
+					equalContent = false;
+					System.out.println("ft[" + i + "][" + j + "] = " + firstTransform[i][j] + ", st[" + i + "][" + j + "] = " + secondTransform[i][j]);
+				}
+			}
+		}
+		if (equalContent){
+			System.out.println("***** Content of both transformations are equal ****");
+		} 
+	}
+	
 
 	public static int getSquareSize(int[][] binaryArray, int xValue, int yValue) {
 		int sum = 0;

@@ -979,6 +979,9 @@ protected void extractSilhouettes(){
 			
 			sourceArrays.add(sourceArray);
 			int[][] transformedArray = IntersectionTest.getTransformedArray(sourceArray);
+			IntersectionTest.compareDistanceTransformMethods(sourceArray);
+			
+			
 			//System.out.println("transformedArray array rows = " + transformedArray.length + ", cols = " + transformedArray[0].length);
 			// print the contents of transformedArray
 			for (int x = 0; x < transformedArray.length; x++) {
