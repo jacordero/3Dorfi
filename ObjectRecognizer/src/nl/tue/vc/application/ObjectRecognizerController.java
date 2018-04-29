@@ -968,7 +968,6 @@ protected void extractSilhouettes(){
 	protected void constructModel() {
 		//System.out.println("height = " + this.processedExtractedImage.size().height + ", width = " + this.processedExtractedImage.size().width);
 		for(BufferedImage convertedMat : this.bufferedImagesForTest) {	
-			//System.out.println("-------- Image Bounds ----- " + convertedMat.getMinX() + " ----- " + convertedMat.getGraphics());
 			//System.out.println("Converted mat width = " + convertedMat.getWidth() + ", height = " + convertedMat.getHeight());
 			int[][] sourceArray = IntersectionTest.getBinaryArray(convertedMat);
 			System.out.println("binary array rows = " + sourceArray.length + ", cols = " + sourceArray[0].length);
@@ -981,7 +980,7 @@ protected void extractSilhouettes(){
 			
 			sourceArrays.add(sourceArray);
 			int[][] transformedArray = IntersectionTest.getTransformedArray(sourceArray);
-			//System.out.println("transformedArray array rows = " + transformedArray.length + ", cols = " + transformedArray[0].length);
+			System.out.println("transformedArray array rows = " + transformedArray.length + ", cols = " + transformedArray[0].length);
 			// print the contents of transformedArray
 			for (int x = 0; x < transformedArray.length; x++) {
 				for (int y = 0; y < transformedArray[x].length; y++) {
@@ -1022,9 +1021,9 @@ protected void extractSilhouettes(){
 //			Octree octree = new Octree(boxSize, appConfig.getVolumeBoxParameters());
 			BoxParameters volumeBoxParameters = new BoxParameters();		
 			volumeBoxParameters.setBoxSize(boxSize);
-			volumeBoxParameters.setCenterX(4);
-			volumeBoxParameters.setCenterY(4);
-			volumeBoxParameters.setCenterZ(4);
+			volumeBoxParameters.setCenterX(0);
+			volumeBoxParameters.setCenterY(0);
+			volumeBoxParameters.setCenterZ(0);
 			Octree octree = new Octree(volumeBoxParameters, levels);
 			
 			// try not create another volume renderer object to recompute the octree visualization
@@ -1040,6 +1039,7 @@ protected void extractSilhouettes(){
 			volumeRenderer.generateVolumeScene(volumeGenerator.generateVolume());
 
 			rootGroup.setCenter(volumeRenderer.getSubScene());
+			//rootGroup.setCenter(volumeGenerator.generateProjectionScene());
 
 		}
 	}

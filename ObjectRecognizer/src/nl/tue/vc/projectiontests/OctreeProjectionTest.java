@@ -224,7 +224,7 @@ public class OctreeProjectionTest {
 	
 	private OctreeTest generateOctree(){
 		
-		return new OctreeTest(8, 4, 4, 8, 2);
+		return new OctreeTest(8, 4, 4, 4, 2);
 	}
 	
 	public void calibrateCamera(){

@@ -164,7 +164,8 @@ public class IntersectionTest {
 		for (int x = 0; x < raster.getHeight(); x++) {
 			for (int y = 0; y < raster.getWidth(); y++) {
 				//System.out.println("pixel(" + x + ", " + y + ")" );
-				result[x][y] = (int)raster.getSampleDouble(y, x, 0);
+				int binaryValue = (int)raster.getSampleDouble(y, x, 0);
+				result[x][y] = (binaryValue == 0) ? 1 : 0;
 				//System.out.println("pixel(" + x + ", " + y + ") = " + raster.getSampleDouble(x, y, 0));
 			}
 		}

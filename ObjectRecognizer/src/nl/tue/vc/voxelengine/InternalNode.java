@@ -22,6 +22,12 @@ public class InternalNode extends Node{
 		positionCenterX = parentCenterX;
 		positionCenterY = parentCenterY;
 		positionCenterZ = parentCenterZ;
+		
+		this.boxParameters = new BoxParameters();		
+		this.boxParameters.setBoxSize((int)boxSize);
+		this.boxParameters.setCenterX((int)parentCenterX);
+		this.boxParameters.setCenterY((int)parentCenterY);
+		this.boxParameters.setCenterZ((int)parentCenterZ);
 
 		if (levels < 0){
 			children = null;

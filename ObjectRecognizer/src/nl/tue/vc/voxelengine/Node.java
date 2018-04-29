@@ -18,6 +18,26 @@ public abstract class Node {
 	
 	protected double positionCenterZ;
 	
+	protected BoxParameters boxParameters;
+	
+	DeltaStruct displacementDirection;
+	
+	public DeltaStruct getDisplacementDirection() {
+		return displacementDirection;
+	}
+
+	public void setDisplacementDirection(DeltaStruct displacementDirection) {
+		this.displacementDirection = displacementDirection;
+	}
+
+	public BoxParameters getBoxParameters() {
+		return boxParameters;
+	}
+
+	public void setBoxParameters(BoxParameters boxParameters) {
+		this.boxParameters = boxParameters;
+	}
+
 	public Color getColor() {
 		return color;
 	}
@@ -62,7 +82,6 @@ public abstract class Node {
 	public MatOfPoint3f getCorners(){
 		
 		double displacementSize = boxSize / 2;
-		DeltaStruct displacementDirection;
 		Point3[] corners = new Point3[8];
 		for (int i = 0; i < 8; i++){
 			displacementDirection = computeDisplacementDirections(i);

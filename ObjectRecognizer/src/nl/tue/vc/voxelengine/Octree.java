@@ -62,14 +62,32 @@ public class Octree {
 		this.node = new InternalNode(Color.BLACK, boxSize, centerX, centerY, centerZ, levels);
 		root = node;		
 		this.octreeVolume = new Group();
-		DeltaStruct deltas = new DeltaStruct();
-		deltas.deltaX = 0;
-		deltas.deltaY = 0;
-		deltas.deltaZ = 0;
 		this.boxParameters = boxParams;
+	}
+	
+	public Octree(double size, double centerValX, double centerValY, double centerValZ, int levels) {
+		this.boxSize = size;
+		this.centerX = centerValX;
+		this.centerY = centerValY;
+		this.centerZ = centerValZ;
+		this.levels = levels;
+		this.node = new InternalNode(Color.BLACK, boxSize, centerX, centerY, centerZ, levels);
+		root = node;		
+		this.octreeVolume = new Group();
+		this.boxParameters = new BoxParameters();
+		this.boxParameters.setBoxSize((int)boxSize);
+		this.boxParameters.setCenterX((int)centerX);
+		this.boxParameters.setCenterY((int)centerY);
+		this.boxParameters.setCenterZ((int)centerZ);
 	}
 
 	public Node getRoot() {
+		return root;
+	}
+	
+	public Node generateOctreeFractal() {
+		System.out.println("========================== Levels: " + this.levels);
+		root = generateOctreeFractalAux(this.levels);
 		return root;
 	}
 

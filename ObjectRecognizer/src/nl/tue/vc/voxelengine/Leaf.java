@@ -12,6 +12,11 @@ public class Leaf extends Node{
 		this.positionCenterY = centerY;
 		this.positionCenterZ = centerZ;
 		this.color = color;
+		this.boxParameters = new BoxParameters();		
+		this.boxParameters.setBoxSize((int)boxSize);
+		this.boxParameters.setCenterX((int)centerX);
+		this.boxParameters.setCenterY((int)centerY);
+		this.boxParameters.setCenterZ((int)centerZ);
 	}
 	
 	@Override
