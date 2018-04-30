@@ -1,6 +1,6 @@
-package nl.tue.vc.projection;
+package nl.tue.vc.projection.test;
 
-public class DeltaStruct {
+public class DeltaStructTest {
 
 	public int deltaX;
 	

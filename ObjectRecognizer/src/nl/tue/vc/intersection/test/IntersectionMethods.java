@@ -1,4 +1,4 @@
-package nl.tue.vc.intersection;
+package nl.tue.vc.intersection.test;
 
 import java.awt.image.BufferedImage;
 import java.awt.image.Raster;

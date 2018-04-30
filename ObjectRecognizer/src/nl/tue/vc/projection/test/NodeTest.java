@@ -1,4 +1,4 @@
-package nl.tue.vc.projection;
+package nl.tue.vc.projection.test;
 
 import org.opencv.core.MatOfPoint3f;
 import org.opencv.core.Point3;

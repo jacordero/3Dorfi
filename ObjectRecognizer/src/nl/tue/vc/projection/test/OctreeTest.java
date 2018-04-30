@@ -1,4 +1,4 @@
-package nl.tue.vc.projection;
+package nl.tue.vc.projection.test;
 
 import java.awt.image.BufferedImage;
 import java.io.File;
