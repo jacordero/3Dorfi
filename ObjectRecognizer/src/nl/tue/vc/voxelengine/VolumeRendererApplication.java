@@ -43,14 +43,13 @@ public class VolumeRendererApplication extends Application {
 		camera.setTranslateY(0);
 		camera.setTranslateZ(0);
 
-		Octree octree = new Octree(boxSize, boxParameters);
+		Octree octree = new Octree(boxParameters, 2);
 		octree.generateOctreeFractal(0);
 
 		// Add the shapes and the light to the group
-		//octree.setBoxParameters(boxParameters);
-		//VolumeGenerator volumeGenerator = new VolumeGenerator(octree, boxParameters);
-		//Group root = volumeGenerator.getVolume();
-		Group root = octree.getOctreeTestVolume(1);
+		octree.setBoxParameters(boxParameters);
+		VolumeGenerator volumeGenerator = new VolumeGenerator(octree, boxParameters);
+		Group root = volumeGenerator.getVolume();
 		
 	
 		RotateTransition rotation = new RotateTransition(Duration.seconds(20), root);

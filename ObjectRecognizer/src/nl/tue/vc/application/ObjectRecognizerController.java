@@ -50,13 +50,14 @@ import nl.tue.vc.imgproc.CameraCalibrator;
 import nl.tue.vc.imgproc.CameraController;
 import nl.tue.vc.imgproc.HistogramGenerator;
 import nl.tue.vc.imgproc.SilhouetteExtractor;
-import nl.tue.vc.projection.test.OctreeProjectionTest;
+import nl.tue.vc.projection.CameraProjectionTest;
 import nl.tue.vc.projection.ProjectionGenerator;
 import nl.tue.vc.projection.TransformMatrices;
-import nl.tue.vc.projection.test.OctreeTest;
+import nl.tue.vc.projection.test.OctreeProjectionTest;
 import nl.tue.vc.voxelengine.BoxParameters;
 import nl.tue.vc.voxelengine.CameraPosition;
 import nl.tue.vc.voxelengine.Octree;
+import nl.tue.vc.voxelengine.VolumeGenerator;
 import nl.tue.vc.voxelengine.VolumeRenderer;
 
 /**
@@ -243,6 +244,7 @@ public class ObjectRecognizerController {
 	public static final boolean TEST_PROJECTIONS = true;
 	private double sceneWidth;
 	private double sceneHeight;
+	private VolumeGenerator volumeGenerator;
 	
 	public ObjectRecognizerController() {
 		
@@ -966,7 +968,6 @@ protected void extractSilhouettes(){
 	protected void constructModel() {
 		//System.out.println("height = " + this.processedExtractedImage.size().height + ", width = " + this.processedExtractedImage.size().width);
 		for(BufferedImage convertedMat : this.bufferedImagesForTest) {	
-			//System.out.println("-------- Image Bounds ----- " + convertedMat.getMinX() + " ----- " + convertedMat.getGraphics());
 			//System.out.println("Converted mat width = " + convertedMat.getWidth() + ", height = " + convertedMat.getHeight());
 			int[][] sourceArray = IntersectionTest.getBinaryArray(convertedMat);
 			System.out.println("binary array rows = " + sourceArray.length + ", cols = " + sourceArray[0].length);
@@ -978,11 +979,9 @@ protected void extractSilhouettes(){
 			}
 			
 			sourceArrays.add(sourceArray);
-			int[][] transformedArray = IntersectionTest.getTransformedArray(sourceArray);
-			IntersectionTest.compareDistanceTransformMethods(sourceArray);
-			
-			
-			//System.out.println("transformedArray array rows = " + transformedArray.length + ", cols = " + transformedArray[0].length);
+			//int[][] transformedArray = IntersectionTest.getTransformedArray(sourceArray);
+			int[][] transformedArray = IntersectionTest.computeDistanceTransform(sourceArray);
+			System.out.println("transformedArray array rows = " + transformedArray.length + ", cols = " + transformedArray[0].length);
 			// print the contents of transformedArray
 			for (int x = 0; x < transformedArray.length; x++) {
 				for (int y = 0; y < transformedArray[x].length; y++) {
@@ -1005,12 +1004,13 @@ protected void extractSilhouettes(){
 	}
 
 	public void renderModel() {
-		if (TEST_PROJECTIONS){
+		if (!TEST_PROJECTIONS){
 			OctreeProjectionTest projectionTest = new OctreeProjectionTest();
 			projectionTest.projectCubes();
 			rootGroup.setCenter(projectionTest.generateProjectionScene());			
 		} else {
-			int boxSize = 16;
+			int boxSize = 8;
+			int levels = 2;
 			CameraPosition cameraPosition = new CameraPosition();
 			//cameraPositionX = 320;
 			//cameraPositionY = 240;
@@ -1022,23 +1022,25 @@ protected void extractSilhouettes(){
 //			Octree octree = new Octree(boxSize, appConfig.getVolumeBoxParameters());
 			BoxParameters volumeBoxParameters = new BoxParameters();		
 			volumeBoxParameters.setBoxSize(boxSize);
-			volumeBoxParameters.setCenterX(8);
-			volumeBoxParameters.setCenterY(8);
-			volumeBoxParameters.setCenterZ(8);
-			Octree octree = new Octree(boxSize, volumeBoxParameters);
-			//octree.generateOctreeFractal(3);
-			octree.setBufferedImagesForTest(this.bufferedImagesForTest);
-			octree.setSourceArrays(this.sourceArrays);
-			octree.setTransformedArrays(this.transformedArrays);
-			octree.setFieldOfView(this.fieldOfView);
-			octree.setTransformMatrices(this.transformMatrices);
+			volumeBoxParameters.setCenterX(0);
+			volumeBoxParameters.setCenterY(0);
+			volumeBoxParameters.setCenterZ(0);
+			Octree octree = new Octree(volumeBoxParameters, levels);
+			
 			// try not create another volume renderer object to recompute the octree visualization
 			volumeRenderer = new VolumeRenderer(octree, this.sourceArrays, this.transformedArrays);
-			//octree.setBoxParameters(volumeRenderer.getVolumeBoxParameters());
-			volumeRenderer.generateVolumeScene(octree.getOctreeVolume());
-			//volumeRenderer.generateVolumeScene(octree.getProjections(volumeBoxParameters));
+			//instantiate the volume generator object
+			volumeGenerator = new VolumeGenerator(octree, volumeBoxParameters, this.sourceArrays, this.transformedArrays);
+			volumeGenerator.setBufferedImagesForTest(this.bufferedImagesForTest);
+			volumeGenerator.setSourceArrays(this.sourceArrays);
+			volumeGenerator.setTransformedArrays(this.transformedArrays);
+			volumeGenerator.setFieldOfView(this.fieldOfView);
+			volumeGenerator.setTransformMatrices(this.transformMatrices);
+			
+			volumeRenderer.generateVolumeScene(volumeGenerator.generateVolume());
 
 			rootGroup.setCenter(volumeRenderer.getSubScene());
+			//rootGroup.setCenter(volumeGenerator.generateProjectionScene());
 
 		}
 	}

@@ -39,7 +39,7 @@ public class VolumeRenderer {
 	
 	
 	public VolumeRenderer() {
-		this.octree = new Octree(100);
+		this.octree = new Octree(this.volumeBoxParameters, 2);
 		//this.octree = new Octree(ApplicationConfiguration.getInstance().getVolumeBoxSize());
 		configVolumeScene();
 		//volumeGenerator = new VolumeGenerator(octree, volumeBoxParameters);
@@ -103,7 +103,7 @@ public class VolumeRenderer {
 		if (octree == null) {
 			root3D = volumeGenerator.getDefaultVolume(volumeBoxParameters);
 		} else {
-			root3D = volumeGenerator.generateVolume(volumeBoxParameters);
+			root3D = volumeGenerator.generateVolume();
 		}
 		
 		RotateTransition rotation = new RotateTransition(Duration.seconds(20), root3D);
