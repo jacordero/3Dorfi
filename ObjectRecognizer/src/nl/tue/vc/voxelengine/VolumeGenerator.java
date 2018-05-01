@@ -27,6 +27,7 @@ import javafx.scene.paint.PhongMaterial;
 import javafx.scene.shape.Box;
 import javafx.scene.shape.Ellipse;
 import javafx.scene.shape.Rectangle;
+import nl.tue.vc.application.ApplicationConfiguration;
 import nl.tue.vc.application.utils.Utils;
 import nl.tue.vc.imgproc.CameraCalibrator;
 import nl.tue.vc.projection.IntersectionStatus;
@@ -88,23 +89,36 @@ public class VolumeGenerator {
 
 	public Group generateVolume() {
 		Group volume = new Group();
-		//Node root = octree.generateOctreeFractal(2);
+		//Node root = octree.generateOctreeFractal(0);
 		Node root = octree.getRoot();
 		BoxParameters boxParameters = octree.getBoxParameters();
 		DeltaStruct deltas = new DeltaStruct();
 		System.out.println("Children: " + root.getChildren().length);
 
-		List<Box> voxels = generateVolumeAux(root, boxParameters, deltas);
-		volume.getChildren().addAll(voxels);
+//		List<Box> voxels = generateVolumeAux(root, boxParameters, deltas);
+//		volume.getChildren().addAll(voxels);
 
 		 Group imageProjection = getImageProjections(0);
 		 volume.getChildren().addAll(imageProjection);
 		
 		 projectCubes();
 		 volume.getChildren().addAll(getProjectedVolume());
-		
-		 List<Box> testedVoxels = generateTestedVolume(root, boxParameters, deltas);
-		 //volume.getChildren().addAll(testedVoxels);
+		 
+		 ApplicationConfiguration appConfig = ApplicationConfiguration.getInstance();
+		 int sceneWidth = 3*appConfig.getVolumeSceneWidth()/4;
+		 int sceneHeight = 3*appConfig.getVolumeSceneHeight()/4;
+		 int sceneDepth = appConfig.getVolumeSceneDepth()/2;
+		 BoxParameters volumeBoxParameters = new BoxParameters();		
+		 volumeBoxParameters.setBoxSize(100);
+		 volumeBoxParameters.setCenterX(sceneWidth);
+		 volumeBoxParameters.setCenterY(sceneHeight);
+		 volumeBoxParameters.setCenterZ(sceneDepth);
+		 
+//		 List<Box> voxels = generateVolumeAux(root, volumeBoxParameters, deltas);
+//		 volume.getChildren().addAll(voxels);
+			
+		 List<Box> testedVoxels = generateTestedVolume(root, volumeBoxParameters, deltas);
+		 volume.getChildren().addAll(testedVoxels);
 
 		return volume;
 	}
@@ -145,6 +159,54 @@ public class VolumeGenerator {
 
 		return voxels;
 	}
+	
+	private Node getTestedNode(Node currentNode, BoxParameters currentParameters,DeltaStruct currentDeltas) {
+		Node testedNode = currentNode;
+		if (currentNode.isLeaf()) {
+			currentNode.setBoxParameters(currentParameters);
+			currentNode.setDisplacementDirection(currentDeltas);
+			Color boxColor = Color.GRAY;
+			IntersectionStatus status = testIntersection(currentNode, 0);
+			if (status == IntersectionStatus.INSIDE) {
+				boxColor = Color.BLACK;//getPaintColor(currentNode.getColor(), Color.BLACK);
+			} else if (status == IntersectionStatus.PARTIAL) {
+				boxColor = getPaintColor(currentNode.getColor(), Color.GRAY);
+			} else {
+				boxColor = getPaintColor(currentNode.getColor(), Color.WHITE);
+				
+			}
+			currentNode.setColor(boxColor);
+			testedNode = currentNode;
+		} else {
+			Node[] children = currentNode.getChildren();
+			int newBoxSize = currentParameters.getBoxSize() / 2;
+			BoxParameters newParameters = new BoxParameters();
+			newParameters.setBoxSize(newBoxSize);
+			newParameters.setCenterX(currentParameters.getCenterX() + (currentDeltas.deltaX * newBoxSize));
+			newParameters.setCenterY(currentParameters.getCenterY() + (currentDeltas.deltaY * newBoxSize));
+			newParameters.setCenterZ(currentParameters.getCenterZ() + (currentDeltas.deltaZ * newBoxSize));
+
+			for (int i = 0; i < children.length; i++) {
+				// compute deltaX, deltaY, and deltaZ for new voxels
+				Node childNode = children[i];
+				if (childNode != null) {
+					childNode.setBoxParameters(newParameters);
+					DeltaStruct displacementDirections = computeDeltaDirections(i);
+					childNode.setDisplacementDirection(displacementDirections);
+					Color boxColor = Color.GRAY;
+					IntersectionStatus status = testIntersection(childNode, 0);
+					if (status == IntersectionStatus.INSIDE) {
+						boxColor = getPaintColor(childNode.getColor(), Color.BLACK);
+					} else if (status == IntersectionStatus.PARTIAL) {
+						Node innerNode = getTestedNode(childNode, newParameters, displacementDirections);
+					} else {
+						boxColor = getPaintColor(childNode.getColor(), Color.WHITE);
+					}
+				}
+			}
+		}
+		return testedNode;
+	}
 
 	private List<Box> generateTestedVolume(Node currentNode, BoxParameters currentParameters,
 			DeltaStruct currentDeltas) {
@@ -153,24 +215,33 @@ public class VolumeGenerator {
 		if (currentNode == null) {
 			return voxels;
 		}
-
+		
 		if (currentNode.isLeaf()) {
 			currentNode.setBoxParameters(currentParameters);
 			currentNode.setDisplacementDirection(currentDeltas);
-
-			Color boxColor = Color.GRAY;
-			IntersectionStatus status = testIntersection(currentNode, 0);
 			Box box = new Box();
-			if (status == IntersectionStatus.INSIDE) {
-				boxColor = getPaintColor(currentNode.getColor(), Color.BLACK);
-				box = generateVoxel(currentParameters, currentDeltas, boxColor);
-			} else if (status == IntersectionStatus.PARTIAL) {
-				boxColor = getPaintColor(currentNode.getColor(), Color.GRAY);
-				box = generateVoxel(currentParameters, currentDeltas, boxColor);
-			} else {
-				boxColor = getPaintColor(currentNode.getColor(), Color.WHITE);
-				box = generateVoxel(currentParameters, currentDeltas, boxColor);
+			Color boxColor = Color.GRAY;
+			Color finalColor = Color.WHITE;
+			for(int i=0;i<this.transformedArrays.size();i++) {
+				IntersectionStatus status = testIntersection(currentNode, i);
+				if (status == IntersectionStatus.INSIDE) {
+					boxColor = Color.BLACK;//getPaintColor(currentNode.getColor(), Color.BLACK);
+					finalColor = boxColor;
+				} else if (status == IntersectionStatus.PARTIAL) {
+					boxColor = getPaintColor(currentNode.getColor(), Color.GRAY);
+					if(finalColor!=Color.BLACK) {
+						finalColor = boxColor;
+					}
+				} else {
+					boxColor = getPaintColor(currentNode.getColor(), Color.WHITE);
+					if(finalColor!=Color.BLACK) {
+						finalColor = boxColor;
+					}
+				}
+				
 			}
+			
+			box = generateVoxel(currentParameters, currentDeltas, finalColor);
 			voxels.add(box);
 			System.out.println("Root is leaf");
 		} else {
@@ -190,22 +261,32 @@ public class VolumeGenerator {
 					childNode.setBoxParameters(newParameters);
 					DeltaStruct displacementDirections = computeDeltaDirections(i);
 					childNode.setDisplacementDirection(displacementDirections);
+					//Box box = new Box();
 					Color boxColor = Color.GRAY;
-					IntersectionStatus status = testIntersection(childNode, 0);
-					Box box = new Box();
-					if (status == IntersectionStatus.INSIDE) {
-						boxColor = getPaintColor(childNode.getColor(), Color.BLACK);
-						box = generateVoxel(newParameters, displacementDirections, boxColor);
-					} else if (status == IntersectionStatus.PARTIAL) {
-						boxColor = getPaintColor(childNode.getColor(), Color.GRAY);
-						box = generateVoxel(newParameters, displacementDirections, boxColor);
-						List<Box> innerBoxes = generateTestedVolume(childNode, newParameters, displacementDirections);
-						voxels.addAll(innerBoxes);
-					} else {
-						boxColor = getPaintColor(childNode.getColor(), Color.WHITE);
-						box = generateVoxel(newParameters, displacementDirections, boxColor);
+					Color finalColor = Color.WHITE;
+					for(int i1=0;i1<this.transformedArrays.size();i1++) {
+						IntersectionStatus status = testIntersection(currentNode, i1);
+						if (status == IntersectionStatus.INSIDE) {
+							boxColor = Color.BLACK;//getPaintColor(currentNode.getColor(), Color.BLACK);
+							finalColor = boxColor;
+						} else if (status == IntersectionStatus.PARTIAL) {
+							boxColor = getPaintColor(currentNode.getColor(), Color.GRAY);
+							if(finalColor!=Color.BLACK) {
+								finalColor = boxColor;
+							}
+						} else {
+							boxColor = getPaintColor(currentNode.getColor(), Color.WHITE);
+							if(finalColor!=Color.BLACK) {
+								finalColor = boxColor;
+							}
+						}
+						
 					}
-					voxels.add(box);
+					
+					//box = generateVoxel(newParameters, displacementDirections, finalColor);
+					List<Box> innerBoxes = generateTestedVolume(childNode, newParameters, displacementDirections);
+					voxels.addAll(innerBoxes);
+					//voxels.add(box);
 				}
 			}
 		}
@@ -230,27 +311,40 @@ public class VolumeGenerator {
 	public IntersectionStatus testIntersection(Node node, int index) {
 		Rectangle boundingBox = getBoundingBox(node, 0);
 		IntersectionStatus status = IntersectionStatus.INSIDE;
-		int[][] transformedArray = transformedArrays.get(0);
+		int[][] transformedArray = transformedArrays.get(index);
 		int xVal = (int) boundingBox.getX();
 		int yVal = (int) (boundingBox.getY() + boundingBox.getHeight());
+		int arrayRows = transformedArray.length;
+		int arrayCols = transformedArray[0].length;
+		
 		if (xVal < 0) {
 			xVal = 0;
 		}
+		if (xVal >= arrayRows) {
+			xVal = arrayRows-1;
+		}
+		
 		if (yVal < 0) {
 			yVal = 0;
 		}
+		
+		if (yVal >= arrayCols) {
+			yVal = arrayCols-1;
+		}
+		
 		System.out.println("xVal = " + xVal + ", yVal = " + yVal);
+		
 		int transformedValue = transformedArray[xVal][yVal];
 
 		int determiningValue = (int) boundingBox.getWidth();
-		if (boundingBox.getHeight() < boundingBox.getWidth()) {
+		if (determiningValue < boundingBox.getHeight()) {
 			determiningValue = (int) boundingBox.getHeight();
 		}
 
 		System.out.println("transformedValue: " + transformedValue + ", projected box size: " + determiningValue);
 
 		if (transformedValue >= determiningValue) {
-			System.out.println("Projection is totally inside");
+			System.out.println("Projection is totally inside ====================================================================================");
 			status = IntersectionStatus.INSIDE;
 		} else if ((transformedValue < determiningValue) && (transformedValue > 0)) {
 			System.out.println("Projection is partially inside");
@@ -313,17 +407,16 @@ public class VolumeGenerator {
 	}
 
 	private Box generateVoxel(BoxParameters boxParameters, DeltaStruct deltas, Color nodeColor) {
-		int sceneWidth = 500; // calibrationImage.cols()/2;
-		int sceneHeight = 350; // calibrationImage.rows()/2;
-		int sceneDepth = 0;
-		int boxSize = 50; // boxParameters.getBoxSize()
+				
+		int sceneWidth = boxParameters.getCenterX();
+		int sceneHeight = boxParameters.getCenterY();
+		int sceneDepth = boxParameters.getCenterZ();
+		int boxSize = boxParameters.getBoxSize();
 
-		int scalingParameter = 1;
-		Box box = new Box(boxSize * scalingParameter, boxSize * scalingParameter, boxSize * scalingParameter);
-		scalingParameter = 1;
-		int posx = (sceneWidth + (deltas.deltaX * boxSize / 2)) * scalingParameter;
-		int posy = (sceneHeight + (deltas.deltaY * boxSize / 2)) * scalingParameter;
-		int posz = (sceneDepth + (deltas.deltaZ * boxSize / 2)) * scalingParameter;
+		Box box = new Box(boxSize, boxSize, boxSize);
+		int posx = sceneWidth + (deltas.deltaX * boxSize / 2);
+		int posy = sceneHeight + (deltas.deltaY * boxSize / 2);
+		int posz = sceneDepth + (deltas.deltaZ * boxSize / 2);
 
 		// System.out.println("center: [" + boxParameters.getCenterX() + ", " +
 		// boxParameters.getCenterY()
@@ -331,6 +424,8 @@ public class VolumeGenerator {
 		//
 		// System.out.println("deltas: [" + deltas.deltaX + ", " + deltas.deltaY
 		// + ", " + deltas.deltaZ+"]");
+		
+		System.out.println("posX = " + posx + ", posY = " + posy + ", posZ = " + posz + "| boxsize = " + boxSize);
 
 		box.setTranslateX(posx);
 		box.setTranslateY(posy);

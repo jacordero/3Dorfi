@@ -1009,8 +1009,8 @@ protected void extractSilhouettes(){
 			projectionTest.projectCubes();
 			rootGroup.setCenter(projectionTest.generateProjectionScene());			
 		} else {
-			int boxSize = 8;
-			int levels = 2;
+			int boxSize = 7;
+			int levels =3;
 			CameraPosition cameraPosition = new CameraPosition();
 			//cameraPositionX = 320;
 			//cameraPositionY = 240;
@@ -1022,8 +1022,8 @@ protected void extractSilhouettes(){
 //			Octree octree = new Octree(boxSize, appConfig.getVolumeBoxParameters());
 			BoxParameters volumeBoxParameters = new BoxParameters();		
 			volumeBoxParameters.setBoxSize(boxSize);
-			volumeBoxParameters.setCenterX(0);
-			volumeBoxParameters.setCenterY(0);
+			volumeBoxParameters.setCenterX(-1);
+			volumeBoxParameters.setCenterY(5);
 			volumeBoxParameters.setCenterZ(0);
 			Octree octree = new Octree(volumeBoxParameters, levels);
 			

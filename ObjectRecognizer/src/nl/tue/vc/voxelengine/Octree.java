@@ -60,7 +60,8 @@ public class Octree {
 		this.centerZ = boxParams.getCenterZ();
 		this.levels = levels;
 		this.node = new InternalNode(Color.BLACK, boxSize, this.centerX, this.centerY, this.centerZ, this.levels);
-		root = node;		
+		root = node;
+		//root = generateOctreeFractal(this.levels);
 		this.octreeVolume = new Group();
 		this.boxParameters = boxParams;
 	}

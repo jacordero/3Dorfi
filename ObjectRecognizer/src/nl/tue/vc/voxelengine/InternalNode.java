@@ -1,5 +1,8 @@
 package nl.tue.vc.voxelengine;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import javafx.scene.paint.Color;
 import nl.tue.vc.application.utils.Utils;
 import nl.tue.vc.projectiontests.InternalNodeTest;
@@ -33,6 +36,15 @@ public class InternalNode extends Node{
 			children = null;
 		} else {
 			double childrenBoxSize = boxSize / 2;
+			List<Color> childrenColors = new ArrayList<Color>();
+			childrenColors.add(Color.GREEN);
+			childrenColors.add(Color.RED);
+			childrenColors.add(Color.YELLOW);
+			childrenColors.add(Color.BROWN);
+			childrenColors.add(Color.ORANGE);
+			childrenColors.add(Color.CYAN);
+			childrenColors.add(Color.BLUE);
+			childrenColors.add(Color.MAGENTA);
 			for (int i = 0; i < children.length; i++){
 				DeltaStruct displacementDirections = computeDisplacementDirections(i);
 				double displacementSize = childrenBoxSize / 2;
@@ -48,9 +60,9 @@ public class InternalNode extends Node{
 				Utils.debugNewLine("Node center: [" + newParentCenterX + ", " + newParentCenterY + ", " + newParentCenterZ + "]",  true);
 				
 				if (levels > 0){
-					children[i] = new InternalNode(color, childrenBoxSize, newParentCenterX, newParentCenterY, newParentCenterZ, levels - 1);
+					children[i] = new InternalNode(childrenColors.get(i), childrenBoxSize, newParentCenterX, newParentCenterY, newParentCenterZ, levels - 1);
 				} else {
-					children[i] = new Leaf(color, childrenBoxSize, newParentCenterX, newParentCenterY, newParentCenterZ);
+					children[i] = new Leaf(childrenColors.get(i), childrenBoxSize, newParentCenterX, newParentCenterY, newParentCenterZ);
 				} 
 			}			
 		}
