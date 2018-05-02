@@ -189,4 +189,12 @@ public class Octree {
 		return root.toString();
 	}
 
+	public int getLevels() {
+		return levels;
+	}
+
+	public void setLevels(int levels) {
+		this.levels = levels;
+	}
+
 }

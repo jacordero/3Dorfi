@@ -90,6 +90,32 @@
                         <Insets bottom="5.0" left="10.0" top="5.0" />
                      </VBox.margin>
                   </HBox>
+                  <HBox layoutX="20.0" layoutY="50.0" prefHeight="30.0" prefWidth="200.0">
+                     <children>
+                        <Label text="Center X-coordinate:">
+                           <HBox.margin>
+                              <Insets left="10.0" right="5.0" />
+                           </HBox.margin>
+                        </Label>
+                        <Slider fx:id="centerAxisX" blockIncrement="1.0" max="50.0" min="-10.0" showTickMarks="true" value="-1.0" />
+                        <Label text="Center Y-coordinate:">
+                           <HBox.margin>
+                              <Insets left="10.0" right="5.0" />
+                           </HBox.margin>
+                        </Label>
+                        <Slider fx:id="centerAxisY" blockIncrement="1.0" max="50.0" min="-10.0" showTickMarks="true" value="2.0" />
+                        <Label text="Center Z-coordinate:">
+                           <HBox.margin>
+                              <Insets left="10.0" right="5.0" />
+                           </HBox.margin>
+                        </Label>
+                        <Slider fx:id="centerAxisZ" blockIncrement="1.0" max="50.0" min="-10.0" showTickMarks="true">
+                           <HBox.margin>
+                              <Insets />
+                           </HBox.margin>
+                        </Slider>
+                     </children>
+                  </HBox>
                </children>
             </VBox>
             <HBox prefHeight="50.0" prefWidth="200.0">
@@ -110,6 +136,31 @@
                         <Insets right="10.0" />
                      </HBox.margin></Label>
                   <Slider fx:id="fieldOfViewSlider" max="180.0" min="1.0" showTickMarks="true" value="50.0" />
+                  <Label layoutX="293.0" layoutY="10.0" text="Octree box size:">
+                     <HBox.margin>
+                        <Insets left="10.0" />
+                     </HBox.margin>
+                  </Label>
+                  <TextField fx:id="boxSizeField" maxWidth="50" text="7">
+                     <HBox.margin>
+                        <Insets left="10.0" />
+                     </HBox.margin>
+                  </TextField>
+                  <Label layoutX="468.0" layoutY="10.0" text="Octree levels:">
+                     <HBox.margin>
+                        <Insets left="10.0" />
+                     </HBox.margin>
+                  </Label>
+                  <TextField fx:id="levelsField" layoutX="493.0" layoutY="10.0" maxWidth="50" text="0">
+                     <HBox.margin>
+                        <Insets left="10.0" />
+                     </HBox.margin>
+                  </TextField>
+                  <Button fx:id="generateButton" alignment="center" onAction="#updateOctreeSettings" text="Generate">
+                     <HBox.margin>
+                        <Insets left="10.0" />
+                     </HBox.margin>
+                  </Button>
                </children>
                <VBox.margin>
                   <Insets left="20.0" />

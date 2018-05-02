@@ -30,6 +30,7 @@ import javafx.scene.shape.Rectangle;
 import nl.tue.vc.application.ApplicationConfiguration;
 import nl.tue.vc.application.utils.Utils;
 import nl.tue.vc.imgproc.CameraCalibrator;
+import nl.tue.vc.projection.BoundingBox;
 import nl.tue.vc.projection.IntersectionStatus;
 import nl.tue.vc.projection.ProjectionGenerator;
 import nl.tue.vc.projection.TransformMatrices;
@@ -43,7 +44,7 @@ public class VolumeGenerator {
 	private static final String CALIBRATION_IMAGE = "images/calibrationImage.png";
 	private Mat calibrationImage;
 	private List<Point> projectedPoints;
-	private List<Rectangle> boundingBoxes;
+	private List<BoundingBox> boundingBoxes;
 	private Octree octree;
 	private Group octreeVolume;
 	private List<int[][]> sourceArrays;
@@ -66,7 +67,7 @@ public class VolumeGenerator {
 		cameraCalibrator = new CameraCalibrator();
 		projectionGenerator = cameraCalibrator.calibrate(calibrationImage, true);
 		projectedPoints = new ArrayList<Point>();
-		boundingBoxes = new ArrayList<Rectangle>();
+		boundingBoxes = new ArrayList<BoundingBox>();
 	}
 
 	public VolumeGenerator(Octree octree, BoxParameters boxParameters, List<int[][]> sourceBinaryArrays,
@@ -84,7 +85,7 @@ public class VolumeGenerator {
 		cameraCalibrator = new CameraCalibrator();
 		projectionGenerator = cameraCalibrator.calibrate(calibrationImage, true);
 		projectedPoints = new ArrayList<Point>();
-		boundingBoxes = new ArrayList<Rectangle>();
+		boundingBoxes = new ArrayList<BoundingBox>();
 	}
 
 	public Group generateVolume() {
@@ -299,9 +300,9 @@ public class VolumeGenerator {
 		Rectangle imageRect = new Rectangle();
 		imageRect.setX(0);
 		imageRect.setY(0);
-		imageRect.setWidth(img.getWidth());
-		System.out.println("img width: " + img.getWidth() + ", height: " + img.getHeight());
-		imageRect.setHeight(img.getHeight());
+		imageRect.setWidth(calibrationImage.cols()/2);
+		imageRect.setHeight(calibrationImage.rows()/2);
+		System.out.println("img width: " + imageRect.getWidth() + ", height: " + imageRect.getHeight());
 		imageRect.setFill(new ImagePattern(img));
 		imageRect.setStroke(Color.BLACK);
 		root2D.getChildren().add(imageRect);
@@ -309,11 +310,12 @@ public class VolumeGenerator {
 	}
 
 	public IntersectionStatus testIntersection(Node node, int index) {
-		Rectangle boundingBox = getBoundingBox(node, 0);
+		BoundingBox boundingBox = getBoundingBox(node, 0);
+		Rectangle boundingRectangle = boundingBox.getUnScaledRectangle();
 		IntersectionStatus status = IntersectionStatus.INSIDE;
 		int[][] transformedArray = transformedArrays.get(index);
-		int xVal = (int) boundingBox.getX();
-		int yVal = (int) (boundingBox.getY() + boundingBox.getHeight());
+		int xVal = (int) boundingRectangle.getX();
+		int yVal = (int) (boundingRectangle.getY() + boundingRectangle.getHeight());
 		int arrayRows = transformedArray.length;
 		int arrayCols = transformedArray[0].length;
 		
@@ -336,9 +338,9 @@ public class VolumeGenerator {
 		
 		int transformedValue = transformedArray[xVal][yVal];
 
-		int determiningValue = (int) boundingBox.getWidth();
-		if (determiningValue < boundingBox.getHeight()) {
-			determiningValue = (int) boundingBox.getHeight();
+		int determiningValue = (int) boundingRectangle.getWidth();
+		if (determiningValue < boundingRectangle.getHeight()) {
+			determiningValue = (int) boundingRectangle.getHeight();
 		}
 
 		System.out.println("transformedValue: " + transformedValue + ", projected box size: " + determiningValue);
@@ -417,16 +419,7 @@ public class VolumeGenerator {
 		int posx = sceneWidth + (deltas.deltaX * boxSize / 2);
 		int posy = sceneHeight + (deltas.deltaY * boxSize / 2);
 		int posz = sceneDepth + (deltas.deltaZ * boxSize / 2);
-
-		// System.out.println("center: [" + boxParameters.getCenterX() + ", " +
-		// boxParameters.getCenterY()
-		// + ", " + boxParameters.getCenterZ()+"]");
-		//
-		// System.out.println("deltas: [" + deltas.deltaX + ", " + deltas.deltaY
-		// + ", " + deltas.deltaZ+"]");
 		
-		System.out.println("posX = " + posx + ", posY = " + posy + ", posZ = " + posz + "| boxsize = " + boxSize);
-
 		box.setTranslateX(posx);
 		box.setTranslateY(posy);
 		box.setTranslateZ(posz);
@@ -448,8 +441,8 @@ public class VolumeGenerator {
 			root2D.getChildren().add(circle);
 		}
 
-		for (Rectangle boundingBox : boundingBoxes) {
-			root2D.getChildren().add(boundingBox);
+		for (BoundingBox boundingBox : boundingBoxes) {
+			root2D.getChildren().add(boundingBox.getScaledRectangle());
 		}
 
 		SubScene subScene = new SubScene(root2D, calibrationImage.cols() / 2, calibrationImage.rows() / 2, true,
@@ -467,7 +460,7 @@ public class VolumeGenerator {
 
 	public void projectCubes() {
 		Node root = octree.getRoot();
-		iterateCubesAux(root, 2);
+		iterateCubesAux(root, octree.getLevels());
 	}
 
 	public void iterateCubesAux(Node node, int level) {
@@ -489,9 +482,8 @@ public class VolumeGenerator {
 			System.out.println(infoStr);
 		}
 
-		Rectangle boundingBox = computeBoundingBox(projections, calibrationImage.cols(), calibrationImage.rows(),
+		BoundingBox boundingBox = computeBoundingBox(projections, calibrationImage.cols(), calibrationImage.rows(),
 				level);
-		boundingBox.setStroke(Color.BLACK);
 
 		boundingBoxes.add(boundingBox);
 
@@ -509,7 +501,7 @@ public class VolumeGenerator {
 		}
 	}
 
-	private Rectangle computeBoundingBox(List<Point> projections, double screenWidth, double screenHeight, int level) {
+	private BoundingBox computeBoundingBox(List<Point> projections, double screenWidth, double screenHeight, int level) {
 		double leftMostPos = screenWidth;
 		double rightMostPos = 0;
 		double topMostPos = screenHeight;
@@ -538,22 +530,30 @@ public class VolumeGenerator {
 				}
 			}
 		}
-
+		
+		Rectangle unScaledRectangle = new Rectangle(leftMostPos, topMostPos, rightMostPos - leftMostPos,
+				bottomMostPos - topMostPos);
+		
 		leftMostPos = leftMostPos / 2;
 		rightMostPos = rightMostPos / 2;
 		topMostPos = topMostPos / 2;
 		bottomMostPos = bottomMostPos / 2;
 
-		Rectangle boundingBox = new Rectangle(leftMostPos, topMostPos, rightMostPos - leftMostPos,
+		Rectangle scaledRectangle = new Rectangle(leftMostPos, topMostPos, rightMostPos - leftMostPos,
 				bottomMostPos - topMostPos);
 		if (level == 1) {
-			boundingBox.setFill(Color.YELLOW);
+			scaledRectangle.setFill(Color.YELLOW);
 		} else if (level > 1) {
-			boundingBox.setFill(Color.BLUE);
+			scaledRectangle.setFill(Color.BLUE);
 		} else {
-			boundingBox.setFill(Color.CHARTREUSE);
+			scaledRectangle.setFill(Color.CHARTREUSE);
 		}
-		boundingBox.setStroke(Color.BLACK);
+		//scaledRectangle.setFill(Color.TRANSPARENT);
+		scaledRectangle.setStroke(Color.BLACK);
+		
+		BoundingBox boundingBox = new BoundingBox();
+		boundingBox.setScaledRectangle(scaledRectangle);
+		boundingBox.setUnScaledRectangle(unScaledRectangle);
 		return boundingBox;
 	}
 
@@ -578,7 +578,7 @@ public class VolumeGenerator {
 		projectionGenerator = cameraCalibrator.calibrate(calibrationImage, true);
 	}
 
-	public List<Rectangle> getBoundingBoxes() {
+	public List<BoundingBox> getBoundingBoxes() {
 		return boundingBoxes;
 	}
 
@@ -595,13 +595,13 @@ public class VolumeGenerator {
 			root2D.getChildren().add(circle);
 		}
 
-		for (Rectangle boundingBox : boundingBoxes) {
-			// Ellipse circle = new Ellipse(boundingBox.getX(),
-			// (boundingBox.getY()+boundingBox.getHeight()), 5, 5);
-			// circle.setFill(Color.YELLOW);
-			// root2D.getChildren().add(circle);
+		for (BoundingBox boundingBox : boundingBoxes) {
+//			 Ellipse circle = new Ellipse(boundingBox.getScaledRectangle().getX(),
+//			 (boundingBox.getScaledRectangle().getY()+boundingBox.getScaledRectangle().getHeight()), 5, 5);
+//			 circle.setFill(Color.YELLOW);
+//			 root2D.getChildren().add(circle);
 
-			root2D.getChildren().add(boundingBox);
+			root2D.getChildren().add(boundingBox.getScaledRectangle());
 		}
 		return root2D;
 	}
@@ -610,14 +610,13 @@ public class VolumeGenerator {
 
 	}
 
-	public Rectangle getBoundingBox(Node node, int level) {
+	public BoundingBox getBoundingBox(Node node, int level) {
 		MatOfPoint3f encodedCorners = node.getCorners();
 		MatOfPoint2f encodedProjections = projectionGenerator.projectPoints(encodedCorners);
 		List<Point> projections = encodedProjections.toList();
 
-		Rectangle boundingBox = computeBoundingBox(projections, calibrationImage.cols(), calibrationImage.rows(),
+		BoundingBox boundingBox = computeBoundingBox(projections, calibrationImage.cols(), calibrationImage.rows(),
 				level);
-		boundingBox.setStroke(Color.BLACK);
 		return boundingBox;
 	}
 

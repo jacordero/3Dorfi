@@ -158,6 +158,24 @@ public class ObjectRecognizerController {
 	@FXML
 	private Slider worldRotationYAngleSlider;
 	
+	@FXML
+	private TextField boxSizeField;
+	
+	@FXML
+	private TextField levelsField;
+
+	@FXML
+	private Slider centerAxisX;
+	
+	@FXML
+	private Slider centerAxisY;
+	
+	@FXML
+	private Slider centerAxisZ;
+	
+	@FXML
+	private Button generateButton;
+	
 	private int fieldOfView;
 	private TransformMatrices transformMatrices;
 	
@@ -245,6 +263,9 @@ public class ObjectRecognizerController {
 	private double sceneWidth;
 	private double sceneHeight;
 	private VolumeGenerator volumeGenerator;
+	private int levels;
+	private int boxSize;
+	private int centerX, centerY, centerZ;
 	
 	public ObjectRecognizerController() {
 		
@@ -260,6 +281,11 @@ public class ObjectRecognizerController {
 		calibrationTimerActive = false;
 		transformMatrices = new TransformMatrices(sceneWidth, sceneHeight, 32.3);
 		cameraCalibrator = new CameraCalibrator();
+		this.boxSize = 7;//Integer.parseInt(this.boxSizeField.getText());
+		this.levels = 0;//Integer.parseInt(this.levelsField.getText());
+		this.centerX = 5;
+		this.centerY = 2;
+		this.centerZ = 0;
 	}
 
 	@FXML
@@ -411,6 +437,31 @@ public class ObjectRecognizerController {
 				}
 			}
 		});
+		
+		centerAxisX.valueProperty().addListener((observable, oldValue, newValue) -> {
+			System.out.println("Center axis X changed (newValue: " +  newValue.intValue() + ")");
+			this.centerX = newValue.intValue();
+			this.renderModel();
+		});
+		
+		centerAxisY.valueProperty().addListener((observable, oldValue, newValue) -> {
+			System.out.println("Center axis Y changed (newValue: " +  newValue.intValue() + ")");
+			this.centerY = newValue.intValue();
+			this.renderModel();
+		});
+
+		centerAxisZ.valueProperty().addListener((observable, oldValue, newValue) -> {
+			System.out.println("Center axis Z changed (newValue: " +  newValue.intValue() + ")");
+			this.centerZ = newValue.intValue();
+			this.renderModel();
+		});
+		
+		generateButton.setOnKeyReleased((event) -> {
+			this.boxSize = Integer.parseInt(this.boxSizeField.getText());
+			this.levels = Integer.parseInt(this.levelsField.getText());
+			System.out.println("New Boxsize: " + this.boxSize + ", New levels value: " + this.levels); 
+			this.renderModel();
+		    });
 	}
 	
 	
@@ -544,7 +595,8 @@ protected void extractSilhouettes(){
 		segmentedImages.add(silhouetteExtractor.getSegmentedImage());
 		
 		try {
-			bufferedImagesForTest.add(IntersectionTest.Mat2BufferedImage(silhouetteExtractor.getBinaryImage()));
+			//bufferedImagesForTest.add(IntersectionTest.Mat2BufferedImage(silhouetteExtractor.getBinaryImage()));
+			bufferedImagesForTest.add(IntersectionTest.Mat2BufferedImage(silhouetteExtractor.getSegmentedImage()));
 		} catch (Exception e) {
 			// TODO Auto-generated catch block
 			System.out.println("Something went really wrong!!!");
@@ -641,6 +693,18 @@ protected void extractSilhouettes(){
 		for (int j = 0; j < numSquares; j++)
 			obj.push_back(new MatOfPoint3f(new Point3(j / this.numCornersHor, j % this.numCornersVer, 0.0f)));
 		//this.cameraButton.setDisable(false);
+	}
+	
+	/**
+	 * updates the boxsize and levels of the octree
+	 */
+	@FXML
+	protected void updateOctreeSettings()
+	{
+		this.boxSize = Integer.parseInt(this.boxSizeField.getText());
+		this.levels = Integer.parseInt(this.levelsField.getText());
+		System.out.println("New Boxsize: " + this.boxSize + ", New levels value: " + this.levels); 
+		this.renderModel();
 	}
 
 	/**
@@ -1009,8 +1073,8 @@ protected void extractSilhouettes(){
 			projectionTest.projectCubes();
 			rootGroup.setCenter(projectionTest.generateProjectionScene());			
 		} else {
-			int boxSize = 7;
-			int levels =3;
+			//int boxSize = 7;
+			//int levels =3;
 			CameraPosition cameraPosition = new CameraPosition();
 			//cameraPositionX = 320;
 			//cameraPositionY = 240;
@@ -1021,11 +1085,11 @@ protected void extractSilhouettes(){
 //			ApplicationConfiguration appConfig = ApplicationConfiguration.getInstance();
 //			Octree octree = new Octree(boxSize, appConfig.getVolumeBoxParameters());
 			BoxParameters volumeBoxParameters = new BoxParameters();		
-			volumeBoxParameters.setBoxSize(boxSize);
-			volumeBoxParameters.setCenterX(-1);
-			volumeBoxParameters.setCenterY(5);
-			volumeBoxParameters.setCenterZ(0);
-			Octree octree = new Octree(volumeBoxParameters, levels);
+			volumeBoxParameters.setBoxSize(this.boxSize);
+			volumeBoxParameters.setCenterX(this.centerX);
+			volumeBoxParameters.setCenterY(this.centerY);
+			volumeBoxParameters.setCenterZ(this.centerZ);
+			Octree octree = new Octree(volumeBoxParameters, this.levels);
 			
 			// try not create another volume renderer object to recompute the octree visualization
 			volumeRenderer = new VolumeRenderer(octree, this.sourceArrays, this.transformedArrays);
