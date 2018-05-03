@@ -208,8 +208,8 @@ public class ObjectRecognizerController {
 	private Mat intrinsic;
 	private Mat distCoeffs;
 	private boolean isCalibrated;
-	List<int[][]> sourceArrays = new ArrayList<int[][]>();
 	List<int[][]> transformedArrays = new ArrayList<int[][]>();
+	List<int[][]> transformedInvertedArrays = new ArrayList<int[][]>();
 	
 	//List<ImageView> imageViews = new ArrayList<>();
 
@@ -281,10 +281,10 @@ public class ObjectRecognizerController {
 		calibrationTimerActive = false;
 		transformMatrices = new TransformMatrices(sceneWidth, sceneHeight, 32.3);
 		cameraCalibrator = new CameraCalibrator();
-		this.boxSize = 7;//Integer.parseInt(this.boxSizeField.getText());
+		this.boxSize = 11;//Integer.parseInt(this.boxSizeField.getText());
 		this.levels = 0;//Integer.parseInt(this.levelsField.getText());
-		this.centerX = 5;
-		this.centerY = 2;
+		this.centerX = 4;
+		this.centerY = 1;
 		this.centerZ = 0;
 	}
 
@@ -1042,8 +1042,15 @@ protected void extractSilhouettes(){
 				//System.out.println("");
 			}
 			
-			sourceArrays.add(sourceArray);
-			//int[][] transformedArray = IntersectionTest.getTransformedArray(sourceArray);
+			int[][] invertedArray = IntersectionTest.getInvertedArray(sourceArray);
+			System.out.println("Inverted array rows = " + invertedArray.length + ", cols = " + invertedArray[0].length);
+			for (int x = 0; x < invertedArray.length; x++) {
+				for (int y = 0; y < invertedArray[x].length; y++) {
+					//System.out.print(sourceArray[x][y] + " ");
+				}
+				//System.out.println("");
+			}
+			
 			int[][] transformedArray = IntersectionTest.computeDistanceTransform(sourceArray);
 			System.out.println("transformedArray array rows = " + transformedArray.length + ", cols = " + transformedArray[0].length);
 			// print the contents of transformedArray
@@ -1053,7 +1060,19 @@ protected void extractSilhouettes(){
 				}
 				//System.out.println("");
 			}
+			
+			int[][] transformedInvertedArray = IntersectionTest.computeDistanceTransform(invertedArray);
+			System.out.println("transformedInvertedArray array rows = " + transformedInvertedArray.length + ", cols = " + transformedInvertedArray[0].length);
+			// print the contents of transformedComplementArray
+			for (int x = 0; x < transformedInvertedArray.length; x++) {
+				for (int y = 0; y < transformedInvertedArray[x].length; y++) {
+					//System.out.print(transformedInvertedArray[x][y] + " ");
+				}
+				//System.out.println("");
+			}
+			
 			transformedArrays.add(transformedArray);
+			transformedInvertedArrays.add(transformedInvertedArray);
 		}
 			
 	}
@@ -1092,12 +1111,12 @@ protected void extractSilhouettes(){
 			Octree octree = new Octree(volumeBoxParameters, this.levels);
 			
 			// try not create another volume renderer object to recompute the octree visualization
-			volumeRenderer = new VolumeRenderer(octree, this.sourceArrays, this.transformedArrays);
+			volumeRenderer = new VolumeRenderer(octree);
 			//instantiate the volume generator object
-			volumeGenerator = new VolumeGenerator(octree, volumeBoxParameters, this.sourceArrays, this.transformedArrays);
+			volumeGenerator = new VolumeGenerator(octree, volumeBoxParameters, this.transformedInvertedArrays, this.transformedArrays);
 			volumeGenerator.setBufferedImagesForTest(this.bufferedImagesForTest);
-			volumeGenerator.setSourceArrays(this.sourceArrays);
-			volumeGenerator.setTransformedArrays(this.transformedArrays);
+//			volumeGenerator.setTransformedInvertedArrays(this.transformedInvertedArrays);
+//			volumeGenerator.setTransformedArrays(this.transformedArrays);
 			volumeGenerator.setFieldOfView(this.fieldOfView);
 			volumeGenerator.setTransformMatrices(this.transformMatrices);
 			

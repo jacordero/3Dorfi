@@ -51,12 +51,12 @@ public class VolumeRenderer {
 		//volumeGenerator = new VolumeGenerator(octree, volumeBoxParameters);
 	}
 	
-	public VolumeRenderer(Octree octree, List<int[][]> sourceBinaryArrays,
-			List<int[][]> transformedBinaryArrays) {
-		this.octree = octree;
-		configVolumeScene();
-		//volumeGenerator = new VolumeGenerator(octree, volumeBoxParameters, sourceBinaryArrays, transformedBinaryArrays);
-	}
+//	public VolumeRenderer(Octree octree, List<int[][]> transformedBinaryArrays,
+//			List<int[][]> transformedBinaryArrays) {
+//		this.octree = octree;
+//		configVolumeScene();
+//		//volumeGenerator = new VolumeGenerator(octree, volumeBoxParameters, sourceBinaryArrays, transformedBinaryArrays);
+//	}
 	
 	private void configVolumeScene() {
 		ApplicationConfiguration appConfig = ApplicationConfiguration.getInstance();

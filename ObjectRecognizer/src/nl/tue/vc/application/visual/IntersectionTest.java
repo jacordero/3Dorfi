@@ -194,6 +194,22 @@ public class IntersectionTest {
 		}
 		return result;
 	}
+	/***
+	 * 
+	 * @param sourceArray
+	 * @return An array containing the opposite binary values
+	 */
+	public static int[][] getInvertedArray(int[][] sourceArray) {
+		int rowCount = sourceArray.length;
+		int colCount = sourceArray[0].length;
+		int[][] resultArray = new int[rowCount][colCount];
+		for (int x = 0; x < rowCount; x++) {
+			for (int y = 0; y < colCount; y++) {
+				resultArray[x][y] = 1 - sourceArray[x][y];
+			}
+		}
+		return resultArray;
+	}
 
 	public static BufferedImage Mat2BufferedImage(Mat matrix) throws Exception {
 		MatOfByte mob = new MatOfByte();
