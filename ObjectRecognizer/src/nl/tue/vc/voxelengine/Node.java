@@ -4,7 +4,6 @@ import org.opencv.core.MatOfPoint3f;
 import org.opencv.core.Point3;
 
 import javafx.scene.paint.Color;
-import nl.tue.vc.model.OctreeUtils;
 import nl.tue.vc.voxelengine.DeltaStruct;
 
 public abstract class Node {
@@ -51,7 +50,7 @@ public abstract class Node {
 		return boxSize;
 	}
 	
-	public void setBoxSize(double boxSize) {
+	public void setBoxSize(int boxSize) {
 		this.boxSize = boxSize;
 	}
 	
@@ -96,11 +95,6 @@ public abstract class Node {
 		return new MatOfPoint3f(corners);
 	}
 	
-	protected DeltaStruct computeDisplacementDirections(int index){
-		return OctreeUtils.computeDisplacementDirections(index);
-	}
-	
-	/**
 	protected DeltaStruct computeDisplacementDirections(int index) {
 		DeltaStruct deltas = new DeltaStruct();
 		switch (index) {
@@ -149,14 +143,12 @@ public abstract class Node {
 		}
 
 		return deltas;
-	}**/
+	}
+
 	
+	abstract public Node[] getChildren();
 	
-	public abstract void addChildren(Node[] children);
-	
-	public abstract Node[] getChildren();
-	
-	public abstract boolean isLeaf();
+	abstract public boolean isLeaf();
 	
 	
 	

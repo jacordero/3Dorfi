@@ -14,6 +14,8 @@ import org.opencv.core.MatOfByte;
 import org.opencv.imgcodecs.Imgcodecs;
 
 import javafx.scene.paint.Color;
+import nl.tue.vc.voxelengine.InternalNode;
+import nl.tue.vc.voxelengine.Node;
 import nl.tue.vc.voxelengine.Octree;
 
 public class IntersectionTest {
@@ -79,12 +81,12 @@ public class IntersectionTest {
 			System.out.println("");
 		}
 	}
-
+	
 	public static int[][] computeDistanceTransform(int[][] binaryArray) {
 		DistanceTransformGenerator dtg = new DistanceTransformGenerator(binaryArray);
 		return dtg.getDistanceTransform();
 	}
-	
+
 	public static int[][] getTransformedArray(int[][] binaryArray) {
 		int[][] transformedArray = new int[binaryArray.length][binaryArray[0].length];
 		// populate transformedArray
@@ -113,7 +115,6 @@ public class IntersectionTest {
 			System.out.println("***** Content of both transformations are equal ****");
 		} 
 	}
-	
 
 	public static int getSquareSize(int[][] binaryArray, int xValue, int yValue) {
 		int sum = 0;
@@ -188,11 +189,28 @@ public class IntersectionTest {
 		for (int x = 0; x < raster.getHeight(); x++) {
 			for (int y = 0; y < raster.getWidth(); y++) {
 				//System.out.println("pixel(" + x + ", " + y + ")" );
-				result[x][y] = (int)raster.getSampleDouble(y, x, 0);
+				int binaryValue = (int)raster.getSampleDouble(y, x, 0);
+				result[x][y] = (binaryValue == 0) ? 1 : 0;
 				//System.out.println("pixel(" + x + ", " + y + ") = " + raster.getSampleDouble(x, y, 0));
 			}
 		}
 		return result;
+	}
+	/***
+	 * 
+	 * @param sourceArray
+	 * @return An array containing the opposite binary values
+	 */
+	public static int[][] getInvertedArray(int[][] sourceArray) {
+		int rowCount = sourceArray.length;
+		int colCount = sourceArray[0].length;
+		int[][] resultArray = new int[rowCount][colCount];
+		for (int x = 0; x < rowCount; x++) {
+			for (int y = 0; y < colCount; y++) {
+				resultArray[x][y] = 1 - sourceArray[x][y];
+			}
+		}
+		return resultArray;
 	}
 
 	public static BufferedImage Mat2BufferedImage(Mat matrix) throws Exception {
@@ -206,6 +224,10 @@ public class IntersectionTest {
 
 	public static Octree testIntersection(Octree octree) {
 
+		Node internalNode = octree.getInernalNode();
+		if (internalNode instanceof InternalNode){
+			octree.getInernalNode().getChildren()[4].setColor(Color.GREEN);
+		}
 		octree.getInernalNode().getChildren()[4].setColor(Color.GREEN);
 		return octree;
 	}

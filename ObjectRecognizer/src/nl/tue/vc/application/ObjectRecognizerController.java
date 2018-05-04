@@ -50,10 +50,9 @@ import nl.tue.vc.imgproc.CameraCalibrator;
 import nl.tue.vc.imgproc.CameraController;
 import nl.tue.vc.imgproc.HistogramGenerator;
 import nl.tue.vc.imgproc.SilhouetteExtractor;
-import nl.tue.vc.projection.CameraProjectionTest;
+import nl.tue.vc.projection.test.OctreeProjectionTest;
 import nl.tue.vc.projection.ProjectionGenerator;
 import nl.tue.vc.projection.TransformMatrices;
-import nl.tue.vc.projection.test.OctreeProjectionTest;
 import nl.tue.vc.voxelengine.BoxParameters;
 import nl.tue.vc.voxelengine.CameraPosition;
 import nl.tue.vc.voxelengine.Octree;
@@ -158,6 +157,24 @@ public class ObjectRecognizerController {
 	@FXML
 	private Slider worldRotationYAngleSlider;
 	
+	@FXML
+	private TextField boxSizeField;
+	
+	@FXML
+	private TextField levelsField;
+
+	@FXML
+	private Slider centerAxisX;
+	
+	@FXML
+	private Slider centerAxisY;
+	
+	@FXML
+	private Slider centerAxisZ;
+	
+	@FXML
+	private Button generateButton;
+	
 	private int fieldOfView;
 	private TransformMatrices transformMatrices;
 	
@@ -190,8 +207,8 @@ public class ObjectRecognizerController {
 	private Mat intrinsic;
 	private Mat distCoeffs;
 	private boolean isCalibrated;
-	List<int[][]> sourceArrays = new ArrayList<int[][]>();
 	List<int[][]> transformedArrays = new ArrayList<int[][]>();
+	List<int[][]> transformedInvertedArrays = new ArrayList<int[][]>();
 	
 	//List<ImageView> imageViews = new ArrayList<>();
 
@@ -201,6 +218,7 @@ public class ObjectRecognizerController {
 	ObservableList<String> loadedImagesNames = FXCollections.observableArrayList();
 
 	List<Mat> segmentedImages = new ArrayList<>();
+	List<Mat> complementSegmentedImages = new ArrayList<>();
 	Map<String, Integer> processedImagesDescription = new HashMap<>();
 	ListView<String> processedImagesView = new ListView<>();
 	ObservableList<String> processedImagesNames = FXCollections.observableArrayList();
@@ -245,6 +263,9 @@ public class ObjectRecognizerController {
 	private double sceneWidth;
 	private double sceneHeight;
 	private VolumeGenerator volumeGenerator;
+	private int levels;
+	private int boxSize;
+	private int centerX, centerY, centerZ;
 	
 	public ObjectRecognizerController() {
 		
@@ -260,6 +281,11 @@ public class ObjectRecognizerController {
 		calibrationTimerActive = false;
 		transformMatrices = new TransformMatrices(sceneWidth, sceneHeight, 32.3);
 		cameraCalibrator = new CameraCalibrator();
+		this.boxSize = 11;//Integer.parseInt(this.boxSizeField.getText());
+		this.levels = 0;//Integer.parseInt(this.levelsField.getText());
+		this.centerX = 4;
+		this.centerY = 1;
+		this.centerZ = 0;
 	}
 
 	@FXML
@@ -411,6 +437,31 @@ public class ObjectRecognizerController {
 				}
 			}
 		});
+		
+		centerAxisX.valueProperty().addListener((observable, oldValue, newValue) -> {
+			System.out.println("Center axis X changed (newValue: " +  newValue.intValue() + ")");
+			this.centerX = newValue.intValue();
+			this.renderModel();
+		});
+		
+		centerAxisY.valueProperty().addListener((observable, oldValue, newValue) -> {
+			System.out.println("Center axis Y changed (newValue: " +  newValue.intValue() + ")");
+			this.centerY = newValue.intValue();
+			this.renderModel();
+		});
+
+		centerAxisZ.valueProperty().addListener((observable, oldValue, newValue) -> {
+			System.out.println("Center axis Z changed (newValue: " +  newValue.intValue() + ")");
+			this.centerZ = newValue.intValue();
+			this.renderModel();
+		});
+		
+		generateButton.setOnKeyReleased((event) -> {
+			this.boxSize = Integer.parseInt(this.boxSizeField.getText());
+			this.levels = Integer.parseInt(this.levelsField.getText());
+			System.out.println("New Boxsize: " + this.boxSize + ", New levels value: " + this.levels); 
+			this.renderModel();
+		    });
 	}
 	
 	
@@ -532,6 +583,7 @@ protected void extractSilhouettes(){
 
 	// First, clear the previous content. Then, load the new content
 	segmentedImages = new ArrayList<Mat>();
+	complementSegmentedImages = new ArrayList<Mat>();
 
 	processedImagesView = new ListView<String>();
 	List<Mat> processedImages = new ArrayList<Mat>();
@@ -544,7 +596,8 @@ protected void extractSilhouettes(){
 		segmentedImages.add(silhouetteExtractor.getSegmentedImage());
 		
 		try {
-			bufferedImagesForTest.add(IntersectionTest.Mat2BufferedImage(silhouetteExtractor.getBinaryImage()));
+			//bufferedImagesForTest.add(IntersectionTest.Mat2BufferedImage(silhouetteExtractor.getBinaryImage()));
+			bufferedImagesForTest.add(IntersectionTest.Mat2BufferedImage(silhouetteExtractor.getSegmentedImage()));
 		} catch (Exception e) {
 			// TODO Auto-generated catch block
 			System.out.println("Something went really wrong!!!");
@@ -558,6 +611,10 @@ protected void extractSilhouettes(){
 		// show the processed images during the segmentation process
 		if (debugSegmentation.isSelected()) {
 
+			processedImages.add(silhouetteExtractor.getComplementSegmentedImage());
+			processedImagesNames.add("comp_" + imgId);
+			processedImagesDescription.put("comp_" + imgId, processedImages.size() - 1);
+			
 			processedImages.add(silhouetteExtractor.getEqualizedImage());
 			processedImagesNames.add("eq_" + imgId);
 			processedImagesDescription.put("eq_" + imgId, processedImages.size() - 1);
@@ -641,6 +698,18 @@ protected void extractSilhouettes(){
 		for (int j = 0; j < numSquares; j++)
 			obj.push_back(new MatOfPoint3f(new Point3(j / this.numCornersHor, j % this.numCornersVer, 0.0f)));
 		//this.cameraButton.setDisable(false);
+	}
+	
+	/**
+	 * updates the boxsize and levels of the octree
+	 */
+	@FXML
+	protected void updateOctreeSettings()
+	{
+		this.boxSize = Integer.parseInt(this.boxSizeField.getText());
+		this.levels = Integer.parseInt(this.levelsField.getText());
+		System.out.println("New Boxsize: " + this.boxSize + ", New levels value: " + this.levels); 
+		this.renderModel();
 	}
 
 	/**
@@ -967,29 +1036,70 @@ protected void extractSilhouettes(){
 	@FXML
 	protected void constructModel() {
 		//System.out.println("height = " + this.processedExtractedImage.size().height + ", width = " + this.processedExtractedImage.size().width);
+		int xMinRange = 504;
+		int xMaxRange = 684;
+		int yMinRange = 625;
+		int yMaxRange = 863;
+		
 		for(BufferedImage convertedMat : this.bufferedImagesForTest) {	
 			//System.out.println("Converted mat width = " + convertedMat.getWidth() + ", height = " + convertedMat.getHeight());
 			int[][] sourceArray = IntersectionTest.getBinaryArray(convertedMat);
 			System.out.println("binary array rows = " + sourceArray.length + ", cols = " + sourceArray[0].length);
 			for (int x = 0; x < sourceArray.length; x++) {
 				for (int y = 0; y < sourceArray[x].length; y++) {
-					//System.out.print(sourceArray[x][y] + " ");
+					if (x >= xMinRange && x <= xMaxRange && y >= yMinRange && y <= yMaxRange){
+						System.out.print(sourceArray[x][y] + " ");					
+					}
 				}
-				//System.out.println("");
+				if (x >= xMinRange && x <= xMaxRange){
+					System.out.println("");					
+				}
 			}
 			
-			sourceArrays.add(sourceArray);
-			//int[][] transformedArray = IntersectionTest.getTransformedArray(sourceArray);
+			int[][] invertedArray = IntersectionTest.getInvertedArray(sourceArray);
+			System.out.println("Inverted array rows = " + invertedArray.length + ", cols = " + invertedArray[0].length);
+			for (int x = 0; x < invertedArray.length; x++) {
+				for (int y = 0; y < invertedArray[x].length; y++) {
+					if (x >= xMinRange && x <= xMaxRange && y >= yMinRange && y <= yMaxRange){
+						System.out.print(invertedArray[x][y] + " ");						
+					}
+				}
+				if (x >= xMinRange && x <= xMaxRange){
+					System.out.println("");					
+				}
+			}
+			
 			int[][] transformedArray = IntersectionTest.computeDistanceTransform(sourceArray);
 			System.out.println("transformedArray array rows = " + transformedArray.length + ", cols = " + transformedArray[0].length);
 			// print the contents of transformedArray
 			for (int x = 0; x < transformedArray.length; x++) {
 				for (int y = 0; y < transformedArray[x].length; y++) {
+					if (x >= xMinRange && x <= xMaxRange && y >= yMinRange && y <= yMaxRange){
+						System.out.print(transformedArray[x][y] + " ");					
+					}
 					//System.out.print(transformedArray[x][y] + " ");
 				}
-				//System.out.println("");
+				if (x >= xMinRange && x <= xMaxRange){
+					System.out.println("");					
+				}
 			}
+			
+			int[][] transformedInvertedArray = IntersectionTest.computeDistanceTransform(invertedArray);
+			System.out.println("transformedInvertedArray array rows = " + transformedInvertedArray.length + ", cols = " + transformedInvertedArray[0].length);
+			// print the contents of transformedComplementArray
+			for (int x = 0; x < transformedInvertedArray.length; x++) {
+				for (int y = 0; y < transformedInvertedArray[x].length; y++) {
+					if (x >= xMinRange && x <= xMaxRange && y >= yMinRange && y <= yMaxRange){
+						System.out.print(transformedInvertedArray[x][y] + " ");					
+					}
+				}
+				if (x >= xMinRange && x <= xMaxRange){
+					System.out.println("");					
+				}
+			}
+			
 			transformedArrays.add(transformedArray);
+			transformedInvertedArrays.add(transformedInvertedArray);
 		}
 			
 	}
@@ -1009,8 +1119,8 @@ protected void extractSilhouettes(){
 			projectionTest.projectCubes();
 			rootGroup.setCenter(projectionTest.generateProjectionScene());			
 		} else {
-			int boxSize = 8;
-			int levels = 2;
+			//int boxSize = 7;
+			//int levels =3;
 			CameraPosition cameraPosition = new CameraPosition();
 			//cameraPositionX = 320;
 			//cameraPositionY = 240;
@@ -1021,19 +1131,19 @@ protected void extractSilhouettes(){
 //			ApplicationConfiguration appConfig = ApplicationConfiguration.getInstance();
 //			Octree octree = new Octree(boxSize, appConfig.getVolumeBoxParameters());
 			BoxParameters volumeBoxParameters = new BoxParameters();		
-			volumeBoxParameters.setBoxSize(boxSize);
-			volumeBoxParameters.setCenterX(0);
-			volumeBoxParameters.setCenterY(0);
-			volumeBoxParameters.setCenterZ(0);
-			Octree octree = new Octree(volumeBoxParameters, levels);
+			volumeBoxParameters.setBoxSize(this.boxSize);
+			volumeBoxParameters.setCenterX(this.centerX);
+			volumeBoxParameters.setCenterY(this.centerY);
+			volumeBoxParameters.setCenterZ(this.centerZ);
+			Octree octree = new Octree(volumeBoxParameters, this.levels);
 			
 			// try not create another volume renderer object to recompute the octree visualization
-			volumeRenderer = new VolumeRenderer(octree, this.sourceArrays, this.transformedArrays);
+			volumeRenderer = new VolumeRenderer(octree);
 			//instantiate the volume generator object
-			volumeGenerator = new VolumeGenerator(octree, volumeBoxParameters, this.sourceArrays, this.transformedArrays);
+			volumeGenerator = new VolumeGenerator(octree, volumeBoxParameters, this.transformedInvertedArrays, this.transformedArrays);
 			volumeGenerator.setBufferedImagesForTest(this.bufferedImagesForTest);
-			volumeGenerator.setSourceArrays(this.sourceArrays);
-			volumeGenerator.setTransformedArrays(this.transformedArrays);
+//			volumeGenerator.setTransformedInvertedArrays(this.transformedInvertedArrays);
+//			volumeGenerator.setTransformedArrays(this.transformedArrays);
 			volumeGenerator.setFieldOfView(this.fieldOfView);
 			volumeGenerator.setTransformMatrices(this.transformMatrices);
 			

@@ -1,13 +1,35 @@
 package nl.tue.vc.voxelengine;
 
+import java.awt.image.BufferedImage;
+import java.io.File;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Random;
+
+import org.opencv.core.Mat;
+import javafx.embed.swing.SwingFXUtils;
+import javafx.geometry.Bounds;
+import javafx.geometry.Point2D;
+import javafx.geometry.Point3D;
 import javafx.scene.Group;
+import javafx.scene.image.Image;
 import javafx.scene.paint.Color;
-import nl.tue.vc.model.OctreeUtils;
+import javafx.scene.paint.ImagePattern;
+import javafx.scene.paint.PhongMaterial;
+import javafx.scene.shape.Box;
+import javafx.scene.shape.Ellipse;
+import javafx.scene.shape.Line;
+import javafx.scene.shape.Rectangle;
+import nl.tue.vc.application.ApplicationConfiguration;
+import nl.tue.vc.projection.IntersectionStatus;
+import nl.tue.vc.projection.TransformMatrices;
+import nl.tue.vc.projection.Vector3D;
+import nl.tue.vc.projection.VolumeModel;
 
 public class Octree {
 
 	private Node root;
-	private InternalNode node;
+	private Node node;
 	private BoxParameters boxParameters;
 	private Group octreeVolume;
 	private double boxSize;
@@ -31,29 +53,26 @@ public class Octree {
 	 *    
 	 */
 
-	public Octree(){
-		
-	}
-	
-	public Octree(BoxParameters boxParams, int levels) {
+	public Octree(BoxParameters boxParams, int octreeHeight) {
 		this.boxSize = boxParams.getBoxSize();
 		this.centerX = boxParams.getCenterX();
 		this.centerY = boxParams.getCenterY();
 		this.centerZ = boxParams.getCenterZ();
 		this.levels = levels;
-		this.node = new InternalNode(Color.BLACK, boxSize, this.centerX, this.centerY, this.centerZ, this.levels);
-		root = node;		
+		this.node = constructRootNode(Color.BLACK, boxSize, this.centerX, this.centerY, this.centerZ, this.levels);
+		root = node;
+		//root = generateOctreeFractal(this.levels);
 		this.octreeVolume = new Group();
 		this.boxParameters = boxParams;
 	}
 	
-	public Octree(double size, double centerValX, double centerValY, double centerValZ, int levels) {
+	public Octree(double size, double centerValX, double centerValY, double centerValZ, int octreeHeight) {
 		this.boxSize = size;
 		this.centerX = centerValX;
 		this.centerY = centerValY;
 		this.centerZ = centerValZ;
 		this.levels = levels;
-		this.node = new InternalNode(Color.BLACK, boxSize, centerX, centerY, centerZ, levels);
+		this.node = constructRootNode(Color.BLACK, boxSize, centerX, centerY, centerZ, levels);
 		root = node;		
 		this.octreeVolume = new Group();
 		this.boxParameters = new BoxParameters();
@@ -63,66 +82,19 @@ public class Octree {
 		this.boxParameters.setCenterZ((int)centerZ);
 	}
 
-	public void setRoot(Node root){
-		this.root = root;
+	private Node constructRootNode(Color nodeColor, double boxSize, double centerX, double centerY, double centerZ, int octreeHeight){
+		if (octreeHeight > 0){
+			return new InternalNode(nodeColor, boxSize, centerX, centerY, centerZ, octreeHeight);
+		} else {
+			return new Leaf(nodeColor, boxSize, centerX, centerY, centerZ);
+		}
+		// this.node = new InternalNode(Color.BLACK, boxSize, this.centerX, this.centerY, this.centerZ, this.levels);
+		// this.node = new InternalNode(Color.BLACK, boxSize, centerX, centerY, centerZ, levels);
 	}
 	
 	public Node getRoot() {
 		return root;
 	}
-	
-	public Octree createScaledOctreeCopy(double boxSize){
-		double centerX = boxSize / 2;
-		double centerY = boxSize / 2;
-		double centerZ = boxSize / 2;
-		Octree octreeCopy = new Octree();
-		Node rootCopy = createScaledNodeCopy(this.root, boxSize, centerX, centerY, centerZ);
-		octreeCopy.setRoot(rootCopy);
-		return octreeCopy;
-	}
-	
-	private Node createScaledNodeCopy(Node currentNode, double boxSize, double centerX, double centerY, double centerZ){
-		
-		Node copyNode;
-		if (currentNode.isLeaf()){
-		
-			copyNode = new Leaf();
-			copyNode.setColor(currentNode.getColor());
-			copyNode.setBoxSize(boxSize);
-			copyNode.setPositionCenterX(centerX);
-			copyNode.setPositionCenterY(centerY);
-			copyNode.setPositionCenterZ(centerZ);
-		
-		} else {
-			
-			copyNode = new InternalNode();
-			copyNode.setColor(currentNode.getColor());
-			copyNode.setBoxSize(boxSize);
-			copyNode.setPositionCenterX(centerX);
-			copyNode.setPositionCenterY(centerY);
-			copyNode.setPositionCenterZ(centerZ);
-			
-			Node[] children = new Node[8];
-			double childrenBoxSize = boxSize / 2;
-			for (int i = 0; i < currentNode.getChildren().length; i++){
-				Node childrenNode = currentNode.getChildren()[i];
-				DeltaStruct displacementDirections = OctreeUtils.computeDisplacementDirections(i);
-				double displacementSize = childrenBoxSize / 2;
-				
-				//compute center of each children
-				double childrenCenterX = centerX + (displacementDirections.deltaX * displacementSize);
-				double childrenCenterY = centerY + (displacementDirections.deltaY * displacementSize);
-				double childrenCenterZ = centerZ + (displacementDirections.deltaZ * displacementSize);
-				
-				children[i] = createScaledNodeCopy(childrenNode, childrenBoxSize, childrenCenterX, childrenCenterY, childrenCenterZ);
-			}
-			copyNode.addChildren(children);
-		}
-		return copyNode;
-	}
-	
-	
-	
 	
 	public Node generateOctreeFractal() {
 		System.out.println("========================== Levels: " + this.levels);
@@ -182,7 +154,7 @@ public class Octree {
 		node.getChildren()[1] = new Leaf(Color.RED, nodesBoxSize/2);
 
 		// create node 2
-		node.getChildren()[2] = new Leaf(Color.DARKGREEN, nodesBoxSize/2);
+		node.getChildren()[2] = new Leaf(Color.GREEN, nodesBoxSize/2);
 
 		// create node 3
 		node.getChildren()[3] = new Leaf(Color.YELLOW, nodesBoxSize/2);
@@ -191,18 +163,18 @@ public class Octree {
 		node.getChildren()[4] = new Leaf(Color.GRAY, nodesBoxSize/2);
 
 		// create node 5
-		node.getChildren()[5] = new Leaf(Color.WHITE, nodesBoxSize/2);
+		node.getChildren()[5] = new Leaf(Color.BROWN, nodesBoxSize/2);
 
 		// create node 6
-		node.getChildren()[6] = new Leaf(Color.DARKBLUE, nodesBoxSize/2);
+		node.getChildren()[6] = new Leaf(Color.CYAN, nodesBoxSize/2);
 
 		// create node 7
-		node.getChildren()[7] = new Leaf(Color.DARKVIOLET, nodesBoxSize/2);
+		node.getChildren()[7] = new Leaf(Color.ORANGE, nodesBoxSize/2);
 
 		return node;
 	}
 
-	public InternalNode getInernalNode() {
+	public Node getInernalNode() {
 		return this.node;
 	}
 
@@ -225,6 +197,14 @@ public class Octree {
 	@Override
 	public String toString(){
 		return root.toString();
+	}
+
+	public int getLevels() {
+		return levels;
+	}
+
+	public void setLevels(int levels) {
+		this.levels = levels;
 	}
 
 }

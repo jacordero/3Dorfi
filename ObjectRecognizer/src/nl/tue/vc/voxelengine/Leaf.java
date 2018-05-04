@@ -5,10 +5,6 @@ import javafx.scene.paint.Color;
 public class Leaf extends Node{
 
 	
-	public Leaf(){
-		
-	}
-	
 	
 	public Leaf(Color color, double boxSize, double centerX, double centerY, double centerZ) {
 		this.boxSize = boxSize;
@@ -45,11 +41,6 @@ public class Leaf extends Node{
 	@Override
 	public Node[] getChildren() {
 		return null;
-	}
-	
-	@Override
-	public void addChildren(Node[] children){
-		
 	}
 	
 	@Override
