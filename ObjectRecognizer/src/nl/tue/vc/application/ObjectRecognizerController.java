@@ -215,6 +215,7 @@ public class ObjectRecognizerController {
 	ObservableList<String> loadedImagesNames = FXCollections.observableArrayList();
 
 	List<Mat> segmentedImages = new ArrayList<>();
+	List<Mat> complementSegmentedImages = new ArrayList<>();
 	Map<String, Integer> processedImagesDescription = new HashMap<>();
 	ListView<String> processedImagesView = new ListView<>();
 	ObservableList<String> processedImagesNames = FXCollections.observableArrayList();
@@ -236,6 +237,7 @@ public class ObjectRecognizerController {
 	private BorderPane rootGroup;
 
 	private VolumeRenderer volumeRenderer;
+	private VolumeGenerator volumeGenerator;
 
 	private SilhouetteExtractor silhouetteExtractor;
 
@@ -254,9 +256,9 @@ public class ObjectRecognizerController {
 	private Image defaultVideoImage;
 
 	public static int SNAPSHOT_DELAY = 250;
+	public static final boolean TEST_PROJECTIONS = true;
 	private double sceneWidth;
 	private double sceneHeight;
-	private VolumeGenerator volumeGenerator;
 	private int levels;
 	private int boxSize;
 	private int centerX, centerY, centerZ;
@@ -275,11 +277,11 @@ public class ObjectRecognizerController {
 		calibrationTimerActive = false;
 		transformMatrices = new TransformMatrices(sceneWidth, sceneHeight, 32.3);
 		cameraCalibrator = new CameraCalibrator();
-		this.boxSize = 3;// 11;//Integer.parseInt(this.boxSizeField.getText());
+		this.boxSize = 11;// 11;//Integer.parseInt(this.boxSizeField.getText());
 		this.levels = 0;// Integer.parseInt(this.levelsField.getText());
 		this.centerX = 4;
 		this.centerY = 1;
-		this.centerZ = 5;// 0;
+		this.centerZ = 0;
 	}
 
 	@FXML
@@ -550,6 +552,7 @@ public class ObjectRecognizerController {
 
 		// First, clear the previous content. Then, load the new content
 		segmentedImages = new ArrayList<Mat>();
+		complementSegmentedImages = new ArrayList<Mat>();
 
 		processedImagesView = new ListView<String>();
 		List<Mat> processedImages = new ArrayList<Mat>();
@@ -576,6 +579,10 @@ public class ObjectRecognizerController {
 
 			// show the processed images during the segmentation process
 			if (debugSegmentation.isSelected()) {
+
+				processedImages.add(silhouetteExtractor.getSegmentedImage());
+				processedImagesNames.add("comp_" + imgId);
+				processedImagesDescription.put("comp_" + imgId, processedImages.size() - 1);
 
 				processedImages.add(silhouetteExtractor.getEqualizedImage());
 				processedImagesNames.add("eq_" + imgId);
@@ -962,47 +969,72 @@ public class ObjectRecognizerController {
 	protected void constructModel() {
 		// System.out.println("height = " + this.processedExtractedImage.size().height +
 		// ", width = " + this.processedExtractedImage.size().width);
+
+		// Original rectangle: [(545., 432.), (684., 432.), (545., 609.), (684., 609.)]
+
+		int xMinRange = 545;
+		int xMaxRange = 684;
+		int yMinRange = 432;
+		int yMaxRange = 609;
+
 		for (BufferedImage convertedMat : this.bufferedImagesForTest) {
 			// System.out.println("Converted mat width = " + convertedMat.getWidth() + ",
 			// height = " + convertedMat.getHeight());
 			int[][] sourceArray = IntersectionTest.getBinaryArray(convertedMat);
 			System.out.println("binary array rows = " + sourceArray.length + ", cols = " + sourceArray[0].length);
-			for (int x = 0; x < sourceArray.length; x++) {
-				for (int y = 0; y < sourceArray[x].length; y++) {
-					// System.out.print(sourceArray[x][y] + " ");
+			for (int y = 0; y < sourceArray.length; y++) {
+				for (int x = 0; x < sourceArray[y].length; x++) {
+					if (x >= xMinRange && x <= xMaxRange && y >= yMinRange && y <= yMaxRange) {
+						// System.out.print(sourceArray[y][x] + " ");
+					}
 				}
-				// System.out.println("");
+				if (y >= yMinRange && y <= yMaxRange) {
+					// System.out.println("");
+				}
 			}
 
 			int[][] invertedArray = IntersectionTest.getInvertedArray(sourceArray);
 			System.out.println("Inverted array rows = " + invertedArray.length + ", cols = " + invertedArray[0].length);
-			for (int x = 0; x < invertedArray.length; x++) {
-				for (int y = 0; y < invertedArray[x].length; y++) {
-					// System.out.print(sourceArray[x][y] + " ");
+			for (int y = 0; y < invertedArray.length; y++) {
+				for (int x = 0; x < invertedArray[y].length; x++) {
+					if (x >= xMinRange && x <= xMaxRange && y >= yMinRange && y <= yMaxRange) {
+						// System.out.print(invertedArray[y][x] + " ");
+					}
 				}
-				// System.out.println("");
+				if (y >= yMinRange && y <= yMaxRange) {
+					// System.out.println("");
+				}
 			}
 
 			int[][] transformedArray = IntersectionTest.computeDistanceTransform(sourceArray);
 			System.out.println("transformedArray array rows = " + transformedArray.length + ", cols = "
 					+ transformedArray[0].length);
 			// print the contents of transformedArray
-			for (int x = 0; x < transformedArray.length; x++) {
-				for (int y = 0; y < transformedArray[x].length; y++) {
+			for (int y = 0; y < transformedArray.length; y++) {
+				for (int x = 0; x < transformedArray[y].length; x++) {
+					if (x >= xMinRange && x <= xMaxRange && y >= yMinRange && y <= yMaxRange) {
+						// System.out.print(transformedArray[y][x] + " ");
+					}
 					// System.out.print(transformedArray[x][y] + " ");
 				}
-				// System.out.println("");
+				if (y >= yMinRange && y <= yMaxRange) {
+					// System.out.println("");
+				}
 			}
 
 			int[][] transformedInvertedArray = IntersectionTest.computeDistanceTransform(invertedArray);
 			System.out.println("transformedInvertedArray array rows = " + transformedInvertedArray.length + ", cols = "
 					+ transformedInvertedArray[0].length);
 			// print the contents of transformedComplementArray
-			for (int x = 0; x < transformedInvertedArray.length; x++) {
-				for (int y = 0; y < transformedInvertedArray[x].length; y++) {
-					// System.out.print(transformedInvertedArray[x][y] + " ");
+			for (int y = 0; y < transformedInvertedArray.length; y++) {
+				for (int x = 0; x < transformedInvertedArray[y].length; x++) {
+					if (x >= xMinRange && x <= xMaxRange && y >= yMinRange && y <= yMaxRange) {
+						// System.out.print(transformedInvertedArray[y][x] + " ");
+					}
 				}
-				// System.out.println("");
+				if (y >= yMinRange && y <= yMaxRange) {
+					// System.out.println("");
+				}
 			}
 
 			transformedArrays.add(transformedArray);
@@ -1026,6 +1058,7 @@ public class ObjectRecognizerController {
 		cameraPosition.positionAxisX = 0;
 		cameraPosition.positionAxisY = 0;
 		cameraPosition.positionAxisZ = 0;
+
 		BoxParameters volumeBoxParameters = new BoxParameters();
 		volumeBoxParameters.setBoxSize(this.boxSize);
 		volumeBoxParameters.setCenterX(this.centerX);
@@ -1040,11 +1073,11 @@ public class ObjectRecognizerController {
 		volumeGenerator = new VolumeGenerator(octree, volumeBoxParameters, this.transformedInvertedArrays,
 				this.transformedArrays);
 		volumeGenerator.setBufferedImagesForTest(this.bufferedImagesForTest);
+		volumeGenerator.setTransformedInvertedArrays(this.transformedInvertedArrays);
+		volumeGenerator.setTransformedArrays(this.transformedArrays);
 		volumeGenerator.setFieldOfView(this.fieldOfView);
 		volumeGenerator.setTransformMatrices(this.transformMatrices);
-
 		volumeRenderer.generateVolumeScene(volumeGenerator.generateVolume());
-
 		rootGroup.setCenter(volumeRenderer.getSubScene());
 	}
 

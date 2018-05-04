@@ -20,16 +20,7 @@ public class VolumeModel {
 		xLength = 8.0;
 		yLength = 8.0;
 		zLength = 8.0;
-		modelVertices = new Vector3D[] {
-//			new Vector3D(0, 0, 0, 1),
-//			new Vector3D(xLength, 0, 0, 1),
-//			new Vector3D(xLength, 0, zLength, 1),
-//			new Vector3D(0, 0, zLength, 1),
-//			new Vector3D(0, yLength, 0, 1),
-//			new Vector3D(xLength, yLength, 0, 1),
-//			new Vector3D(xLength, yLength, zLength, 1),
-//			new Vector3D(0, yLength, zLength, 1)
-			
+		modelVertices = new Vector3D[] {	
 			new Vector3D(centerX - halfSize, centerY + halfSize, centerZ + halfSize, 1),
 			new Vector3D(centerX + halfSize, centerY + halfSize, centerZ + halfSize, 1),
 			new Vector3D(centerX - halfSize, centerY - halfSize, centerZ + halfSize, 1),

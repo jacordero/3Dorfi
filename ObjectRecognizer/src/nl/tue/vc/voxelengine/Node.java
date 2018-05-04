@@ -146,11 +146,11 @@ public abstract class Node {
 	}
 
 	
-	abstract Node[] getChildren();
+	abstract public Node[] getChildren();
 	
-	abstract boolean isLeaf();
+	abstract public boolean isLeaf();
 	
-	abstract void setChildNode(Node childNode, int childIndex);
+	
 	
 	@Override
 	public String toString() {
