@@ -14,6 +14,8 @@ import org.opencv.core.MatOfByte;
 import org.opencv.imgcodecs.Imgcodecs;
 
 import javafx.scene.paint.Color;
+import nl.tue.vc.voxelengine.InternalNode;
+import nl.tue.vc.voxelengine.Node;
 import nl.tue.vc.voxelengine.Octree;
 
 public class IntersectionTest {
@@ -79,6 +81,11 @@ public class IntersectionTest {
 			System.out.println("");
 		}
 	}
+	
+	public static int[][] computeDistanceTransform(int[][] binaryArray) {
+		DistanceTransformGenerator dtg = new DistanceTransformGenerator(binaryArray);
+		return dtg.getDistanceTransform();
+	}
 
 	public static int[][] getTransformedArray(int[][] binaryArray) {
 		int[][] transformedArray = new int[binaryArray.length][binaryArray[0].length];
@@ -89,6 +96,24 @@ public class IntersectionTest {
 			}
 		}
 		return transformedArray;
+	}
+	
+	public static void compareDistanceTransformMethods(int[][] binaryArray){
+		int[][] firstTransform = getTransformedArray(binaryArray);
+		int[][] secondTransform = computeDistanceTransform(binaryArray);
+		
+		boolean equalContent = true;
+		for (int i = 0; i < binaryArray.length; i++){
+			for (int j = 0; j < binaryArray[0].length; j++){
+				if (firstTransform[i][j] != secondTransform[i][j]){
+					equalContent = false;
+					System.out.println("ft[" + i + "][" + j + "] = " + firstTransform[i][j] + ", st[" + i + "][" + j + "] = " + secondTransform[i][j]);
+				}
+			}
+		}
+		if (equalContent){
+			System.out.println("***** Content of both transformations are equal ****");
+		} 
 	}
 
 	public static int getSquareSize(int[][] binaryArray, int xValue, int yValue) {
@@ -157,16 +182,35 @@ public class IntersectionTest {
 	public static int[][] getBinaryArray(BufferedImage img_param) {
 		// to binary
 		Raster raster = IntersectionTest.binarizeImage(img_param).getData();
-		int[][] result = new int[raster.getWidth()][raster.getHeight()];
-		//System.out.println("raster height: " + img_param.getWidth() + " raster width: " + img_param.getHeight());
-		for (int x = 0; x < raster.getWidth(); x++) {
-			for (int y = 0; y < raster.getHeight(); y++) {
+		int[][] result = new int[raster.getHeight()][raster.getWidth()];
+//		System.out.println("raster width: " + img_param.getWidth() + " raster height: " + img_param.getHeight());
+//		System.out.println("result array rows = " + result.length + ", cols = " + result[0].length);
+//		System.out.println("raster minx, y = " + raster.getMinX() + ", " + raster.getMinY());
+		for (int x = 0; x < raster.getHeight(); x++) {
+			for (int y = 0; y < raster.getWidth(); y++) {
 				//System.out.println("pixel(" + x + ", " + y + ")" );
-				result[x][y] = (int)raster.getSampleDouble(x, y, 0);
+				int binaryValue = (int)raster.getSampleDouble(y, x, 0);
+				result[x][y] = (binaryValue == 0) ? 1 : 0;
 				//System.out.println("pixel(" + x + ", " + y + ") = " + raster.getSampleDouble(x, y, 0));
 			}
 		}
 		return result;
+	}
+	/***
+	 * 
+	 * @param sourceArray
+	 * @return An array containing the opposite binary values
+	 */
+	public static int[][] getInvertedArray(int[][] sourceArray) {
+		int rowCount = sourceArray.length;
+		int colCount = sourceArray[0].length;
+		int[][] resultArray = new int[rowCount][colCount];
+		for (int x = 0; x < rowCount; x++) {
+			for (int y = 0; y < colCount; y++) {
+				resultArray[x][y] = 1 - sourceArray[x][y];
+			}
+		}
+		return resultArray;
 	}
 
 	public static BufferedImage Mat2BufferedImage(Mat matrix) throws Exception {
@@ -180,6 +224,10 @@ public class IntersectionTest {
 
 	public static Octree testIntersection(Octree octree) {
 
+		Node internalNode = octree.getInernalNode();
+		if (internalNode instanceof InternalNode){
+			octree.getInernalNode().getChildren()[4].setColor(Color.GREEN);
+		}
 		octree.getInernalNode().getChildren()[4].setColor(Color.GREEN);
 		return octree;
 	}

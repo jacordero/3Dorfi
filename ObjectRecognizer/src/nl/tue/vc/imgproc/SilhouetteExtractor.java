@@ -1,10 +1,8 @@
 package nl.tue.vc.imgproc;
 
-import java.math.BigInteger;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
-import java.util.TreeSet;
 
 import org.opencv.core.Core;
 import org.opencv.core.CvType;
@@ -13,10 +11,13 @@ import org.opencv.core.Scalar;
 import org.opencv.imgproc.Imgproc;
 
 import nl.tue.vc.application.ApplicationConfiguration;
+import nl.tue.vc.application.utils.Utils;
 
 public class SilhouetteExtractor {
 
 	
+	private int deltaWidth;
+	private int deltaHeight;
 	private int leftLimit;
 	private int rightLimit;
 	private int topLimit;
@@ -40,21 +41,35 @@ public class SilhouetteExtractor {
 	private Mat equalizedImage;
 	
 	private Mat cleanedBinaryImage;
+		
+	private int imageWidth;
+	
+	private int imageHeight;
+
+	private boolean DEBUG_OPS;
 	
 	public SilhouetteExtractor() {
 		ApplicationConfiguration appConfig = ApplicationConfiguration.getInstance();
 		Map<String, Integer> silhouetteConfig = appConfig.getSilhouetteConfiguration();
-		leftLimit = silhouetteConfig.get("imageWidthFirstPixel");
-		rightLimit = silhouetteConfig.get("imageWidthLastPixel");
-		topLimit = silhouetteConfig.get("imageHeightFirstPixel");
-		lowerLimit = silhouetteConfig.get("imageHeightLastPixel");
+		
+//		leftLimit = silhouetteConfig.get("imageWidthFirstPixel");
+//		rightLimit = silhouetteConfig.get("imageWidthLastPixel");
+//		topLimit = silhouetteConfig.get("imageHeightFirstPixel");
+//		lowerLimit = silhouetteConfig.get("imageHeightLastPixel");
+		DEBUG_OPS = false;
 		binaryThreshold = silhouetteConfig.get("binaryThreshold");
 	}
 	
 	
 	public void extract(Mat image, String method) {
+		imageWidth = image.cols();
+		imageHeight = image.rows();
+		deltaWidth = imageWidth / 4;
+		deltaHeight = imageHeight / 4;
 		
-		System.out.println("Segmentation algorithm: " + method);
+		Utils.debugNewLine("Silhouette extration for image with dimensions: [" + imageWidth + ", " + imageHeight + "]", DEBUG_OPS);
+		Utils.debugNewLine("Segmentation algorithm: " + method, DEBUG_OPS);
+		
 
 		// first convert to grayscale
 		grayImage = new Mat();			
@@ -64,15 +79,10 @@ public class SilhouetteExtractor {
 			image.copyTo(grayImage);
 		}		
 		
-		System.out.println("Size of image: rows = " + grayImage.rows() + ", colums = " + grayImage.cols());
-		//grayImage.cols();
-		//grayImage.rows();
 		
 		// apply binarization process
 		
 		equalizedImage = equalization(grayImage);
-		
-		//cleanedImage = cleanImage(equalizedImage);
 		
 		binaryImage = new Mat(equalizedImage.rows(), equalizedImage.cols(), CvType.CV_32SC1);
 		
@@ -89,7 +99,7 @@ public class SilhouetteExtractor {
 		Mat kernel = Mat.ones(5, 5, CvType.CV_32S);
 		noiseFreeImage = new Mat();
 		Imgproc.morphologyEx(cleanedBinaryImage, noiseFreeImage, Imgproc.MORPH_OPEN, kernel);
-		
+				
 		if (method.equals("Binarization")) {
 			simpleBinarization();
 		} else if (method.equals("Watersheed")) {
@@ -102,9 +112,9 @@ public class SilhouetteExtractor {
 		//return binaryImage;
 		
 	}
-	
+		
 	private void simpleBinarization() {
-		System.out.println("Applying Binarization!!!");
+		Utils.debugNewLine("Applying Binarization!!!", DEBUG_OPS);			
 		segmentedImage = noiseFreeImage;
 		sureBackgroundImage = noiseFreeImage;
 		sureForegroundImage = noiseFreeImage;
@@ -112,7 +122,7 @@ public class SilhouetteExtractor {
 	}
 	
 	private void watersheed() {		
-		System.out.println("Applying Watersheed!");
+		Utils.debugNewLine("Applying Watersheed!", DEBUG_OPS);			
 		
 		Mat kernel = Mat.ones(5, 5, CvType.CV_32S);
 
@@ -197,7 +207,7 @@ public class SilhouetteExtractor {
 			}
 		}
 		
-		System.out.println("Minimum: " + minimum + ", Maximum: " + maximum);
+		Utils.debugNewLine("Equalization info: Minimum grayscale value = " + minimum + ", Maximum grayscale value= " + maximum, DEBUG_OPS);			
 		
 		for (int i = 0; i < grayImage.rows(); i++) {
 			for (int j = 0; j < grayImage.cols(); j++) {
@@ -223,10 +233,12 @@ public class SilhouetteExtractor {
 		//Imgproc.connectedComponents(cleaned, markers);
 		
 		Set<Integer> selectedMarks = new HashSet<>();
-		int firstColumn = 150;
-		int lastColumn = 250;
-		int firstRow = 100;
-		int lastRow = 190;
+		int firstColumn = (imageWidth / 2) - deltaWidth;
+		int lastColumn = (imageWidth / 2) + deltaWidth;
+		int firstRow = (imageHeight / 2) - deltaHeight;
+		int lastRow = (imageHeight / 2) + deltaHeight;
+		
+		Utils.debugNewLine("Selecting region [" + firstColumn + ":" + lastColumn + ", " + firstRow + ":" + lastRow + "]", DEBUG_OPS);
 		
 		int[] labelValue = new int[1];
 		for (int i = firstRow; i < lastRow; i++) {
@@ -235,11 +247,12 @@ public class SilhouetteExtractor {
 				selectedMarks.add(new Integer(labelValue[0]));
 			}
 		}
-				
-		for(Integer mark: selectedMarks) {
-			System.out.println("sm: " + mark.toString());
-		}
 		
+		if (DEBUG_OPS) {
+			for(Integer mark: selectedMarks) {
+				System.out.println("sm: " + mark.toString());
+			}			
+		}
 		
 		byte[] whitePixel = {(byte)-1};
 		byte[] value = new byte[1];
@@ -248,7 +261,8 @@ public class SilhouetteExtractor {
 			for (int j = 0; j < markers.cols(); j++) {
 				markers.get(i,  j, labelValue);
 				Integer label = new Integer(labelValue[0]);
-				System.out.print(String.format("%02d", label) + " ");
+				Utils.debugNewLine(String.format("%02d", label) + " ", DEBUG_OPS);					
+				
 				//markers.get(i, j, lvalue);
 				//System.out.print(lvalue[0]);
 				//System.out.print(" ");
@@ -261,7 +275,7 @@ public class SilhouetteExtractor {
 					cleaned.put(i, j, whitePixel);
 				}
 			}
-			System.out.println("");
+			Utils.debugNewLine("", DEBUG_OPS);
 		}
 		
 		return cleaned;
@@ -301,7 +315,7 @@ public class SilhouetteExtractor {
 			//System.out.println("");
 		}
 		
-		System.out.println("Minimum: " + minimum + ", Maximum: " + maximum);
+		Utils.debugNewLine("Equalized values: Minimum = " + minimum + ", Maximum = " + maximum, DEBUG_OPS);
 		
 		for (int i = 0; i < grayImage.rows(); i++) {
 			for (int j = 0; j < grayImage.cols(); j++) {
@@ -335,8 +349,8 @@ public class SilhouetteExtractor {
 				binarizedImage.get(row, col, binValue);
 				
 				// found a black value to label
-				System.out.print(binValue[0]);
-				System.out.print(" ");
+				Utils.debugNewLine(Byte.toString(binValue[0]), DEBUG_OPS);
+				Utils.debugNewLine(" ", DEBUG_OPS);
 				if (binValue[0] == 0) {
 					
 					int left = col - 1;
@@ -369,7 +383,7 @@ public class SilhouetteExtractor {
 					}
 				}
 			}
-			System.out.println("");
+			Utils.debugNewLine("", DEBUG_OPS);
 		}
 		
 		// second past
@@ -408,9 +422,7 @@ public class SilhouetteExtractor {
 			}
 		}
 		
-		
-		System.out.println("Number of labels = " + labelCounter);
-		
+		Utils.debugNewLine("Number of labels = " + labelCounter, DEBUG_OPS);
 		return labeledImage;
 	}
 	
@@ -485,4 +497,5 @@ public class SilhouetteExtractor {
 	public Mat getCleanedBinaryImage() {
 		return cleanedBinaryImage;
 	}
+	
 }

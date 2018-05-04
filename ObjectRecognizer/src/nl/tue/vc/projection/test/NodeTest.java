@@ -1,4 +1,4 @@
-package nl.tue.vc.voxelengine;
+package nl.tue.vc.projection.test;
 
 import org.opencv.core.MatOfPoint3f;
 import org.opencv.core.Point3;
@@ -6,7 +6,7 @@ import org.opencv.core.Point3;
 import javafx.scene.paint.Color;
 import nl.tue.vc.voxelengine.DeltaStruct;
 
-public abstract class Node {
+public abstract class NodeTest {
 
 	protected Color color;
 	
@@ -18,26 +18,6 @@ public abstract class Node {
 	
 	protected double positionCenterZ;
 	
-	protected BoxParameters boxParameters;
-	
-	DeltaStruct displacementDirection;
-	
-	public DeltaStruct getDisplacementDirection() {
-		return displacementDirection;
-	}
-
-	public void setDisplacementDirection(DeltaStruct displacementDirection) {
-		this.displacementDirection = displacementDirection;
-	}
-
-	public BoxParameters getBoxParameters() {
-		return boxParameters;
-	}
-
-	public void setBoxParameters(BoxParameters boxParameters) {
-		this.boxParameters = boxParameters;
-	}
-
 	public Color getColor() {
 		return color;
 	}
@@ -82,6 +62,7 @@ public abstract class Node {
 	public MatOfPoint3f getCorners(){
 		
 		double displacementSize = boxSize / 2;
+		DeltaStruct displacementDirection;
 		Point3[] corners = new Point3[8];
 		for (int i = 0; i < 8; i++){
 			displacementDirection = computeDisplacementDirections(i);
@@ -146,9 +127,9 @@ public abstract class Node {
 	}
 
 	
-	abstract public Node[] getChildren();
+	abstract NodeTest[] getChildren();
 	
-	abstract public boolean isLeaf();
+	abstract boolean isLeaf();
 	
 	
 	

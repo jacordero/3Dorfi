@@ -34,9 +34,9 @@ public class ObjectRecognizer extends Application {
 			// load the FXML resource
 			FXMLLoader loader = new FXMLLoader(getClass().getResource("ObjectRecognizer.fxml"));
 			ApplicationConfiguration appConfig = ApplicationConfiguration.getInstance();
-			VolumeRenderer volumeRenderer = new VolumeRenderer();
-			volumeRenderer.generateVolumeScene();
-			volumeScene = volumeRenderer.getSubScene();			
+			//VolumeRenderer volumeRenderer = new VolumeRenderer();
+			//volumeRenderer.generateVolumeScene();
+			//volumeScene = volumeRenderer.getSubScene();			
 			rootGroup = (BorderPane) loader.load();
 
 			// set a whitesmoke background
@@ -55,7 +55,7 @@ public class ObjectRecognizer extends Application {
 			ObjectRecognizerController controller = loader.getController();
 			controller.setStage(this.primaryStage);
 			controller.setRootGroup(rootGroup);
-			controller.setVolumeRenderer(volumeRenderer);
+			//controller.setVolumeRenderer(volumeRenderer);
 			controller.init();
 		} catch (Exception e) {
 			e.printStackTrace();

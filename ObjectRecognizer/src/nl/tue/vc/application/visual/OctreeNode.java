@@ -3,7 +3,6 @@ package nl.tue.vc.application.visual;
 import java.util.ArrayList;
 
 import javafx.scene.shape.Box;
-import javafx.scene.shape.Sphere;
 
 public class OctreeNode {
 	private final int currDepth; // the current depth of this node

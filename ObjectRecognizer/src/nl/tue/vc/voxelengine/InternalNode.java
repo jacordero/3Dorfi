@@ -1,6 +1,10 @@
 package nl.tue.vc.voxelengine;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import javafx.scene.paint.Color;
+import nl.tue.vc.application.utils.Utils;
 
 public class InternalNode extends Node{
 
@@ -10,23 +14,78 @@ public class InternalNode extends Node{
 	//private NodeColor[] colors = {NodeColor.BLACK, NodeColor.BLACK, NodeColor.BLACK, NodeColor.WHITE,
 	//		NodeColor.BLACK, NodeColor.BLACK, NodeColor.BLACK, NodeColor.WHITE};
 	
-	public InternalNode(Color color, int nodeBoxSize) {
+	public InternalNode(Color color, double boxSize, double parentCenterX, double parentCenterY, double parentCenterZ, int octreeHeight) {
 		this.color = color;
-		children = new Node[8];
-		boxSize = nodeBoxSize;
+		children = new Node[8];	
+		this.boxSize = boxSize;
+		
+		positionCenterX = parentCenterX;
+		positionCenterY = parentCenterY;
+		positionCenterZ = parentCenterZ;
+		
+		this.boxParameters = new BoxParameters();		
+		this.boxParameters.setBoxSize((int)boxSize);
+		this.boxParameters.setCenterX((int)parentCenterX);
+		this.boxParameters.setCenterY((int)parentCenterY);
+		this.boxParameters.setCenterZ((int)parentCenterZ);
+
+		if (octreeHeight < 0){
+			children = null;
+		} else {
+			double childrenBoxSize = boxSize / 2;
+			List<Color> childrenColors = new ArrayList<Color>();
+			childrenColors.add(Color.GREEN);
+			childrenColors.add(Color.RED);
+			childrenColors.add(Color.YELLOW);
+			childrenColors.add(Color.BROWN);
+			childrenColors.add(Color.ORANGE);
+			childrenColors.add(Color.CYAN);
+			childrenColors.add(Color.BLUE);
+			childrenColors.add(Color.MAGENTA);
+			for (int i = 0; i < children.length; i++){
+				DeltaStruct displacementDirections = computeDisplacementDirections(i);
+				double displacementSize = childrenBoxSize / 2;
+				
+				//compute center of each children
+				double newParentCenterX = parentCenterX + (displacementDirections.deltaX * displacementSize);
+				double newParentCenterY = parentCenterY + (displacementDirections.deltaY * displacementSize);
+				double newParentCenterZ = parentCenterZ + (displacementDirections.deltaZ * displacementSize);
+				
+				//positionCenterX = newParentCenter;
+				
+				Utils.debugNewLine("Parent center: [" + parentCenterX + ", " + parentCenterY + ", " + parentCenterZ + "]", true);
+				Utils.debugNewLine("Node center: [" + newParentCenterX + ", " + newParentCenterY + ", " + newParentCenterZ + "]",  true);
+				
+				if (octreeHeight > 0){
+					children[i] = new InternalNode(childrenColors.get(i), childrenBoxSize, newParentCenterX, newParentCenterY, newParentCenterZ, octreeHeight - 1);
+				} else {
+					children[i] = new Leaf(childrenColors.get(i), childrenBoxSize, newParentCenterX, newParentCenterY, newParentCenterZ);
+				} 
+			}			
+		}
+		
 		//initializeChildren();
 	}
 
-	/**
-	private void initializeChildren() {
-		for (int i = 0; i < children.length; i++) {
-			Leaf leaf = new Leaf(colors[i], boxSize/2);
-			children[i] = leaf;
-		}
-	}**/
+	public InternalNode(Color color, double boxSize) {
+		this.color = color;
+		children = new Node[8];	
+		this.boxSize = boxSize;
+		
+		positionCenterX = 0;
+		positionCenterY = 0;
+		positionCenterZ = 0;
+		
+		this.boxParameters = new BoxParameters();		
+		this.boxParameters.setBoxSize((int)boxSize);
+		this.boxParameters.setCenterX((int)positionCenterX);
+		this.boxParameters.setCenterY((int)positionCenterY);
+		this.boxParameters.setCenterZ((int)positionCenterZ);
+	}
+
 	
-	public void updateChildrenAt(Node child, int index) {
-		children[index] = child;
+	public void addChildren(Node[] children){
+		this.children = children;
 	}
 	
 	@Override
@@ -35,7 +94,7 @@ public class InternalNode extends Node{
 	}
 	
 	@Override
-	boolean isLeaf() {
+	public boolean isLeaf() {
 		return false;
 	}
 
@@ -43,8 +102,10 @@ public class InternalNode extends Node{
 	public String toString() {
 		StringBuilder builder = new StringBuilder();
 		builder.append("Internal node -> " + super.toString() + "\n");
-		for(int i = 0; i < children.length; i++) {
-			builder.append(children[i].toString() + "\n");
+		if (children != null){
+			for(int i = 0; i < children.length; i++) {
+				//builder.append(children[i].toString() + "\n");
+			}			
 		}
 		return builder.toString();
 	}
