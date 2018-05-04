@@ -105,6 +105,8 @@ public class VolumeGenerator {
 		 projectCubes();
 		 volume.getChildren().addAll(getProjectedVolume());
 		 
+		 root = getTestedNode(root);
+		 
 		 ApplicationConfiguration appConfig = ApplicationConfiguration.getInstance();
 		 int sceneWidth = 3*appConfig.getVolumeSceneWidth()/4;
 		 int sceneHeight = 3*appConfig.getVolumeSceneHeight()/4;
@@ -115,11 +117,11 @@ public class VolumeGenerator {
 		 volumeBoxParameters.setCenterY(sceneHeight);
 		 volumeBoxParameters.setCenterZ(sceneDepth);
 		 
-//		 List<Box> voxels = generateVolumeAux(root, volumeBoxParameters, deltas);
-//		 volume.getChildren().addAll(voxels);
+		 List<Box> voxels = generateVolumeAux(root, volumeBoxParameters, deltas);
+		 volume.getChildren().addAll(voxels);
 			
-		 List<Box> testedVoxels = generateTestedVolume(root, volumeBoxParameters, deltas);
-		 volume.getChildren().addAll(testedVoxels);
+//		 List<Box> testedVoxels = generateTestedVolume(root, volumeBoxParameters, deltas);
+//		 volume.getChildren().addAll(testedVoxels);
 
 		return volume;
 	}
@@ -161,52 +163,34 @@ public class VolumeGenerator {
 		return voxels;
 	}
 	
-	private Node getTestedNode(Node currentNode, BoxParameters currentParameters,DeltaStruct currentDeltas) {
-		Node testedNode = currentNode;
-		if (currentNode.isLeaf()) {
-			currentNode.setBoxParameters(currentParameters);
-			currentNode.setDisplacementDirection(currentDeltas);
-			Color boxColor = Color.GRAY;
-			IntersectionStatus status = testIntersection(currentNode, 0);
-			if (status == IntersectionStatus.INSIDE) {
-				boxColor = Color.BLACK;//getPaintColor(currentNode.getColor(), Color.BLACK);
-			} else if (status == IntersectionStatus.PARTIAL) {
-				boxColor = getPaintColor(currentNode.getColor(), Color.GRAY);
+	private Node getTestedNode(Node currentNode) {
+		System.out.println("#################### Intersection test for node: " + currentNode);
+		for(int j=0; j<this.bufferedImagesForTest.size();j++) {
+			System.out.println("########## Testing against image " + (j+1) + " ##########");
+			if (currentNode.isLeaf()) {
+				Color boxColor = Color.GRAY;
+				IntersectionStatus status = testIntersection(currentNode, j);
+				if (status == IntersectionStatus.INSIDE) {
+					boxColor = getPaintColor(currentNode.getColor(), Color.BLACK);
+				} else if (status == IntersectionStatus.PARTIAL) {
+					boxColor = getPaintColor(currentNode.getColor(), Color.GRAY);
+				} else {
+					boxColor = getPaintColor(currentNode.getColor(), Color.WHITE);
+					
+				}
+				currentNode.setColor(boxColor);
 			} else {
-				boxColor = getPaintColor(currentNode.getColor(), Color.WHITE);
-				
-			}
-			currentNode.setColor(boxColor);
-			testedNode = currentNode;
-		} else {
-			Node[] children = currentNode.getChildren();
-			int newBoxSize = currentParameters.getBoxSize() / 2;
-			BoxParameters newParameters = new BoxParameters();
-			newParameters.setBoxSize(newBoxSize);
-			newParameters.setCenterX(currentParameters.getCenterX() + (currentDeltas.deltaX * newBoxSize));
-			newParameters.setCenterY(currentParameters.getCenterY() + (currentDeltas.deltaY * newBoxSize));
-			newParameters.setCenterZ(currentParameters.getCenterZ() + (currentDeltas.deltaZ * newBoxSize));
-
-			for (int i = 0; i < children.length; i++) {
-				// compute deltaX, deltaY, and deltaZ for new voxels
-				Node childNode = children[i];
-				if (childNode != null) {
-					childNode.setBoxParameters(newParameters);
-					DeltaStruct displacementDirections = computeDeltaDirections(i);
-					childNode.setDisplacementDirection(displacementDirections);
-					Color boxColor = Color.GRAY;
-					IntersectionStatus status = testIntersection(childNode, 0);
-					if (status == IntersectionStatus.INSIDE) {
-						boxColor = getPaintColor(childNode.getColor(), Color.BLACK);
-					} else if (status == IntersectionStatus.PARTIAL) {
-						Node innerNode = getTestedNode(childNode, newParameters, displacementDirections);
-					} else {
-						boxColor = getPaintColor(childNode.getColor(), Color.WHITE);
+				Node[] children = currentNode.getChildren();
+				for (int i = 0; i < children.length; i++) {
+					Node childNode = children[i];
+					if (childNode != null) {
+						childNode = getTestedNode(childNode);
+						currentNode.setChildNode(childNode, i);
 					}
 				}
 			}
 		}
-		return testedNode;
+		return currentNode;
 	}
 
 	private List<Box> generateTestedVolume(Node currentNode, BoxParameters currentParameters,

@@ -91,6 +91,10 @@ public class InternalNode extends Node{
 		this.children = children;
 	}
 	
+	public void setChildNode(Node childNode, int childIndex){
+		this.children[childIndex] = childNode;
+	}
+	
 	@Override
 	public Node[] getChildren() {
 		return children;
