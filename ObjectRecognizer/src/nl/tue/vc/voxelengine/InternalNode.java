@@ -14,7 +14,7 @@ public class InternalNode extends Node{
 	//private NodeColor[] colors = {NodeColor.BLACK, NodeColor.BLACK, NodeColor.BLACK, NodeColor.WHITE,
 	//		NodeColor.BLACK, NodeColor.BLACK, NodeColor.BLACK, NodeColor.WHITE};
 	
-	public InternalNode(Color color, double boxSize, double parentCenterX, double parentCenterY, double parentCenterZ, int levels) {
+	public InternalNode(Color color, double boxSize, double parentCenterX, double parentCenterY, double parentCenterZ, int octreeHeight) {
 		this.color = color;
 		children = new Node[8];	
 		this.boxSize = boxSize;
@@ -29,7 +29,7 @@ public class InternalNode extends Node{
 		this.boxParameters.setCenterY((int)parentCenterY);
 		this.boxParameters.setCenterZ((int)parentCenterZ);
 
-		if (levels < 0){
+		if (octreeHeight < 0){
 			children = null;
 		} else {
 			double childrenBoxSize = boxSize / 2;
@@ -56,8 +56,8 @@ public class InternalNode extends Node{
 				Utils.debugNewLine("Parent center: [" + parentCenterX + ", " + parentCenterY + ", " + parentCenterZ + "]", true);
 				Utils.debugNewLine("Node center: [" + newParentCenterX + ", " + newParentCenterY + ", " + newParentCenterZ + "]",  true);
 				
-				if (levels > 0){
-					children[i] = new InternalNode(childrenColors.get(i), childrenBoxSize, newParentCenterX, newParentCenterY, newParentCenterZ, levels - 1);
+				if (octreeHeight > 0){
+					children[i] = new InternalNode(childrenColors.get(i), childrenBoxSize, newParentCenterX, newParentCenterY, newParentCenterZ, octreeHeight - 1);
 				} else {
 					children[i] = new Leaf(childrenColors.get(i), childrenBoxSize, newParentCenterX, newParentCenterY, newParentCenterZ);
 				} 
