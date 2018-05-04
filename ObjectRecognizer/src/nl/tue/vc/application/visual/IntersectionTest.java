@@ -14,8 +14,6 @@ import org.opencv.core.MatOfByte;
 import org.opencv.imgcodecs.Imgcodecs;
 
 import javafx.scene.paint.Color;
-import nl.tue.vc.voxelengine.InternalNode;
-import nl.tue.vc.voxelengine.Node;
 import nl.tue.vc.voxelengine.Octree;
 
 public class IntersectionTest {
@@ -224,10 +222,6 @@ public class IntersectionTest {
 
 	public static Octree testIntersection(Octree octree) {
 
-		Node internalNode = octree.getInernalNode();
-		if (internalNode instanceof InternalNode){
-			octree.getInernalNode().getChildren()[4].setColor(Color.GREEN);
-		}
 		octree.getInernalNode().getChildren()[4].setColor(Color.GREEN);
 		return octree;
 	}

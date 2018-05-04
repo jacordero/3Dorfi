@@ -1,30 +1,7 @@
 package nl.tue.vc.voxelengine;
 
-import java.awt.image.BufferedImage;
-import java.io.File;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Random;
-
-import org.opencv.core.Mat;
-import javafx.embed.swing.SwingFXUtils;
-import javafx.geometry.Bounds;
-import javafx.geometry.Point2D;
-import javafx.geometry.Point3D;
 import javafx.scene.Group;
-import javafx.scene.image.Image;
 import javafx.scene.paint.Color;
-import javafx.scene.paint.ImagePattern;
-import javafx.scene.paint.PhongMaterial;
-import javafx.scene.shape.Box;
-import javafx.scene.shape.Ellipse;
-import javafx.scene.shape.Line;
-import javafx.scene.shape.Rectangle;
-import nl.tue.vc.application.ApplicationConfiguration;
-import nl.tue.vc.projection.IntersectionStatus;
-import nl.tue.vc.projection.TransformMatrices;
-import nl.tue.vc.projection.Vector3D;
-import nl.tue.vc.projection.VolumeModel;
 
 public class Octree {
 
@@ -38,8 +15,6 @@ public class Octree {
 	private double centerZ;
 	private int levels;
 
-	private static boolean PRINT_INFO = false;
-	
 	/**
 	 *        +---------+-----------+
 	 *       +     2   +    3     + |
@@ -99,7 +74,6 @@ public class Octree {
 	}
 	
 	public Node generateOctreeFractal() {
-		
 		System.out.println("========================== Levels: " + this.levels);
 		root = generateOctreeFractalAux(this.levels);
 		return root;
@@ -196,7 +170,7 @@ public class Octree {
 	public void setOctreeVolume(Group octreeVolume) {
 		this.octreeVolume = octreeVolume;
 	}
-	
+
 	@Override
 	public String toString(){
 		return root.toString();
