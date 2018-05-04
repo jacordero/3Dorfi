@@ -146,9 +146,9 @@ public abstract class Node {
 	}
 
 	
-	abstract Node[] getChildren();
+	abstract public Node[] getChildren();
 	
-	abstract boolean isLeaf();
+	abstract public boolean isLeaf();
 	
 	
 	

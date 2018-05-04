@@ -29,7 +29,7 @@ import nl.tue.vc.projection.VolumeModel;
 public class Octree {
 
 	private Node root;
-	private InternalNode node;
+	private Node node;
 	private BoxParameters boxParameters;
 	private Group octreeVolume;
 	private double boxSize;
@@ -53,26 +53,26 @@ public class Octree {
 	 *    
 	 */
 
-	public Octree(BoxParameters boxParams, int levels) {
+	public Octree(BoxParameters boxParams, int octreeHeight) {
 		this.boxSize = boxParams.getBoxSize();
 		this.centerX = boxParams.getCenterX();
 		this.centerY = boxParams.getCenterY();
 		this.centerZ = boxParams.getCenterZ();
 		this.levels = levels;
-		this.node = new InternalNode(Color.BLACK, boxSize, this.centerX, this.centerY, this.centerZ, this.levels);
+		this.node = constructRootNode(Color.BLACK, boxSize, this.centerX, this.centerY, this.centerZ, this.levels);
 		root = node;
 		//root = generateOctreeFractal(this.levels);
 		this.octreeVolume = new Group();
 		this.boxParameters = boxParams;
 	}
 	
-	public Octree(double size, double centerValX, double centerValY, double centerValZ, int levels) {
+	public Octree(double size, double centerValX, double centerValY, double centerValZ, int octreeHeight) {
 		this.boxSize = size;
 		this.centerX = centerValX;
 		this.centerY = centerValY;
 		this.centerZ = centerValZ;
 		this.levels = levels;
-		this.node = new InternalNode(Color.BLACK, boxSize, centerX, centerY, centerZ, levels);
+		this.node = constructRootNode(Color.BLACK, boxSize, centerX, centerY, centerZ, levels);
 		root = node;		
 		this.octreeVolume = new Group();
 		this.boxParameters = new BoxParameters();
@@ -82,6 +82,16 @@ public class Octree {
 		this.boxParameters.setCenterZ((int)centerZ);
 	}
 
+	private Node constructRootNode(Color nodeColor, double boxSize, double centerX, double centerY, double centerZ, int octreeHeight){
+		if (octreeHeight > 0){
+			return new InternalNode(nodeColor, boxSize, centerX, centerY, centerZ, octreeHeight);
+		} else {
+			return new Leaf(nodeColor, boxSize, centerX, centerY, centerZ);
+		}
+		// this.node = new InternalNode(Color.BLACK, boxSize, this.centerX, this.centerY, this.centerZ, this.levels);
+		// this.node = new InternalNode(Color.BLACK, boxSize, centerX, centerY, centerZ, levels);
+	}
+	
 	public Node getRoot() {
 		return root;
 	}
@@ -164,7 +174,7 @@ public class Octree {
 		return node;
 	}
 
-	public InternalNode getInernalNode() {
+	public Node getInernalNode() {
 		return this.node;
 	}
 

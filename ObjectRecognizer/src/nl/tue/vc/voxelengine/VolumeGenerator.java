@@ -4,6 +4,8 @@ import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.text.DecimalFormat;
+import java.text.NumberFormat;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -30,12 +32,11 @@ import javafx.scene.shape.Rectangle;
 import nl.tue.vc.application.ApplicationConfiguration;
 import nl.tue.vc.application.utils.Utils;
 import nl.tue.vc.imgproc.CameraCalibrator;
+import nl.tue.vc.model.ProjectedPoint;
 import nl.tue.vc.projection.BoundingBox;
 import nl.tue.vc.projection.IntersectionStatus;
 import nl.tue.vc.projection.ProjectionGenerator;
 import nl.tue.vc.projection.TransformMatrices;
-import java.text.DecimalFormat;
-import java.text.NumberFormat;
 
 public class VolumeGenerator {
 
@@ -43,7 +44,7 @@ public class VolumeGenerator {
 	private ProjectionGenerator projectionGenerator;
 	private static final String CALIBRATION_IMAGE = "images/calibrationImage.png";
 	private Mat calibrationImage;
-	private List<Point> projectedPoints;
+	private List<ProjectedPoint> projectedPoints;
 	private List<BoundingBox> boundingBoxes;
 	private Octree octree;
 	private Group octreeVolume;
@@ -66,7 +67,7 @@ public class VolumeGenerator {
 		System.out.println(octree);
 		cameraCalibrator = new CameraCalibrator();
 		projectionGenerator = cameraCalibrator.calibrate(calibrationImage, true);
-		projectedPoints = new ArrayList<Point>();
+		projectedPoints = new ArrayList<ProjectedPoint>();
 		boundingBoxes = new ArrayList<BoundingBox>();
 	}
 
@@ -84,7 +85,7 @@ public class VolumeGenerator {
 		System.out.println(octree);
 		cameraCalibrator = new CameraCalibrator();
 		projectionGenerator = cameraCalibrator.calibrate(calibrationImage, true);
-		projectedPoints = new ArrayList<Point>();
+		projectedPoints = new ArrayList<ProjectedPoint>();
 		boundingBoxes = new ArrayList<BoundingBox>();
 	}
 
@@ -94,7 +95,11 @@ public class VolumeGenerator {
 		Node root = octree.getRoot();
 		BoxParameters boxParameters = octree.getBoxParameters();
 		DeltaStruct deltas = new DeltaStruct();
-		System.out.println("Children: " + root.getChildren().length);
+		if (octree.getInernalNode().isLeaf()){
+			System.out.println("Octree children: 1");
+		} else {
+			System.out.println("Octree children: " + root.getChildren().length);			
+		}
 
 //		List<Box> voxels = generateVolumeAux(root, boxParameters, deltas);
 //		volume.getChildren().addAll(voxels);
@@ -435,8 +440,9 @@ public class VolumeGenerator {
 
 		Group root2D = new Group();
 
-		for (Point projection : projectedPoints) {
-			Ellipse circle = new Ellipse(projection.x, projection.y, 5, 5);
+		for (ProjectedPoint projection : projectedPoints) {
+			System.out.println(projection);
+			Ellipse circle = new Ellipse(projection.getScaledX(), projection.getScaledY(), 5, 5);
 			circle.setFill(Color.RED);
 			root2D.getChildren().add(circle);
 		}
@@ -467,17 +473,18 @@ public class VolumeGenerator {
 		MatOfPoint3f encodedCorners = node.getCorners();
 		List<Point3> corners = encodedCorners.toList();
 		MatOfPoint2f encodedProjections = projectionGenerator.projectPoints(encodedCorners);
-		List<Point> projections = encodedProjections.toList();
+		
+		List<ProjectedPoint> projections = projectionsAsList(encodedProjections);
 		NumberFormat formatter = new DecimalFormat("#0.00");
 
 		System.out.println("\n************ Projecting parent ****************");
 		for (int i = 0; i < corners.size(); i++) {
 			Point3 corner = corners.get(i);
-			Point projection = projections.get(i);
+			ProjectedPoint projection = projections.get(i);
 			String infoStr = "BoxSize: " + node.getBoxSize();
 			infoStr += "\tCorner: [x: " + formatter.format(corner.x) + ", y: " + formatter.format(corner.y) + ", z: "
 					+ formatter.format(corner.z) + "]";
-			infoStr += "\tProjection: [x: " + formatter.format(projection.x) + ", y:" + formatter.format(projection.y)
+			infoStr += "\tProjection: [x: " + formatter.format(projection.getX()) + ", y:" + formatter.format(projection.getY())
 					+ "]";
 			System.out.println(infoStr);
 		}
@@ -487,11 +494,17 @@ public class VolumeGenerator {
 
 		boundingBoxes.add(boundingBox);
 
+		System.out.println(boundingBox);
+		
+		
 		// scale to fit the visualization canvas
+		/**
 		for (Point projection : projections) {
 			Point scaledProjection = new Point(projection.x / 2, projection.y / 2);
 			projectedPoints.add(scaledProjection);
 		}
+		**/
+		projectedPoints.addAll(projections);
 
 		if (!node.isLeaf()) {
 			System.out.println("\n********** Projecting children *************");
@@ -501,7 +514,7 @@ public class VolumeGenerator {
 		}
 	}
 
-	private BoundingBox computeBoundingBox(List<Point> projections, double screenWidth, double screenHeight, int level) {
+	private BoundingBox computeBoundingBox(List<ProjectedPoint> projections, double screenWidth, double screenHeight, int level) {
 		double leftMostPos = screenWidth;
 		double rightMostPos = 0;
 		double topMostPos = screenHeight;
@@ -509,24 +522,24 @@ public class VolumeGenerator {
 
 		boolean defaultValues = true;
 
-		for (Point projection : projections) {
+		for (ProjectedPoint projection : projections) {
 			if (defaultValues) {
-				leftMostPos = projection.x;
-				topMostPos = projection.y;
-				rightMostPos = projection.x;
-				bottomMostPos = projection.y;
+				leftMostPos = projection.getX();
+				topMostPos = projection.getY();
+				rightMostPos = projection.getX();
+				bottomMostPos = projection.getY();
 				defaultValues = false;
 			} else {
-				if (projection.x > rightMostPos) {
-					rightMostPos = projection.x;
-				} else if (projection.x < leftMostPos) {
-					leftMostPos = projection.x;
+				if (projection.getX() > rightMostPos) {
+					rightMostPos = projection.getX();
+				} else if (projection.getX() < leftMostPos) {
+					leftMostPos = projection.getX();
 				}
 
-				if (projection.y > bottomMostPos) {
-					bottomMostPos = projection.y;
-				} else if (projection.y < topMostPos) {
-					topMostPos = projection.y;
+				if (projection.getY() > bottomMostPos) {
+					bottomMostPos = projection.getY();
+				} else if (projection.getY() < topMostPos) {
+					topMostPos = projection.getY();
 				}
 			}
 		}
@@ -549,7 +562,8 @@ public class VolumeGenerator {
 			scaledRectangle.setFill(Color.CHARTREUSE);
 		}
 		//scaledRectangle.setFill(Color.TRANSPARENT);
-		scaledRectangle.setStroke(Color.BLACK);
+		scaledRectangle.setFill(Color.YELLOW);
+		//scaledRectangle.setStroke(Color.BLACK);
 		
 		BoundingBox boundingBox = new BoundingBox();
 		boundingBox.setScaledRectangle(scaledRectangle);
@@ -582,26 +596,36 @@ public class VolumeGenerator {
 		return boundingBoxes;
 	}
 
-	public List<Point> getProjections() {
+	public List<ProjectedPoint> getProjections() {
 		return projectedPoints;
 	}
 
 	public Group getProjectedVolume() {
 		Group root2D = new Group();
 
-		for (Point projection : projectedPoints) {
-			Ellipse circle = new Ellipse(projection.x, projection.y, 5, 5);
+		for (ProjectedPoint projection : projectedPoints) {
+			Ellipse circle = new Ellipse(projection.getScaledX(), projection.getScaledY(), 5, 5);
 			circle.setFill(Color.RED);
 			root2D.getChildren().add(circle);
 		}
 
+		
+		System.out.println("Bounding boxes length: " + boundingBoxes.size());
 		for (BoundingBox boundingBox : boundingBoxes) {
 //			 Ellipse circle = new Ellipse(boundingBox.getScaledRectangle().getX(),
 //			 (boundingBox.getScaledRectangle().getY()+boundingBox.getScaledRectangle().getHeight()), 5, 5);
 //			 circle.setFill(Color.YELLOW);
 //			 root2D.getChildren().add(circle);
 
+			
+			System.out.println(boundingBox.getScaledRectangle().getFill());
+			System.out.println(boundingBox.getScaledRectangle().getX());
+			System.out.println(boundingBox.getScaledRectangle().getY());
+			System.out.println(boundingBox.getScaledRectangle().getWidth());
+			System.out.println(boundingBox.getScaledRectangle().getHeight());
+			
 			root2D.getChildren().add(boundingBox.getScaledRectangle());
+			
 		}
 		return root2D;
 	}
@@ -613,13 +637,22 @@ public class VolumeGenerator {
 	public BoundingBox getBoundingBox(Node node, int level) {
 		MatOfPoint3f encodedCorners = node.getCorners();
 		MatOfPoint2f encodedProjections = projectionGenerator.projectPoints(encodedCorners);
-		List<Point> projections = encodedProjections.toList();
+		List<ProjectedPoint> projections = projectionsAsList(encodedProjections);
 
 		BoundingBox boundingBox = computeBoundingBox(projections, calibrationImage.cols(), calibrationImage.rows(),
 				level);
 		return boundingBox;
 	}
 
+	private List<ProjectedPoint> projectionsAsList(MatOfPoint2f encodedProjections){
+		List<ProjectedPoint> projections = new ArrayList<ProjectedPoint>();
+		for (Point point: encodedProjections.toList()){
+			// TODO: change this way of assigning the scale factor
+			projections.add(new ProjectedPoint(point.x, point.y, 2.0));
+		}
+		return projections;
+	}
+	
 	public Color getPaintColor(Color currentColor, Color newColor) {
 		Color result = Color.GRAY;
 		if (currentColor == Color.GRAY) {
