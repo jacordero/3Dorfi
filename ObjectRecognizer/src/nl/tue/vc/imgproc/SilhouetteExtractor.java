@@ -41,7 +41,7 @@ public class SilhouetteExtractor {
 	private Mat equalizedImage;
 	
 	private Mat cleanedBinaryImage;
-	
+		
 	private int imageWidth;
 	
 	private int imageHeight;
@@ -99,7 +99,7 @@ public class SilhouetteExtractor {
 		Mat kernel = Mat.ones(5, 5, CvType.CV_32S);
 		noiseFreeImage = new Mat();
 		Imgproc.morphologyEx(cleanedBinaryImage, noiseFreeImage, Imgproc.MORPH_OPEN, kernel);
-		
+				
 		if (method.equals("Binarization")) {
 			simpleBinarization();
 		} else if (method.equals("Watersheed")) {
@@ -112,7 +112,7 @@ public class SilhouetteExtractor {
 		//return binaryImage;
 		
 	}
-	
+		
 	private void simpleBinarization() {
 		Utils.debugNewLine("Applying Binarization!!!", DEBUG_OPS);			
 		segmentedImage = noiseFreeImage;
@@ -497,4 +497,5 @@ public class SilhouetteExtractor {
 	public Mat getCleanedBinaryImage() {
 		return cleanedBinaryImage;
 	}
+	
 }

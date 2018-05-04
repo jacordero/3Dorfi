@@ -38,6 +38,8 @@ public class Octree {
 	private double centerZ;
 	private int levels;
 
+	private static boolean PRINT_INFO = false;
+	
 	/**
 	 *        +---------+-----------+
 	 *       +     2   +    3     + |
@@ -97,6 +99,7 @@ public class Octree {
 	}
 	
 	public Node generateOctreeFractal() {
+		
 		System.out.println("========================== Levels: " + this.levels);
 		root = generateOctreeFractalAux(this.levels);
 		return root;
