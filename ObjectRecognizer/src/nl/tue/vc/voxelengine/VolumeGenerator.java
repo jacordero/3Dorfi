@@ -322,8 +322,8 @@ public class VolumeGenerator {
 		int[][] transformedInvertedArray = transformedInvertedArrays.get(index);
 		int xVal = (int) boundingRectangle.getX();
 		int yVal = (int) (boundingRectangle.getY() + boundingRectangle.getHeight());
-		int arrayRows = transformedArray.length;
-		int arrayCols = transformedArray[0].length;
+		int arrayCols = transformedArray.length;
+		int arrayRows = transformedArray[0].length;
 		
 		// TODO: check this values
 		if (xVal < 0) {
@@ -343,8 +343,8 @@ public class VolumeGenerator {
 		
 		System.out.println("xVal = " + xVal + ", yVal = " + yVal);
 		
-		int transformedValue = transformedArray[xVal][yVal];
-		int transformedInvertedValue = transformedInvertedArray[xVal][yVal];
+		int transformedValue = transformedArray[yVal][xVal];
+		int transformedInvertedValue = transformedInvertedArray[yVal][xVal];
 
 		int determiningValue = (int) boundingRectangle.getWidth();
 		if (determiningValue < boundingRectangle.getHeight()) {
@@ -360,6 +360,9 @@ public class VolumeGenerator {
 		} else if (determiningValue <= transformedInvertedValue) {
 			System.out.println("Projection is totally outside oooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooo");
 			status = IntersectionStatus.OUTSIDE;
+		} else if (checkForOutsideInCorners(determiningValue, transformedValue, transformedInvertedValue, xVal, yVal, arrayCols)){
+			System.out.println("Projection out of bounds but totally outside oooooooooooooooooooooooooooooooooo");
+			status = IntersectionStatus.OUTSIDE;
 		} else {
 			System.out.println("Projection is partially inside ====================================================================================");
 			status = IntersectionStatus.PARTIAL;
@@ -367,6 +370,20 @@ public class VolumeGenerator {
 		return status;
 	}
 
+	public boolean checkForOutsideInCorners(int boundingSize, int transformedSquareSize, int invertedSquareSize, int xPos, int yPos, int width){
+		boolean result = false;
+
+		// check for the top boundary
+		if ((boundingSize > yPos) && (invertedSquareSize > 0) && (boundingSize > invertedSquareSize)){
+			result = true;
+		} else if ((boundingSize > (width - xPos)) && (invertedSquareSize > 0) && (boundingSize > invertedSquareSize)){
+			// check for the right boundary
+			result = true;
+		}		
+		return result;
+	}
+	
+	
 	private DeltaStruct computeDeltaDirections(int index) {
 		DeltaStruct deltas = new DeltaStruct();
 		switch (index) {
@@ -442,6 +459,8 @@ public class VolumeGenerator {
 
 	public SubScene generateProjectionScene() {
 
+		System.out.println("\nGenerateProjectionScene is called\n");
+		
 		Group root2D = new Group();
 
 		for (ProjectedPoint projection : projectedPoints) {
@@ -454,6 +473,31 @@ public class VolumeGenerator {
 		for (BoundingBox boundingBox : boundingBoxes) {
 			root2D.getChildren().add(boundingBox.getScaledRectangle());
 		}
+		
+		// Hardcoded corners
+		/**
+		int xMinRange = 545;
+		int xMaxRange = 684;
+		int yMinRange = 432;
+		int yMaxRange = 609;
+		
+		Ellipse corner1 = new Ellipse(xMinRange/2, yMinRange/2, 5, 5);
+		corner1.setFill(Color.BLUE);
+		root2D.getChildren().add(corner1);
+		
+		Ellipse corner2 = new Ellipse(xMaxRange/2, yMinRange/2, 5, 5);
+		corner2.setFill(Color.BLUE);
+		root2D.getChildren().add(corner2);
+		
+		Ellipse corner3 = new Ellipse(xMinRange/2, yMaxRange/2, 5, 5);
+		corner3.setFill(Color.BLUE);
+		root2D.getChildren().add(corner3);
+		
+		Ellipse corner4 = new Ellipse(xMaxRange/2, yMaxRange/2, 5, 5);
+		corner4.setFill(Color.BLUE);
+		root2D.getChildren().add(corner4);
+		**/
+
 
 		SubScene subScene = new SubScene(root2D, calibrationImage.cols() / 2, calibrationImage.rows() / 2, true,
 				SceneAntialiasing.BALANCED);
@@ -613,6 +657,30 @@ public class VolumeGenerator {
 			root2D.getChildren().add(circle);
 		}
 
+		
+		// Hardcoded corners
+		/**
+		int xMinRange = 545;
+		int xMaxRange = 684;
+		int yMinRange = 432;
+		int yMaxRange = 609;
+		
+		Ellipse corner1 = new Ellipse(xMinRange/2, yMinRange/2, 5, 5);
+		corner1.setFill(Color.BLUE);
+		root2D.getChildren().add(corner1);
+		
+		Ellipse corner2 = new Ellipse(xMaxRange/2, yMinRange/2, 5, 5);
+		corner2.setFill(Color.BLUE);
+		root2D.getChildren().add(corner2);
+		
+		Ellipse corner3 = new Ellipse(xMinRange/2, yMaxRange/2, 5, 5);
+		corner3.setFill(Color.BLUE);
+		root2D.getChildren().add(corner3);
+		
+		Ellipse corner4 = new Ellipse(xMaxRange/2, yMaxRange/2, 5, 5);
+		corner4.setFill(Color.BLUE);
+		root2D.getChildren().add(corner4);
+		**/
 		
 		System.out.println("Bounding boxes length: " + boundingBoxes.size());
 		for (BoundingBox boundingBox : boundingBoxes) {

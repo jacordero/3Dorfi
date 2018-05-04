@@ -281,7 +281,7 @@ public class ObjectRecognizerController {
 		calibrationTimerActive = false;
 		transformMatrices = new TransformMatrices(sceneWidth, sceneHeight, 32.3);
 		cameraCalibrator = new CameraCalibrator();
-		this.boxSize = 11;//Integer.parseInt(this.boxSizeField.getText());
+		this.boxSize = 11;//11;//Integer.parseInt(this.boxSizeField.getText());
 		this.levels = 0;//Integer.parseInt(this.levelsField.getText());
 		this.centerX = 4;
 		this.centerY = 1;
@@ -1036,35 +1036,38 @@ protected void extractSilhouettes(){
 	@FXML
 	protected void constructModel() {
 		//System.out.println("height = " + this.processedExtractedImage.size().height + ", width = " + this.processedExtractedImage.size().width);
-		int xMinRange = 504;
+		
+		//Original rectangle: [(545., 432.), (684., 432.), (545., 609.), (684., 609.)]
+
+		int xMinRange = 545;
 		int xMaxRange = 684;
-		int yMinRange = 625;
-		int yMaxRange = 863;
+		int yMinRange = 432;
+		int yMaxRange = 609;
 		
 		for(BufferedImage convertedMat : this.bufferedImagesForTest) {	
 			//System.out.println("Converted mat width = " + convertedMat.getWidth() + ", height = " + convertedMat.getHeight());
 			int[][] sourceArray = IntersectionTest.getBinaryArray(convertedMat);
 			System.out.println("binary array rows = " + sourceArray.length + ", cols = " + sourceArray[0].length);
-			for (int x = 0; x < sourceArray.length; x++) {
-				for (int y = 0; y < sourceArray[x].length; y++) {
+			for (int y = 0; y < sourceArray.length; y++) {
+				for (int x = 0; x < sourceArray[y].length; x++) {
 					if (x >= xMinRange && x <= xMaxRange && y >= yMinRange && y <= yMaxRange){
-						System.out.print(sourceArray[x][y] + " ");					
+						System.out.print(sourceArray[y][x] + " ");					
 					}
 				}
-				if (x >= xMinRange && x <= xMaxRange){
+				if (y >= yMinRange && y <= yMaxRange){
 					System.out.println("");					
 				}
 			}
 			
 			int[][] invertedArray = IntersectionTest.getInvertedArray(sourceArray);
 			System.out.println("Inverted array rows = " + invertedArray.length + ", cols = " + invertedArray[0].length);
-			for (int x = 0; x < invertedArray.length; x++) {
-				for (int y = 0; y < invertedArray[x].length; y++) {
+			for (int y = 0; y < invertedArray.length; y++) {
+				for (int x = 0; x < invertedArray[y].length; x++) {
 					if (x >= xMinRange && x <= xMaxRange && y >= yMinRange && y <= yMaxRange){
-						System.out.print(invertedArray[x][y] + " ");						
+						System.out.print(invertedArray[y][x] + " ");						
 					}
 				}
-				if (x >= xMinRange && x <= xMaxRange){
+				if (y >= yMinRange && y <= yMaxRange){
 					System.out.println("");					
 				}
 			}
@@ -1072,14 +1075,14 @@ protected void extractSilhouettes(){
 			int[][] transformedArray = IntersectionTest.computeDistanceTransform(sourceArray);
 			System.out.println("transformedArray array rows = " + transformedArray.length + ", cols = " + transformedArray[0].length);
 			// print the contents of transformedArray
-			for (int x = 0; x < transformedArray.length; x++) {
-				for (int y = 0; y < transformedArray[x].length; y++) {
+			for (int y = 0; y < transformedArray.length; y++) {
+				for (int x = 0; x < transformedArray[y].length; x++) {
 					if (x >= xMinRange && x <= xMaxRange && y >= yMinRange && y <= yMaxRange){
-						System.out.print(transformedArray[x][y] + " ");					
+						System.out.print(transformedArray[y][x] + " ");					
 					}
 					//System.out.print(transformedArray[x][y] + " ");
 				}
-				if (x >= xMinRange && x <= xMaxRange){
+				if (y >= yMinRange && y <= yMaxRange){
 					System.out.println("");					
 				}
 			}
@@ -1087,13 +1090,13 @@ protected void extractSilhouettes(){
 			int[][] transformedInvertedArray = IntersectionTest.computeDistanceTransform(invertedArray);
 			System.out.println("transformedInvertedArray array rows = " + transformedInvertedArray.length + ", cols = " + transformedInvertedArray[0].length);
 			// print the contents of transformedComplementArray
-			for (int x = 0; x < transformedInvertedArray.length; x++) {
-				for (int y = 0; y < transformedInvertedArray[x].length; y++) {
+			for (int y = 0; y < transformedInvertedArray.length; y++) {
+				for (int x = 0; x < transformedInvertedArray[y].length; x++) {
 					if (x >= xMinRange && x <= xMaxRange && y >= yMinRange && y <= yMaxRange){
-						System.out.print(transformedInvertedArray[x][y] + " ");					
+						System.out.print(transformedInvertedArray[y][x] + " ");					
 					}
 				}
-				if (x >= xMinRange && x <= xMaxRange){
+				if (y >= yMinRange && y <= yMaxRange){
 					System.out.println("");					
 				}
 			}
@@ -1130,6 +1133,11 @@ protected void extractSilhouettes(){
 			cameraPosition.positionAxisZ = 0;
 //			ApplicationConfiguration appConfig = ApplicationConfiguration.getInstance();
 //			Octree octree = new Octree(boxSize, appConfig.getVolumeBoxParameters());
+			
+			//hardcoded values
+			//this.boxSize = 3;
+			//this.centerZ = 5;
+			
 			BoxParameters volumeBoxParameters = new BoxParameters();		
 			volumeBoxParameters.setBoxSize(this.boxSize);
 			volumeBoxParameters.setCenterX(this.centerX);

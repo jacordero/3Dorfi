@@ -37,7 +37,7 @@ public class BoundingBox {
 		double height = unScaledRectangle.getHeight();
 		double width = unScaledRectangle.getWidth();
 		
-		NumberFormat formatter = new DecimalFormat("#0.00"); 
+		NumberFormat formatter = new DecimalFormat("#0."); 
 		
 		String message = "Original rectangle: [(" + formatter.format(leftCoordinate) + ", " + formatter.format(topCoordinate) + ")";
 		message += ", (" + formatter.format((leftCoordinate + width)) + ", " + formatter.format(topCoordinate) + ")";
