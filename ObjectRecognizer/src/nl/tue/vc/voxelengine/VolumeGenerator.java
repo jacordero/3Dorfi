@@ -48,7 +48,7 @@ public class VolumeGenerator {
 	private List<BoundingBox> boundingBoxes;
 	private Octree octree;
 	private Group octreeVolume;
-	private List<int[][]> sourceArrays;
+	private List<int[][]> transformedInvertedArrays;
 	private List<int[][]> transformedArrays;
 	private List<BufferedImage> bufferedImagesForTest;
 	private TransformMatrices transformMatrices;
@@ -60,7 +60,7 @@ public class VolumeGenerator {
 		System.out.println("BufferedImagesForTest: " + this.bufferedImagesForTest.size());
 		this.fieldOfView = 32;
 		this.transformMatrices = new TransformMatrices(400, 290, fieldOfView);
-		sourceArrays = new ArrayList<int[][]>();
+		transformedInvertedArrays = new ArrayList<int[][]>();
 		transformedArrays = new ArrayList<int[][]>();
 
 		calibrationImage = loadCalibrationImage();
@@ -71,12 +71,12 @@ public class VolumeGenerator {
 		boundingBoxes = new ArrayList<BoundingBox>();
 	}
 
-	public VolumeGenerator(Octree octree, BoxParameters boxParameters, List<int[][]> sourceBinaryArrays,
+	public VolumeGenerator(Octree octree, BoxParameters boxParameters, List<int[][]> transformedInvertedBinArrays,
 			List<int[][]> transformedBinaryArrays) {
 		this.octree = octree;
 		this.bufferedImagesForTest = new ArrayList<BufferedImage>();
 		System.out.println("BufferedImagesForTest: " + this.bufferedImagesForTest.size());
-		this.sourceArrays = sourceBinaryArrays;
+		this.transformedInvertedArrays = transformedInvertedBinArrays;
 		this.transformedArrays = transformedBinaryArrays;
 		this.fieldOfView = 32;
 		this.transformMatrices = new TransformMatrices(400, 290, fieldOfView);
@@ -319,6 +319,7 @@ public class VolumeGenerator {
 		Rectangle boundingRectangle = boundingBox.getUnScaledRectangle();
 		IntersectionStatus status = IntersectionStatus.INSIDE;
 		int[][] transformedArray = transformedArrays.get(index);
+		int[][] transformedInvertedArray = transformedInvertedArrays.get(index);
 		int xVal = (int) boundingRectangle.getX();
 		int yVal = (int) (boundingRectangle.getY() + boundingRectangle.getHeight());
 		int arrayRows = transformedArray.length;
@@ -342,6 +343,7 @@ public class VolumeGenerator {
 		System.out.println("xVal = " + xVal + ", yVal = " + yVal);
 		
 		int transformedValue = transformedArray[xVal][yVal];
+		int transformedInvertedValue = transformedInvertedArray[xVal][yVal];
 
 		int determiningValue = (int) boundingRectangle.getWidth();
 		if (determiningValue < boundingRectangle.getHeight()) {
@@ -349,17 +351,18 @@ public class VolumeGenerator {
 		}
 
 		System.out.println("transformedValue: " + transformedValue + ", projected box size: " + determiningValue);
+		System.out.println("transformedInvertedValue: " + transformedInvertedValue + ", projected box size: " + determiningValue);
 
-		if (transformedValue >= determiningValue) {
-			System.out.println("Projection is totally inside ====================================================================================");
+		if (determiningValue <= transformedValue) {
+			System.out.println("Projection is totally inside iiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiii");
 			status = IntersectionStatus.INSIDE;
-		} else if ((transformedValue < determiningValue) && (transformedValue > 0)) {
-			System.out.println("Projection is partially inside");
-			status = IntersectionStatus.PARTIAL;
-		} else {
-			System.out.println("Projection is outside");
+		} else if (determiningValue <= transformedInvertedValue) {
+			System.out.println("Projection is totally outside oooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooo");
 			status = IntersectionStatus.OUTSIDE;
-		}
+		} else {
+			System.out.println("Projection is partially inside ====================================================================================");
+			status = IntersectionStatus.PARTIAL;
+		} 
 		return status;
 	}
 
@@ -654,14 +657,21 @@ public class VolumeGenerator {
 	}
 	
 	public Color getPaintColor(Color currentColor, Color newColor) {
-		Color result = Color.GRAY;
+		Color result = Color.GRAY;		
+		
+		if(currentColor == Color.WHITE)
+			currentColor = Color.TRANSPARENT;
+		
+		if(newColor == Color.WHITE)
+			newColor = Color.TRANSPARENT;
+		
 		if (currentColor == Color.GRAY) {
-			if (newColor == Color.WHITE || newColor == Color.GRAY)
+			if (newColor == Color.TRANSPARENT || newColor == Color.GRAY)
 				result = newColor;
 			else
 				result = currentColor;
-		} else if (currentColor == Color.WHITE) {
-			if (newColor == Color.WHITE)
+		} else if (currentColor == Color.TRANSPARENT) {
+			if (newColor == Color.TRANSPARENT)
 				result = newColor;
 			else
 				result = currentColor;
@@ -671,6 +681,25 @@ public class VolumeGenerator {
 
 		return result;
 	}
+
+//	public Color getPaintColor(Color currentColor, Color newColor) {
+//		Color result = Color.GRAY;		
+//		if (currentColor == Color.GRAY) {
+//			if (newColor == Color.WHITE || newColor == Color.GRAY)
+//				result = newColor;
+//			else
+//				result = currentColor;
+//		} else if (currentColor == Color.WHITE) {
+//			if (newColor == Color.WHITE)
+//				result = newColor;
+//			else
+//				result = currentColor;
+//		} else {
+//			result = newColor;
+//		}
+//
+//		return result;
+//	}
 
 	public Group getVolume() {
 		return octreeVolume;
@@ -688,12 +717,12 @@ public class VolumeGenerator {
 		return volume;
 	}
 
-	public List<int[][]> getSourceArrays() {
-		return sourceArrays;
+	public List<int[][]> getTransformedInvertedArrays() {
+		return transformedInvertedArrays;
 	}
 
-	public void setSourceArrays(List<int[][]> sourceBinaryArrays) {
-		this.sourceArrays = sourceBinaryArrays;
+	public void setTransformedInvertedArrays(List<int[][]> transformedInvertedBinArrays) {
+		this.transformedInvertedArrays = transformedInvertedBinArrays;
 	}
 
 	public List<int[][]> getTransformedArrays() {
