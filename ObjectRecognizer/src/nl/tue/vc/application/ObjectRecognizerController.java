@@ -277,7 +277,7 @@ public class ObjectRecognizerController {
 		calibrationTimerActive = false;
 		transformMatrices = new TransformMatrices(sceneWidth, sceneHeight, 32.3);
 		cameraCalibrator = new CameraCalibrator();
-		this.boxSize = 11;// 11;//Integer.parseInt(this.boxSizeField.getText());
+		this.boxSize = 15;// 11;//Integer.parseInt(this.boxSizeField.getText());
 		this.levels = 0;// Integer.parseInt(this.levelsField.getText());
 		this.centerX = 4;
 		this.centerY = 1;

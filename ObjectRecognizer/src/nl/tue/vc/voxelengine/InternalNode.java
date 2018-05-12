@@ -56,7 +56,7 @@ public class InternalNode extends Node{
 				Utils.debugNewLine("Parent center: [" + parentCenterX + ", " + parentCenterY + ", " + parentCenterZ + "]", true);
 				Utils.debugNewLine("Node center: [" + newParentCenterX + ", " + newParentCenterY + ", " + newParentCenterZ + "]",  true);
 				
-				if (octreeHeight > 0){
+				if (octreeHeight > 1){
 					children[i] = new InternalNode(childrenColors.get(i), childrenBoxSize, newParentCenterX, newParentCenterY, newParentCenterZ, octreeHeight - 1);
 				} else {
 					children[i] = new Leaf(childrenColors.get(i), childrenBoxSize, newParentCenterX, newParentCenterY, newParentCenterZ);
@@ -86,6 +86,10 @@ public class InternalNode extends Node{
 	
 	public void addChildren(Node[] children){
 		this.children = children;
+	}
+	
+	public void setChildNode(Node childNode, int childIndex){
+		this.children[childIndex] = childNode;
 	}
 	
 	@Override

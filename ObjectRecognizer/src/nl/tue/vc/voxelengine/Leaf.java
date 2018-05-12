@@ -43,6 +43,10 @@ public class Leaf extends Node{
 		return null;
 	}
 	
+	public void setChildNode(Node childNode, int childIndex){
+		
+	}
+	
 	@Override
 	public String toString() {
 		return "Leaf -> " + super.toString();
