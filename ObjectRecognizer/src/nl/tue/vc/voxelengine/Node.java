@@ -150,7 +150,7 @@ public abstract class Node {
 	
 	abstract public boolean isLeaf();
 	
-	
+	abstract void setChildNode(Node childNode, int childIndex);
 	
 	@Override
 	public String toString() {
