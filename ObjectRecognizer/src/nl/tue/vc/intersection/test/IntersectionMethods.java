@@ -9,6 +9,7 @@ import java.util.List;
 
 import javax.imageio.ImageIO;
 
+import nl.tue.vc.application.utils.Utils;
 import nl.tue.vc.application.visual.IntersectionTest;
 
 public class IntersectionMethods {
@@ -23,9 +24,9 @@ public class IntersectionMethods {
 			File input = new File(path);
 			BufferedImage buf_image = ImageIO.read(input);
 			int[][] binaryImage = IntersectionTest.getBinaryArray(buf_image);
-			System.out.println("**** Comparison being done in image: " + path);
+			Utils.debugNewLine("**** Comparison being done in image: " + path, false);
 			IntersectionTest.compareDistanceTransformMethods(binaryImage);
-			System.out.println("\n");
+			Utils.debugNewLine("\n", false);
 			
 		}
 		

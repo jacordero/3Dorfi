@@ -84,7 +84,7 @@ public class CameraCalibrator {
 			calibrationImage.copyTo(grayImage);
 		}		
 		
-		System.out.println("Size of the image:[ width = " + calibrationImage.cols() + ", height = " + calibrationImage.rows() + "]");		
+		Utils.debugNewLine("Size of the image:[ width = " + calibrationImage.cols() + ", height = " + calibrationImage.rows() + "]", false);		
 		
 		MatOfPoint2f corners = new MatOfPoint2f();
 		boolean cornersFound = Calib3d.findChessboardCorners(calibrationImage, chessboardPatternSize, corners);
@@ -93,7 +93,7 @@ public class CameraCalibrator {
 			//System.out.println("**** Corners were found ****");
 			List<Point> cornerPoints = corners.toList();
 			for (Point corner: cornerPoints){
-				System.out.println(corner);
+				Utils.debugNewLine(corner.toString(), false);
 			}
 			
 			Size cornersWindowSize = new Size(7, 7);
