@@ -14,6 +14,7 @@ import org.opencv.core.MatOfByte;
 import org.opencv.imgcodecs.Imgcodecs;
 
 import javafx.scene.paint.Color;
+import nl.tue.vc.application.utils.Utils;
 import nl.tue.vc.voxelengine.InternalNode;
 import nl.tue.vc.voxelengine.Node;
 import nl.tue.vc.voxelengine.Octree;
@@ -112,7 +113,7 @@ public class IntersectionTest {
 			}
 		}
 		if (equalContent){
-			System.out.println("***** Content of both transformations are equal ****");
+			Utils.debugNewLine("***** Content of both transformations are equal ****", false);
 		} 
 	}
 

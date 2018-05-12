@@ -95,16 +95,16 @@ public class CameraProjectionTest {
 		Mat rotationVector = new Mat();
 		Mat translationVector = new Mat();
 		
-		System.out.println("Find chessboard patterns");
+		Utils.debugNewLine("Find chessboard patterns", false);
 		MatOfPoint2f corners = new MatOfPoint2f();
 		Size patternSize = new Size(9, 6);
 		
 		boolean cornersFound = Calib3d.findChessboardCorners(calibrationImage, patternSize, corners);
 		if (cornersFound) {
-			System.out.println("**** Corners were found ****");
+			Utils.debugNewLine("**** Corners were found ****", false);
 			List<Point> cornerPoints = corners.toList();
 			for (Point corner: cornerPoints){
-				System.out.println(corner);
+				Utils.debugNewLine(corner.toString(), false);
 			}
 			
 			
@@ -116,7 +116,7 @@ public class CameraProjectionTest {
 			Imgproc.cornerSubPix(grayImage, corners, cornersWindowSize, zeroZone, criteria);
 			
 			// check for the refined corners
-			System.out.println("Refined corners");
+			Utils.debugNewLine("Refined corners", false);
 			for (Point corner: corners.toList()) {
 				System.out.println(corner);
 			}

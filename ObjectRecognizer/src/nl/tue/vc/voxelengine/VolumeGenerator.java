@@ -56,6 +56,7 @@ public class VolumeGenerator {
 	private List<BufferedImage> bufferedImagesForTest;
 	private TransformMatrices transformMatrices;
 	private int fieldOfView;
+	private int octreeHeight;
 
 	public VolumeGenerator(Octree octree, BoxParameters boxParameters) {
 		this.octree = octree;
@@ -72,10 +73,11 @@ public class VolumeGenerator {
 		projectionGenerator = cameraCalibrator.calibrate(calibrationImage, true);
 		projectedPoints = new ArrayList<ProjectedPoint>();
 		boundingBoxes = new ArrayList<BoundingBox>();
+		octreeHeight = -1;
 	}
 
 	public VolumeGenerator(Octree octree, BoxParameters boxParameters, List<int[][]> transformedInvertedBinArrays,
-			List<int[][]> transformedBinaryArrays) {
+			List<int[][]> transformedBinaryArrays, int octreeHeight) {
 		// this(octree, boxParameters);
 		this.transformedArrays = transformedBinaryArrays;
 
@@ -93,6 +95,7 @@ public class VolumeGenerator {
 		projectionGenerator = cameraCalibrator.calibrate(calibrationImage, true);
 		projectedPoints = new ArrayList<ProjectedPoint>();
 		boundingBoxes = new ArrayList<BoundingBox>();
+		this.octreeHeight = octreeHeight;
 	}
 
 	public Group generateVolume() {
@@ -113,18 +116,25 @@ public class VolumeGenerator {
 		Group imageProjection = getImageProjections(0);
 		volume.getChildren().addAll(imageProjection);
 
-		projectCubes();
-		volume.getChildren().addAll(getProjectedVolume());
-
-		// start
 		long lStartTime = System.nanoTime();
+		
+		projectCubes();
+		if (octreeHeight <= 3){
+			volume.getChildren().addAll(getProjectedVolume());			
+		}
+
+		long lEndTime = System.nanoTime();
+		long output = lEndTime - lStartTime;
+		System.out.println("Elapsed time for projectCubes in milliseconds: " + output / 1000000);
+		
+		// start
+		lStartTime = System.nanoTime();
 		root = getTestedNodeAux(root);
 		// end
-		long lEndTime = System.nanoTime();
+		lEndTime = System.nanoTime();
 
 		// time elapsed
-		long output = lEndTime - lStartTime;
-
+		output = lEndTime - lStartTime;
 		System.out.println("Elapsed time for getTestedNodeAux in milliseconds: " + output / 1000000);
 
 		ApplicationConfiguration appConfig = ApplicationConfiguration.getInstance();
@@ -195,9 +205,9 @@ public class VolumeGenerator {
 
 	private Node getTestedNodeAux(Node currentNode) {
 
-		System.out.println("#################### Intersection test for node: " + currentNode);
+		Utils.debugNewLine("#################### Intersection test for node: " + currentNode, false);
 		for (int j = 0; j < this.bufferedImagesForTest.size(); j++) {
-			System.out.println("########## Testing against image " + (j + 1) + " ##########");
+			Utils.debugNewLine("########## Testing against image " + (j + 1) + " ##########", false);
 			if (currentNode.isLeaf()) {
 				Color boxColor = Color.GRAY;
 				IntersectionStatus status = testIntersection(currentNode, j);
@@ -259,9 +269,9 @@ public class VolumeGenerator {
 
 			box = generateVoxel(currentParameters, currentDeltas, finalColor);
 			voxels.add(box);
-			System.out.println("Root is leaf");
+			Utils.debugNewLine("Root is leaf", false);
 		} else {
-			System.out.println("Root is Node");
+			Utils.debugNewLine("Root is Node", false);
 			Node[] children = currentNode.getChildren();
 			int newBoxSize = currentParameters.getBoxSize() / 2;
 			BoxParameters newParameters = new BoxParameters();
@@ -406,10 +416,11 @@ public class VolumeGenerator {
 		if (yVal < 0) {
 			yVal = 0;
 		}
-		System.out.println("xVal = " + xVal + ", yVal = " + yVal);
+		
+		Utils.debugNewLine("xVal = " + xVal + ", yVal = " + yVal, false);
 		int transformedValue = transformedArray[xVal][yVal];
 
-		System.out.println("transformedValue: " + transformedValue);
+		Utils.debugNewLine("transformedValue: " + transformedValue, false);
 
 		int determiningValue = (int) boundingBox.getWidth();
 		if (boundingBox.getHeight() < boundingBox.getWidth()) {
@@ -579,7 +590,7 @@ public class VolumeGenerator {
 			yVal = arrayCols - 1;
 		}
 
-		System.out.println("xVal = " + xVal + ", yVal = " + yVal);
+		Utils.debugNewLine("xVal = " + xVal + ", yVal = " + yVal, false);
 
 		int transformedValue = transformedArray[yVal][xVal];
 		int transformedInvertedValue = transformedInvertedArray[yVal][xVal];
@@ -589,30 +600,29 @@ public class VolumeGenerator {
 			determiningValue = (int) boundingRectangle.getHeight();
 		}
 
-		System.out.println("transformedValue: " + transformedValue + ", projected box size: " + determiningValue);
-		System.out.println(
-				"transformedInvertedValue: " + transformedInvertedValue + ", projected box size: " + determiningValue);
+		Utils.debugNewLine("transformedValue: " + transformedValue + ", projected box size: " + determiningValue, false);
+		Utils.debugNewLine(
+				"transformedInvertedValue: " + transformedInvertedValue + ", projected box size: " + determiningValue, false);
 
 		if (determiningValue <= transformedValue) {
-			System.out.println(
-					"Projection is totally inside iiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiii");
+			Utils.debugNewLine(
+					"Projection is totally inside iiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiii", false);
 			status = IntersectionStatus.INSIDE;
 		} else if (determiningValue <= transformedInvertedValue) {
-			System.out.println(
-					"Projection is totally outside oooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooo");
+			Utils.debugNewLine(
+					"Projection is totally outside oooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooo", false);
 			status = IntersectionStatus.OUTSIDE;
 		} else if (checkForPartial(determiningValue, transformedInvertedValue, xVal, yVal, arrayCols, arrayRows,
 				(int) boundingRectangle.getWidth(), (int) boundingRectangle.getHeight())) {
-			System.out.println(
-					"Projection is partially inside ====================================================================================");
+			Utils.debugNewLine(
+					"Projection is partially inside ====================================================================================", false);
 			status = IntersectionStatus.PARTIAL;
 		} else if (checkForOutsideInCorners(determiningValue, transformedValue, transformedInvertedValue, xVal, yVal,
 				arrayCols)) {
-			System.out.println("Projection out of bounds but totally outside oooooooooooooooooooooooooooooooooo");
+			Utils.debugNewLine("Projection out of bounds but totally outside oooooooooooooooooooooooooooooooooo", false);
 			status = IntersectionStatus.OUTSIDE;
 		} else {
-			System.out.println(
-					"Projection is partially inside ====================================================================================");
+			Utils.debugNewLine("Projection is partially inside ====================================================================================", false);
 			status = IntersectionStatus.PARTIAL;
 		}
 
@@ -808,7 +818,7 @@ public class VolumeGenerator {
 		List<ProjectedPoint> projections = projectionsAsList(encodedProjections);
 		NumberFormat formatter = new DecimalFormat("#0.00");
 
-		System.out.println("\n************ Projecting parent ****************");
+		Utils.debugNewLine("\n************ Projecting parent ****************", false);
 		for (int i = 0; i < corners.size(); i++) {
 			Point3 corner = corners.get(i);
 			ProjectedPoint projection = projections.get(i);
@@ -817,7 +827,7 @@ public class VolumeGenerator {
 					+ formatter.format(corner.z) + "]";
 			infoStr += "\tProjection: [x: " + formatter.format(projection.getX()) + ", y:"
 					+ formatter.format(projection.getY()) + "]";
-			System.out.println(infoStr);
+			Utils.debugNewLine(infoStr, false);
 		}
 
 		BoundingBox boundingBox = computeBoundingBox(projections, calibrationImage.cols(), calibrationImage.rows(),
@@ -825,7 +835,7 @@ public class VolumeGenerator {
 
 		boundingBoxes.add(boundingBox);
 
-		System.out.println(boundingBox);
+		//System.out.println(boundingBox);
 
 		// scale to fit the visualization canvas
 		/**
@@ -836,7 +846,7 @@ public class VolumeGenerator {
 		projectedPoints.addAll(projections);
 
 		if (!node.isLeaf()) {
-			System.out.println("\n********** Projecting children *************");
+			Utils.debugNewLine("\n********** Projecting children *************", false);
 			for (Node children : node.getChildren()) {
 				iterateCubesAux(children, level + 1);
 			}
@@ -958,7 +968,7 @@ public class VolumeGenerator {
 		 * corner4.setFill(Color.BLUE); root2D.getChildren().add(corner4);
 		 **/
 
-		System.out.println("Bounding boxes length: " + boundingBoxes.size());
+		Utils.debugNewLine("Bounding boxes length: " + boundingBoxes.size(), false);
 		for (BoundingBox boundingBox : boundingBoxes) {
 			// Ellipse circle = new Ellipse(boundingBox.getScaledRectangle().getX(),
 			// (boundingBox.getScaledRectangle().getY()+boundingBox.getScaledRectangle().getHeight()),
@@ -966,11 +976,13 @@ public class VolumeGenerator {
 			// circle.setFill(Color.YELLOW);
 			// root2D.getChildren().add(circle);
 
+			/**
 			System.out.println(boundingBox.getScaledRectangle().getFill());
 			System.out.println(boundingBox.getScaledRectangle().getX());
 			System.out.println(boundingBox.getScaledRectangle().getY());
 			System.out.println(boundingBox.getScaledRectangle().getWidth());
 			System.out.println(boundingBox.getScaledRectangle().getHeight());
+			**/
 
 			root2D.getChildren().add(boundingBox.getScaledRectangle());
 		}

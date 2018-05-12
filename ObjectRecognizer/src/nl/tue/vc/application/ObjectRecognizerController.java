@@ -994,7 +994,7 @@ public class ObjectRecognizerController {
 			}
 
 			int[][] invertedArray = IntersectionTest.getInvertedArray(sourceArray);
-			System.out.println("Inverted array rows = " + invertedArray.length + ", cols = " + invertedArray[0].length);
+			Utils.debugNewLine("Inverted array rows = " + invertedArray.length + ", cols = " + invertedArray[0].length, false);
 			for (int y = 0; y < invertedArray.length; y++) {
 				for (int x = 0; x < invertedArray[y].length; x++) {
 					if (x >= xMinRange && x <= xMaxRange && y >= yMinRange && y <= yMaxRange) {
@@ -1007,8 +1007,8 @@ public class ObjectRecognizerController {
 			}
 
 			int[][] transformedArray = IntersectionTest.computeDistanceTransform(sourceArray);
-			System.out.println("transformedArray array rows = " + transformedArray.length + ", cols = "
-					+ transformedArray[0].length);
+			Utils.debugNewLine("transformedArray array rows = " + transformedArray.length + ", cols = "
+					+ transformedArray[0].length, false);
 			// print the contents of transformedArray
 			for (int y = 0; y < transformedArray.length; y++) {
 				for (int x = 0; x < transformedArray[y].length; x++) {
@@ -1023,8 +1023,8 @@ public class ObjectRecognizerController {
 			}
 
 			int[][] transformedInvertedArray = IntersectionTest.computeDistanceTransform(invertedArray);
-			System.out.println("transformedInvertedArray array rows = " + transformedInvertedArray.length + ", cols = "
-					+ transformedInvertedArray[0].length);
+			Utils.debugNewLine("transformedInvertedArray array rows = " + transformedInvertedArray.length + ", cols = "
+					+ transformedInvertedArray[0].length, false);
 			// print the contents of transformedComplementArray
 			for (int y = 0; y < transformedInvertedArray.length; y++) {
 				for (int x = 0; x < transformedInvertedArray[y].length; x++) {
@@ -1071,7 +1071,7 @@ public class ObjectRecognizerController {
 		volumeRenderer = new VolumeRenderer(octree);
 		// instantiate the volume generator object
 		volumeGenerator = new VolumeGenerator(octree, volumeBoxParameters, this.transformedInvertedArrays,
-				this.transformedArrays);
+				this.transformedArrays, this.levels);
 		volumeGenerator.setBufferedImagesForTest(this.bufferedImagesForTest);
 		volumeGenerator.setTransformedInvertedArrays(this.transformedInvertedArrays);
 		volumeGenerator.setTransformedArrays(this.transformedArrays);
