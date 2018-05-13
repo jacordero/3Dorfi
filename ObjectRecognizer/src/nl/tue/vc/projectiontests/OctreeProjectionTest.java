@@ -51,7 +51,8 @@ public class OctreeProjectionTest {
 		octree = generateOctree();
 		System.out.println(octree);
 		cameraCalibrator = new CameraCalibrator();
-		projectionGenerator = cameraCalibrator.calibrate(calibrationImage, true);
+		assert false;
+		projectionGenerator = null;//cameraCalibrator.calibrateSingleMatrix(calibrationImage, true);
 		projectedPoints = new ArrayList<Point>();
 		boundingBoxes = new ArrayList<Rectangle>();
 	}
@@ -228,7 +229,9 @@ public class OctreeProjectionTest {
 	}
 	
 	public void calibrateCamera(){
-		projectionGenerator = cameraCalibrator.calibrate(calibrationImage, true);
+		//TODO: fix this
+		assert false;
+		projectionGenerator = null;//cameraCalibrator.calibrateSingleMatrix(calibrationImage, true);
 	}
 	
 	public List<Rectangle> getBoundingBoxes(){

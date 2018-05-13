@@ -191,6 +191,11 @@ public class ObjectRecognizerController {
 	private Image undistoredImage, CamStream;
 
 	// Image used for calibration of extrinsic parameters
+	private Map<String, Mat> calibrationImagesMap = new HashMap<String, Mat>();
+	private List<Mat> calibrationImages = new ArrayList<Mat>();
+	private int calibrationImageCounter;
+	private List<String> calibrationIndices;
+	
 	private Mat calibrationImage = null;
 	// various variables needed for the calibration
 	private List<Mat> imagePoints;
@@ -247,6 +252,10 @@ public class ObjectRecognizerController {
 
 	private ProjectionGenerator projector;
 
+	private Map<String, ProjectionGenerator> projectors;
+	
+	private List<String> projectorPerSilhouette;
+	
 	private Mat cameraFrame;
 
 	private Timer videoTimer;
@@ -282,6 +291,13 @@ public class ObjectRecognizerController {
 		this.centerX = 4;
 		this.centerY = 1;
 		this.centerZ = 0;
+		
+		calibrationImageCounter = 0;
+		calibrationIndices = new ArrayList<String>();
+		calibrationIndices.add("deg-0");
+		calibrationIndices.add("deg-90");
+		calibrationIndices.add("deg-180");
+		calibrationIndices.add("deg-270");
 	}
 
 	@FXML
@@ -329,7 +345,7 @@ public class ObjectRecognizerController {
 
 				stopVideo();
 				System.out.println("Timers are cancelled!");
-				cameraFrameView.setImage(new Image("bkg_img.jpg"));
+				cameraFrameView.setImage(new Image("images/bkg_img.jpg"));
 			}
 			// System.out.println("CheckBox Action (selected: " + selected + ")");
 		});
@@ -353,7 +369,7 @@ public class ObjectRecognizerController {
 
 		// Set default image
 		try {
-			defaultVideoImage = new Image("bkg_img.jpg");
+			defaultVideoImage = new Image("images/bkg_img.jpg");
 			cameraFrameView.setImage(defaultVideoImage);
 		} catch (Exception e) {
 			e.printStackTrace();
@@ -480,26 +496,40 @@ public class ObjectRecognizerController {
 				File file = list.get(i);
 
 				if (file != null) {
-					ImageView imageView = new ImageView();
+					//ImageView imageView = new ImageView();
 					// read the image in gray scale
 					// this.image = Imgcodecs.imread(file.getAbsolutePath(),
 					// Imgcodecs.CV_LOAD_IMAGE_GRAYSCALE);
 					this.image = Imgcodecs.imread(file.getAbsolutePath(), Imgcodecs.CV_LOAD_IMAGE_COLOR);
 
-					// load the images into the listview
-					String imgName = file.getName().split("\\.")[0];
-					loadedImagesNames.add(imgName);
-					loadedImages.add(this.image);
-					loadedImagesDescription.put(imgName, loadedImages.size() - 1);
+					if (enableCameraCalibration.isSelected()){
+						Utils.debugNewLine("Loading calibration image: " + file.getName(), true);
+						
+						calibrationImage = this.image;
+						calibrationFrame.setImage(Utils.mat2Image(calibrationImage));
+						calibrationFrame.setFitWidth(100);
+						calibrationFrame.setPreserveRatio(true);
+						calibrationImagesMap.put(calibrationIndices.get(calibrationImageCounter), calibrationImage);
+						calibrationImageCounter += 1;
+						if (calibrationImageCounter > calibrationIndices.size() - 1){
+							calibrationImageCounter = 0;
+						}
+					} else {
+						// load the images into the listview
+						String imgName = file.getName().split("\\.")[0];
+						loadedImagesNames.add(imgName);
+						loadedImages.add(this.image);
+						loadedImagesDescription.put(imgName, loadedImages.size() - 1);
 
-					// System.out.println(imgName);
+						// System.out.println(imgName);
 
-					// empty the image planes and the image views if it is not the first
-					// loaded image
-					if (!this.planes.isEmpty()) {
-						this.planes.clear();
-						this.transformedImage.setImage(null);
-						this.antitransformedImage.setImage(null);
+						// empty the image planes and the image views if it is not the first
+						// loaded image
+						if (!this.planes.isEmpty()) {
+							this.planes.clear();
+							this.transformedImage.setImage(null);
+							this.antitransformedImage.setImage(null);
+						}						
 					}
 				}
 			}
@@ -855,6 +885,11 @@ public class ObjectRecognizerController {
 					calibrationFrame.setImage(Utils.mat2Image(calibrationImage));
 					calibrationFrame.setFitWidth(100);
 					calibrationFrame.setPreserveRatio(true);
+					calibrationImagesMap.put(calibrationIndices.get(calibrationImageCounter), calibrationImage);
+					calibrationImageCounter += 1;
+					if (calibrationImageCounter > calibrationIndices.size() - 1){
+						calibrationImageCounter = 0;
+					}
 				}
 			};
 
@@ -925,11 +960,14 @@ public class ObjectRecognizerController {
 
 	@FXML
 	private void calibrateCameraForExtrinsicParams() {
-		System.out.println("*** Calibrating camera to find extrinsic parameters ***");
-		if (calibrationImage != null) {
-			projector = cameraCalibrator.calibrate(calibrationImage, true);
+		
+		Utils.debugNewLine("*** Calibrating camera to find extrinsic parameters ***", true);
+		Utils.debugNewLine("Calibration images Map size: " + calibrationImagesMap.size(), true);
+		if (!calibrationImagesMap.isEmpty()) {
+			projector = cameraCalibrator.calibrateMatrices(calibrationImagesMap, true);
+			//projector = cameraCalibrator.calibrateSingleMatrix(calibrationImage, true);
 		} else {
-			System.out.println("*** Load calibration image ***");
+			Utils.debugNewLine("*** Load calibration images ***", true);
 		}
 	}
 

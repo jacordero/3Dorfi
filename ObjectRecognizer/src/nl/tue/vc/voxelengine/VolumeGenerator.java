@@ -8,6 +8,7 @@ import java.text.DecimalFormat;
 import java.text.NumberFormat;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 import javax.imageio.ImageIO;
 
@@ -45,8 +46,8 @@ public class VolumeGenerator {
 
 	private CameraCalibrator cameraCalibrator;
 	private ProjectionGenerator projectionGenerator;
-	private static final String CALIBRATION_IMAGE = "images/calibrationImage.png";
-	private Mat calibrationImage;
+	
+	private Map<String, Mat> calibrationImages;
 	private List<ProjectedPoint> projectedPoints;
 	private List<BoundingBox> boundingBoxes;
 	private Octree octree;
@@ -67,15 +68,19 @@ public class VolumeGenerator {
 		transformedInvertedArrays = new ArrayList<int[][]>();
 		transformedArrays = new ArrayList<int[][]>();
 
-		calibrationImage = loadCalibrationImage();
 		System.out.println(octree);
-		cameraCalibrator = new CameraCalibrator();
-		projectionGenerator = cameraCalibrator.calibrate(calibrationImage, true);
 		projectedPoints = new ArrayList<ProjectedPoint>();
 		boundingBoxes = new ArrayList<BoundingBox>();
 		octreeHeight = -1;
 	}
 
+	private void calibrateCameraParameters(){
+		calibrationImages = Utils.loadCalibrationImages();
+		cameraCalibrator = new CameraCalibrator();
+		projectionGenerator = cameraCalibrator.calibrateMatrices(calibrationImages, true);
+		
+	}
+	
 	public VolumeGenerator(Octree octree, BoxParameters boxParameters, List<int[][]> transformedInvertedBinArrays,
 			List<int[][]> transformedBinaryArrays, int octreeHeight) {
 		// this(octree, boxParameters);
@@ -89,10 +94,11 @@ public class VolumeGenerator {
 		this.fieldOfView = 32;
 		this.transformMatrices = new TransformMatrices(400, 290, fieldOfView);
 
-		calibrationImage = loadCalibrationImage();
+		calibrationImages = Utils.loadCalibrationImages();
 		System.out.println(octree);
 		cameraCalibrator = new CameraCalibrator();
-		projectionGenerator = cameraCalibrator.calibrate(calibrationImage, true);
+		assert false;
+		projectionGenerator = null;//cameraCalibrator.calibrateMultipleMatrices(calibrationImages, true);
 		projectedPoints = new ArrayList<ProjectedPoint>();
 		boundingBoxes = new ArrayList<BoundingBox>();
 		this.octreeHeight = octreeHeight;
@@ -328,8 +334,8 @@ public class VolumeGenerator {
 		Rectangle imageRect = new Rectangle();
 		imageRect.setX(0);
 		imageRect.setY(0);
-		imageRect.setWidth(calibrationImage.cols() / 2);
-		imageRect.setHeight(calibrationImage.rows() / 2);
+		imageRect.setWidth(calibrationImages.get("deg-0").cols() / 2);
+		imageRect.setHeight(calibrationImages.get("deg-0").rows() / 2);
 		System.out.println("img width: " + imageRect.getWidth() + ", height: " + imageRect.getHeight());
 		imageRect.setFill(new ImagePattern(img));
 		imageRect.setStroke(Color.BLACK);
@@ -578,19 +584,19 @@ public class VolumeGenerator {
 		if (xVal < 0) {
 			xVal = 0;
 		}
-		if (xVal >= arrayRows) {
-			xVal = arrayRows - 1;
+		if (xVal >= arrayCols) {
+			xVal = arrayCols - 1;
 		}
 
 		if (yVal < 0) {
 			yVal = 0;
 		}
 
-		if (yVal >= arrayCols) {
-			yVal = arrayCols - 1;
+		if (yVal >= arrayRows) {
+			yVal = arrayRows - 1;
 		}
 
-		Utils.debugNewLine("xVal = " + xVal + ", yVal = " + yVal, false);
+		Utils.debugNewLine("xVal = " + xVal + ", yVal = " + yVal, true);
 
 		int transformedValue = transformedArray[yVal][xVal];
 		int transformedInvertedValue = transformedInvertedArray[yVal][xVal];
@@ -772,7 +778,7 @@ public class VolumeGenerator {
 		 * corner4.setFill(Color.BLUE); root2D.getChildren().add(corner4);
 		 **/
 
-		SubScene subScene = new SubScene(root2D, calibrationImage.cols() / 2, calibrationImage.rows() / 2, true,
+		SubScene subScene = new SubScene(root2D, calibrationImages.get("deg-0").cols() / 2, calibrationImages.get("deg-0").rows() / 2, true,
 				SceneAntialiasing.BALANCED);
 
 		PerspectiveCamera perspectiveCamera = new PerspectiveCamera(false);
@@ -830,8 +836,9 @@ public class VolumeGenerator {
 			Utils.debugNewLine(infoStr, false);
 		}
 
-		BoundingBox boundingBox = computeBoundingBox(projections, calibrationImage.cols(), calibrationImage.rows(),
-				level);
+		assert false;
+		BoundingBox boundingBox = null;//computeBoundingBox(projections, calibrationImage.cols(), calibrationImage.rows(),
+				//level);
 
 		boundingBoxes.add(boundingBox);
 
@@ -912,25 +919,9 @@ public class VolumeGenerator {
 		return boundingBox;
 	}
 
-	private Mat loadCalibrationImage() {
-		BufferedImage bufferedImage = null;
-		try {
-			bufferedImage = ImageIO.read(new File(CALIBRATION_IMAGE));
-		} catch (FileNotFoundException e) {
-			e.printStackTrace();
-		} catch (IOException e) {
-			e.printStackTrace();
-		}
-
-		Mat calibrationImage = null;
-		if (bufferedImage != null) {
-			calibrationImage = Utils.bufferedImageToMat(bufferedImage);
-		}
-		return calibrationImage;
-	}
-
 	public void calibrateCamera() {
-		projectionGenerator = cameraCalibrator.calibrate(calibrationImage, true);
+		assert false;
+		projectionGenerator = null;//cameraCalibrator.calibrateSingleMatrix(calibrationImage, true);
 	}
 
 	public List<BoundingBox> getBoundingBoxes() {
@@ -998,8 +989,9 @@ public class VolumeGenerator {
 		MatOfPoint2f encodedProjections = projectionGenerator.projectPoints(encodedCorners);
 		List<ProjectedPoint> projections = projectionsAsList(encodedProjections);
 
-		BoundingBox boundingBox = computeBoundingBox(projections, calibrationImage.cols(), calibrationImage.rows(),
-				level);
+		assert false;
+		BoundingBox boundingBox = null;//computeBoundingBox(projections, calibrationImage.cols(), calibrationImage.rows(),
+				//level);
 		return boundingBox;
 	}
 

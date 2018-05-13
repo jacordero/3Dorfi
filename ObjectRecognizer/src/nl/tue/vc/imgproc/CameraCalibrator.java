@@ -3,7 +3,9 @@ package nl.tue.vc.imgproc;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 import javax.imageio.ImageIO;
 
@@ -22,6 +24,7 @@ import org.opencv.imgproc.Imgproc;
 
 import nl.tue.vc.application.utils.Utils;
 import nl.tue.vc.projection.ProjectionGenerator;
+import nl.tue.vc.projection.ProjectionMatrices;
 
 public class CameraCalibrator {
 
@@ -74,8 +77,21 @@ public class CameraCalibrator {
 		chessboardPatternSize = new Size(9, 6);
 	}
 	
+	public ProjectionGenerator calibrateMatrices(Map<String, Mat> calibrationImages, boolean debugProjectionParameters){
+		ProjectionGenerator projector = new ProjectionGenerator();
+		
+		for (String calibrationIndex: calibrationImages.keySet()){
+			Utils.debugNewLine("Calibration for " + calibrationIndex, true);
+			Mat calibrationImage = calibrationImages.get(calibrationIndex);
+			ProjectionMatrices projectionMatrices = calibrateForOneImage(calibrationImage, true);
+			projector.addProjectionMatrices(calibrationIndex, projectionMatrices);
+		}
+		
+		return projector;
+	}
 	
-	public ProjectionGenerator calibrate(Mat calibrationImage, boolean debugProjectionParameters) {
+	
+	private ProjectionMatrices calibrateForOneImage(Mat calibrationImage, boolean debugProjectionParameters) {
 
 		Mat grayImage = new Mat();			
 		if (calibrationImage.channels() == 3) {
@@ -143,7 +159,7 @@ public class CameraCalibrator {
 							intrinsicParameters, distorsionCoefficients);					
 				}
 				
-				return new ProjectionGenerator(rotationVector, translationVector, intrinsicParameters, distorsionCoefficients);
+				return new ProjectionMatrices(rotationVector, translationVector, intrinsicParameters, distorsionCoefficients);
 							}
 		}	
 		return null;
