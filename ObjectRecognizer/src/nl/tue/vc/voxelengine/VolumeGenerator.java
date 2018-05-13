@@ -561,6 +561,7 @@ public class VolumeGenerator {
 
 		return root2D;
 	}
+	
 
 	public IntersectionStatus testIntersection(Node node, int index) {
 
