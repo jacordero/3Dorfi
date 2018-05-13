@@ -10,6 +10,7 @@ import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.GridPane;
 import javafx.scene.paint.Color;
 import javafx.stage.Stage;
+import nl.tue.vc.application.utils.Utils;
 
 
 public class ProjectionView extends Application {
@@ -33,8 +34,8 @@ public class ProjectionView extends Application {
 			//visualPane.setMinWidth(545);
 			//visualPane.setMinHeight(380);
 			
-			System.out.println(visualPane.getHeight());
-			System.out.println(visualPane.getWidth());
+			//System.out.println(visualPane.getHeight());
+			//System.out.println(visualPane.getWidth());
 			
 			ProjectionViewController controller = loader.getController();
 			

@@ -1,5 +1,7 @@
 package nl.tue.vc.application.visual;
 
+import nl.tue.vc.application.utils.Utils;
+
 public class DistanceTransformGenerator {
 
 	private int[][] distanceMatrix;
@@ -19,7 +21,7 @@ public class DistanceTransformGenerator {
 			}
 		}
 		
-		System.out.println("Binary matrix dimension: rows = " + rows + ", columns = " + columns);
+		Utils.debugNewLine("Binary matrix dimension: rows = " + rows + ", columns = " + columns, false);
 	}
 	
 	public int[][] getDistanceTransform(){

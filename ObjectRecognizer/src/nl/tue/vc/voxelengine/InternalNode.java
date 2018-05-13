@@ -53,8 +53,8 @@ public class InternalNode extends Node{
 				
 				//positionCenterX = newParentCenter;
 				
-				Utils.debugNewLine("Parent center: [" + parentCenterX + ", " + parentCenterY + ", " + parentCenterZ + "]", true);
-				Utils.debugNewLine("Node center: [" + newParentCenterX + ", " + newParentCenterY + ", " + newParentCenterZ + "]",  true);
+				Utils.debugNewLine("Parent center: [" + parentCenterX + ", " + parentCenterY + ", " + parentCenterZ + "]", false);
+				Utils.debugNewLine("Node center: [" + newParentCenterX + ", " + newParentCenterY + ", " + newParentCenterZ + "]",  false);
 				
 				if (octreeHeight > 1){
 					children[i] = new InternalNode(childrenColors.get(i), childrenBoxSize, newParentCenterX, newParentCenterY, newParentCenterZ, octreeHeight - 1);
