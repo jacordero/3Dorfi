@@ -758,7 +758,7 @@ public class VolumeGenerator {
 		box.setTranslateZ(posz);
 
 		PhongMaterial textureMaterial = new PhongMaterial();
-		Color diffuseColor = nodeColor == Color.BLACK ? nodeColor: Color.TRANSPARENT;
+		Color diffuseColor = nodeColor == Color.WHITE ? Color.TRANSPARENT: nodeColor;
 		textureMaterial.setDiffuseColor(diffuseColor);
 		box.setMaterial(textureMaterial);
 		return box;
@@ -833,7 +833,7 @@ public class VolumeGenerator {
 			iterateCubesForVisualizationAux(root, octree.getLevels());
 		} else {
 			for (int i = 0; i < bufferedImagesForTest.size(); i++){				
-				BoundingBox boundingBox = getBoundingBox(root, i, 0);
+				BoundingBox boundingBox = getBoundingBox(root, i, i);
 				boundingBoxes.add(boundingBox);
 			}
 		}
@@ -931,16 +931,19 @@ public class VolumeGenerator {
 
 		Rectangle scaledRectangle = new Rectangle(leftMostPos, topMostPos, rightMostPos - leftMostPos,
 				bottomMostPos - topMostPos);
-		if (level == 1) {
-			scaledRectangle.setFill(Color.YELLOW);
-		} else if (level > 1) {
+		if (level == 0) {
+			scaledRectangle.setFill(Color.RED);
+			scaledRectangle.setStroke(Color.RED);
+		} else if (level >= 1) {
 			scaledRectangle.setFill(Color.BLUE);
+			scaledRectangle.setStroke(Color.BLACK);
 		} else {
 			scaledRectangle.setFill(Color.CHARTREUSE);
+			scaledRectangle.setStroke(Color.BLACK);
+
 		}
 		scaledRectangle.setFill(Color.TRANSPARENT);
 		// scaledRectangle.setFill(Color.YELLOW);
-		scaledRectangle.setStroke(Color.BLACK);
 
 		BoundingBox boundingBox = new BoundingBox();
 		boundingBox.setScaledRectangle(scaledRectangle);

@@ -43,10 +43,12 @@ public final class Utils
 	public static final int IMAGES_HEIGHT = 960;
 
 	public static final List<String> PROJECTION_MATRICES_IDS = Arrays.asList(
-			"deg-0",
-			"deg-90",
-			"deg-180",
-			"deg-270");
+			"deg-0", 
+			"deg-60",
+			"deg-120", 
+			"deg-180", 
+			"deg-240",
+			"deg-300");
 
 	
 	/**
@@ -156,17 +158,38 @@ public final class Utils
 	}
 		
 	public static Map<String, Mat> loadCalibrationImages(){
+		String prefix = "images/cameraTest/";
+		
 		Map<String, Mat> calibrationImages = new HashMap<String, Mat>();
-		Mat img = loadCalibrationImage("images/projectionTest/calibration/calibration0.jpg");
+		Mat img = loadCalibrationImage(prefix + "chessboard0.jpg");
 		calibrationImages.put("deg-0", img);
-		img = loadCalibrationImage("images/projectionTest/calibration/calibration90.jpg");
-		calibrationImages.put("deg-90", img);
-		img = loadCalibrationImage("images/projectionTest/calibration/calibration180.jpg");
+		//img = loadCalibrationImage(prefix + "chessboard30.jpg");
+		//calibrationImages.put("deg-30", img);
+		img = loadCalibrationImage(prefix + "chessboard60.jpg");
+		calibrationImages.put("deg-60", img);
+		//img = loadCalibrationImage(prefix + "chessboard90.jpg");
+		//calibrationImages.put("deg-90", img);
+		img = loadCalibrationImage(prefix + "chessboard120.jpg");
+		//calibrationImages.put("deg-120", img);
+		//img = loadCalibrationImage(prefix + "chessboard150.jpg");
+		calibrationImages.put("deg-150", img);
+		img = loadCalibrationImage(prefix + "chessboard180.jpg");
 		calibrationImages.put("deg-180", img);
-		img = loadCalibrationImage("images/projectionTest/calibration/calibration270.jpg");
-		calibrationImages.put("deg-270", img);
+		//img = loadCalibrationImage(prefix + "chessboard210.jpg");
+		//calibrationImages.put("deg-210", img);
+		img = loadCalibrationImage(prefix + "chessboard240.jpg");
+		calibrationImages.put("deg-240", img);
+		//img = loadCalibrationImage(prefix + "chessboard270.jpg");
+		//calibrationImages.put("deg-270", img);
+		img = loadCalibrationImage(prefix + "chessboard300.jpg");
+		calibrationImages.put("deg-300", img);
+		img = loadCalibrationImage(prefix + "chessboard330.jpg");
+		calibrationImages.put("deg-330", img);
+		
 		return calibrationImages;
 	}
+
+	
 	
 	private static Mat loadCalibrationImage(String calibrationImageFilename) {
 		BufferedImage bufferedImage = null;
