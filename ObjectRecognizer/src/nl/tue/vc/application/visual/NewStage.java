@@ -67,7 +67,7 @@ public class NewStage {
 		sourceArrays.add(sourceArray);
 		List<int[][]> transformedArrays = new ArrayList<int[][]>();
 		transformedArrays.add(transformedArray);
-		VolumeGenerator volGenerator = new VolumeGenerator(octree, boxParameters, sourceArrays, transformedArrays, -1);
+		VolumeGenerator volGenerator = null;//new VolumeGenerator(octree, boxParameters, sourceArrays, transformedArrays, -1);
 
 		Group root = volGenerator.getVolume();
 		// FlowPane root = new FlowPane();

@@ -13,8 +13,6 @@ public class ProjectionGenerator {
 
 	private Map<String, ProjectionMatrices> projectionMatricesMap;
 	
-	private String projectionIndex;
-	
 	private static final String DEFAULT_PROJECTION_INDEX = "deg-0";
 	
 	/**
@@ -24,26 +22,25 @@ public class ProjectionGenerator {
 	
 	public ProjectionGenerator(){
 		projectionMatricesMap = new HashMap<String, ProjectionMatrices>();
-		projectionIndex = DEFAULT_PROJECTION_INDEX;
 	}
 	
 	public ProjectionGenerator(Map<String, ProjectionMatrices> projectionMatricesMap){
 		this.projectionMatricesMap = projectionMatricesMap;
-		projectionIndex = DEFAULT_PROJECTION_INDEX;
 	}
 	
 	public void addProjectionMatrices(String projectionIndex, ProjectionMatrices matrices){
 		projectionMatricesMap.put(projectionIndex, matrices);
 	}
 	
-	public void setProjectionIndex(String projectionIndex){
-		this.projectionIndex = projectionIndex;
+	public MatOfPoint2f projectPoints(MatOfPoint3f pointsToProject){
+		return projectPoints(pointsToProject, DEFAULT_PROJECTION_INDEX);
 	}
 	
-	public MatOfPoint2f projectPoints(MatOfPoint3f pointsToProject) {
+	public MatOfPoint2f projectPoints(MatOfPoint3f pointsToProject, String projectionMatricesIndex) {
+		
 		ProjectionMatrices projectionMatrices;
-		if (projectionMatricesMap.get(projectionIndex) != null){
-			projectionMatrices = projectionMatricesMap.get(projectionIndex);
+		if (projectionMatricesMap.get(projectionMatricesIndex) != null){
+			projectionMatrices = projectionMatricesMap.get(projectionMatricesIndex);
 		} else {
 			projectionMatrices = projectionMatricesMap.get(DEFAULT_PROJECTION_INDEX);
 		}

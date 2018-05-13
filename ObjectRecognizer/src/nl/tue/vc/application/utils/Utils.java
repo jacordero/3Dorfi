@@ -7,6 +7,7 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -32,9 +33,21 @@ import javafx.scene.image.Image;
  * @since 1.0 (2016-09-17)
  *
  */
+
+
 public final class Utils
 {
 	
+	public static final int IMAGES_WIDTH = 1280;
+	
+	public static final int IMAGES_HEIGHT = 960;
+
+	public static final List<String> PROJECTION_MATRICES_IDS = Arrays.asList(
+			"deg-0",
+			"deg-90",
+			"deg-180",
+			"deg-270");
+
 	
 	/**
 	 * Convert a Mat object (OpenCV) in the corresponding Image for JavaFX
@@ -141,7 +154,7 @@ public final class Utils
 	        out.put(0, 0, data);
 	        return out;
 	}
-	
+		
 	public static Map<String, Mat> loadCalibrationImages(){
 		Map<String, Mat> calibrationImages = new HashMap<String, Mat>();
 		Mat img = loadCalibrationImage("images/projectionTest/calibration/calibration0.jpg");

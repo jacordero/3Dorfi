@@ -8,6 +8,7 @@ import java.text.DecimalFormat;
 import java.text.NumberFormat;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 import javax.imageio.ImageIO;
 
@@ -38,7 +39,7 @@ public class OctreeProjectionTest {
 	
 	private static final String CALIBRATION_IMAGE = "images/calibrationImage.png";
 	
-	private Mat calibrationImage;
+	private Map<String, Mat> calibrationImages;
 	
 	private OctreeTest octree;
 	
@@ -47,12 +48,11 @@ public class OctreeProjectionTest {
 	private List<Rectangle> boundingBoxes;
 	
 	public OctreeProjectionTest(){
-		calibrationImage = loadCalibrationImage();
+		calibrationImages = Utils.loadCalibrationImages();
 		octree = generateOctree();
 		System.out.println(octree);
 		cameraCalibrator = new CameraCalibrator();
-		assert false;
-		projectionGenerator = null;//cameraCalibrator.calibrateSingleMatrix(calibrationImage, true);
+		projectionGenerator = cameraCalibrator.calibrateMatrices(calibrationImages, true);
 		projectedPoints = new ArrayList<Point>();
 		boundingBoxes = new ArrayList<Rectangle>();
 	}
@@ -100,7 +100,7 @@ public class OctreeProjectionTest {
 		rotation.play();
 		**/
 		
-		SubScene subScene = new SubScene(root2D, calibrationImage.cols()/2, calibrationImage.rows()/2, true, SceneAntialiasing.BALANCED);		
+		SubScene subScene = new SubScene(root2D, Utils.IMAGES_WIDTH/2, Utils.IMAGES_WIDTH/2, true, SceneAntialiasing.BALANCED);		
 		
 		PerspectiveCamera perspectiveCamera = new PerspectiveCamera(false);
 		perspectiveCamera.setTranslateX(140);
@@ -135,7 +135,7 @@ public class OctreeProjectionTest {
 			Utils.debugNewLine(infoStr, false);
 		}
 		
-		Rectangle boundingBox = computeBoundingBox(projections, calibrationImage.cols(), calibrationImage.rows(), level);
+		Rectangle boundingBox = computeBoundingBox(projections, Utils.IMAGES_WIDTH, Utils.IMAGES_WIDTH, level);
 		boundingBox.setStroke(Color.BLACK);
 
 		boundingBoxes.add(boundingBox);
@@ -229,9 +229,7 @@ public class OctreeProjectionTest {
 	}
 	
 	public void calibrateCamera(){
-		//TODO: fix this
-		assert false;
-		projectionGenerator = null;//cameraCalibrator.calibrateSingleMatrix(calibrationImage, true);
+		projectionGenerator = cameraCalibrator.calibrateMatrices(calibrationImages, true);
 	}
 	
 	public List<Rectangle> getBoundingBoxes(){

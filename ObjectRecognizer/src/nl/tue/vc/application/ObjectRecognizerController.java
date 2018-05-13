@@ -250,9 +250,7 @@ public class ObjectRecognizerController {
 
 	private CameraCalibrator cameraCalibrator;
 
-	private ProjectionGenerator projector;
-
-	private Map<String, ProjectionGenerator> projectors;
+	private ProjectionGenerator projectionGenerator;
 	
 	private List<String> projectorPerSilhouette;
 	
@@ -298,6 +296,7 @@ public class ObjectRecognizerController {
 		calibrationIndices.add("deg-90");
 		calibrationIndices.add("deg-180");
 		calibrationIndices.add("deg-270");
+		projectionGenerator = null;
 	}
 
 	@FXML
@@ -964,7 +963,7 @@ public class ObjectRecognizerController {
 		Utils.debugNewLine("*** Calibrating camera to find extrinsic parameters ***", true);
 		Utils.debugNewLine("Calibration images Map size: " + calibrationImagesMap.size(), true);
 		if (!calibrationImagesMap.isEmpty()) {
-			projector = cameraCalibrator.calibrateMatrices(calibrationImagesMap, true);
+			projectionGenerator = cameraCalibrator.calibrateMatrices(calibrationImagesMap, true);
 			//projector = cameraCalibrator.calibrateSingleMatrix(calibrationImage, true);
 		} else {
 			Utils.debugNewLine("*** Load calibration images ***", true);
@@ -1115,6 +1114,7 @@ public class ObjectRecognizerController {
 		volumeGenerator.setTransformedArrays(this.transformedArrays);
 		volumeGenerator.setFieldOfView(this.fieldOfView);
 		volumeGenerator.setTransformMatrices(this.transformMatrices);
+		volumeGenerator.setProjectionGenerator(projectionGenerator);
 		volumeRenderer.generateVolumeScene(volumeGenerator.generateVolume());
 		rootGroup.setCenter(volumeRenderer.getSubScene());
 	}

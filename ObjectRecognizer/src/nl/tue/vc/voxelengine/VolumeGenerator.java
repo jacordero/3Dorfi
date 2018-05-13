@@ -47,6 +47,7 @@ public class VolumeGenerator {
 	private CameraCalibrator cameraCalibrator;
 	private ProjectionGenerator projectionGenerator;
 	
+	private List<String> projectionMatricesForImages;
 	private Map<String, Mat> calibrationImages;
 	private List<ProjectedPoint> projectedPoints;
 	private List<BoundingBox> boundingBoxes;
@@ -58,7 +59,7 @@ public class VolumeGenerator {
 	private TransformMatrices transformMatrices;
 	private int fieldOfView;
 	private int octreeHeight;
-
+		
 	public VolumeGenerator(Octree octree, BoxParameters boxParameters) {
 		this.octree = octree;
 		this.bufferedImagesForTest = new ArrayList<BufferedImage>();
@@ -67,18 +68,12 @@ public class VolumeGenerator {
 		this.transformMatrices = new TransformMatrices(400, 290, fieldOfView);
 		transformedInvertedArrays = new ArrayList<int[][]>();
 		transformedArrays = new ArrayList<int[][]>();
-
 		System.out.println(octree);
 		projectedPoints = new ArrayList<ProjectedPoint>();
 		boundingBoxes = new ArrayList<BoundingBox>();
 		octreeHeight = -1;
-	}
-
-	private void calibrateCameraParameters(){
-		calibrationImages = Utils.loadCalibrationImages();
-		cameraCalibrator = new CameraCalibrator();
-		projectionGenerator = cameraCalibrator.calibrateMatrices(calibrationImages, true);
-		
+		projectionGenerator = null;
+		projectionMatricesForImages = new ArrayList<String>();
 	}
 	
 	public VolumeGenerator(Octree octree, BoxParameters boxParameters, List<int[][]> transformedInvertedBinArrays,
@@ -93,18 +88,41 @@ public class VolumeGenerator {
 		this.transformedArrays = transformedBinaryArrays;
 		this.fieldOfView = 32;
 		this.transformMatrices = new TransformMatrices(400, 290, fieldOfView);
-
-		calibrationImages = Utils.loadCalibrationImages();
 		System.out.println(octree);
-		cameraCalibrator = new CameraCalibrator();
-		assert false;
 		projectionGenerator = null;//cameraCalibrator.calibrateMultipleMatrices(calibrationImages, true);
 		projectedPoints = new ArrayList<ProjectedPoint>();
 		boundingBoxes = new ArrayList<BoundingBox>();
 		this.octreeHeight = octreeHeight;
+		projectionGenerator = null;
+		projectionMatricesForImages = new ArrayList<String>();
 	}
 
+	public void setProjectionGenerator(ProjectionGenerator projectionGenerator){
+		this.projectionGenerator = projectionGenerator;
+	}
+		
+	// TODO: make the calibration matrices id values be automatically detected
+	private void buildProjectionGenerator(){
+		calibrationImages = Utils.loadCalibrationImages();
+		cameraCalibrator = new CameraCalibrator();
+		Map<String, Mat> calibrationImages = Utils.loadCalibrationImages();
+		projectionGenerator = cameraCalibrator.calibrateMatrices(calibrationImages, true);
+		
+		int index = 0;
+		for (int i = 0; i < transformedArrays.size(); i++){
+			projectionMatricesForImages.add(Utils.PROJECTION_MATRICES_IDS.get(index));
+			index++;
+			if (index >= calibrationImages.keySet().size()){
+				index = 0;
+			}
+		}
+	}
+	
 	public Group generateVolume() {
+		if (projectionGenerator == null){
+			buildProjectionGenerator();
+		}
+		
 		Group volume = new Group();
 		// Node root = octree.generateOctreeFractal(0);
 		Node root = octree.getRoot();
@@ -124,10 +142,11 @@ public class VolumeGenerator {
 
 		long lStartTime = System.nanoTime();
 		
-		projectCubes();
+		projectCubesForVisualization();
 		if (octreeHeight <= 3){
 			volume.getChildren().addAll(getProjectedVolume());			
 		}
+		
 
 		long lEndTime = System.nanoTime();
 		long output = lEndTime - lStartTime;
@@ -135,6 +154,8 @@ public class VolumeGenerator {
 		
 		// start
 		lStartTime = System.nanoTime();
+		
+		// here we are supposed to use the multiple images			
 		root = getTestedNodeAux(root);
 		// end
 		lEndTime = System.nanoTime();
@@ -334,8 +355,8 @@ public class VolumeGenerator {
 		Rectangle imageRect = new Rectangle();
 		imageRect.setX(0);
 		imageRect.setY(0);
-		imageRect.setWidth(calibrationImages.get("deg-0").cols() / 2);
-		imageRect.setHeight(calibrationImages.get("deg-0").rows() / 2);
+		imageRect.setWidth(Utils.IMAGES_WIDTH / 2);
+		imageRect.setHeight(Utils.IMAGES_HEIGHT / 2);
 		System.out.println("img width: " + imageRect.getWidth() + ", height: " + imageRect.getHeight());
 		imageRect.setFill(new ImagePattern(img));
 		imageRect.setStroke(Color.BLACK);
@@ -568,13 +589,14 @@ public class VolumeGenerator {
 		return root2D;
 	}
 
-	public IntersectionStatus testIntersection(Node node, int index) {
+	public IntersectionStatus testIntersection(Node node, int imgIndex) {
 
-		BoundingBox boundingBox = getBoundingBox(node, 0);
+		Utils.debugNewLine(">> testIntersection: imgIndex = " + imgIndex, false);
+		BoundingBox boundingBox = getBoundingBox(node, imgIndex, 0);
 		Rectangle boundingRectangle = boundingBox.getUnScaledRectangle();
 		IntersectionStatus status = IntersectionStatus.INSIDE;
-		int[][] transformedArray = transformedArrays.get(index);
-		int[][] transformedInvertedArray = transformedInvertedArrays.get(index);
+		int[][] transformedArray = transformedArrays.get(imgIndex);
+		int[][] transformedInvertedArray = transformedInvertedArrays.get(imgIndex);
 		int xVal = (int) boundingRectangle.getX();
 		int yVal = (int) (boundingRectangle.getY() + boundingRectangle.getHeight());
 		int arrayRows = transformedArray.length;
@@ -596,7 +618,7 @@ public class VolumeGenerator {
 			yVal = arrayRows - 1;
 		}
 
-		Utils.debugNewLine("xVal = " + xVal + ", yVal = " + yVal, true);
+		Utils.debugNewLine("xVal = " + xVal + ", yVal = " + yVal, false);
 
 		int transformedValue = transformedArray[yVal][xVal];
 		int transformedInvertedValue = transformedInvertedArray[yVal][xVal];
@@ -735,7 +757,7 @@ public class VolumeGenerator {
 		box.setTranslateZ(posz);
 
 		PhongMaterial textureMaterial = new PhongMaterial();
-		Color diffuseColor = nodeColor;
+		Color diffuseColor = nodeColor == Color.BLACK ? nodeColor: Color.TRANSPARENT;
 		textureMaterial.setDiffuseColor(diffuseColor);
 		box.setMaterial(textureMaterial);
 		return box;
@@ -778,7 +800,7 @@ public class VolumeGenerator {
 		 * corner4.setFill(Color.BLUE); root2D.getChildren().add(corner4);
 		 **/
 
-		SubScene subScene = new SubScene(root2D, calibrationImages.get("deg-0").cols() / 2, calibrationImages.get("deg-0").rows() / 2, true,
+		SubScene subScene = new SubScene(root2D, Utils.IMAGES_WIDTH / 2, Utils.IMAGES_HEIGHT / 2, true,
 				SceneAntialiasing.BALANCED);
 
 		PerspectiveCamera perspectiveCamera = new PerspectiveCamera(false);
@@ -799,23 +821,30 @@ public class VolumeGenerator {
 		return subScene;
 	}
 
-	public void projectCubes() {
-		Node root = octree.getRoot();
+	public void projectCubesForVisualization() {
 
 		// start
 		long lStartTime = System.nanoTime();
-
-		iterateCubesAux(root, octree.getLevels());
-
+		Node root = octree.getRoot();
+		boundingBoxes.clear();
+		
+		if (bufferedImagesForTest.size() == 1){
+			iterateCubesForVisualizationAux(root, octree.getLevels());
+		} else {
+			for (int i = 0; i < bufferedImagesForTest.size(); i++){				
+				BoundingBox boundingBox = getBoundingBox(root, i, 0);
+				boundingBoxes.add(boundingBox);
+			}
+		}
+		
 		// end
 		long lEndTime = System.nanoTime();
-
 		// time elapsed
 		long output = lEndTime - lStartTime;
-		System.out.println("Elapsed time for iterateCubesAux in milliseconds: " + output / 1000000);
+		Utils.debugNewLine("Elapsed time for iterateCubesForVisualizationAux in milliseconds: " + output / 1000000, true);
 	}
 
-	public void iterateCubesAux(Node node, int level) {
+	public void iterateCubesForVisualizationAux(Node node, int level) {
 
 		MatOfPoint3f encodedCorners = node.getCorners();
 		List<Point3> corners = encodedCorners.toList();
@@ -836,9 +865,8 @@ public class VolumeGenerator {
 			Utils.debugNewLine(infoStr, false);
 		}
 
-		assert false;
-		BoundingBox boundingBox = null;//computeBoundingBox(projections, calibrationImage.cols(), calibrationImage.rows(),
-				//level);
+		
+		BoundingBox boundingBox = computeBoundingBox(projections, Utils.IMAGES_WIDTH, Utils.IMAGES_HEIGHT, level);
 
 		boundingBoxes.add(boundingBox);
 
@@ -855,7 +883,7 @@ public class VolumeGenerator {
 		if (!node.isLeaf()) {
 			Utils.debugNewLine("\n********** Projecting children *************", false);
 			for (Node children : node.getChildren()) {
-				iterateCubesAux(children, level + 1);
+				iterateCubesForVisualizationAux(children, level + 1);
 			}
 		}
 
@@ -920,8 +948,7 @@ public class VolumeGenerator {
 	}
 
 	public void calibrateCamera() {
-		assert false;
-		projectionGenerator = null;//cameraCalibrator.calibrateSingleMatrix(calibrationImage, true);
+		projectionGenerator = cameraCalibrator.calibrateMatrices(calibrationImages, true);
 	}
 
 	public List<BoundingBox> getBoundingBoxes() {
@@ -935,6 +962,7 @@ public class VolumeGenerator {
 	public Group getProjectedVolume() {
 		Group root2D = new Group();
 
+		Utils.debugNewLine("Projected points length: " + projectedPoints.size(), true);		
 		for (ProjectedPoint projection : projectedPoints) {
 			Ellipse circle = new Ellipse(projection.getScaledX(), projection.getScaledY(), 5, 5);
 			circle.setFill(Color.RED);
@@ -959,7 +987,7 @@ public class VolumeGenerator {
 		 * corner4.setFill(Color.BLUE); root2D.getChildren().add(corner4);
 		 **/
 
-		Utils.debugNewLine("Bounding boxes length: " + boundingBoxes.size(), false);
+		Utils.debugNewLine("Bounding boxes length: " + boundingBoxes.size(), true);
 		for (BoundingBox boundingBox : boundingBoxes) {
 			// Ellipse circle = new Ellipse(boundingBox.getScaledRectangle().getX(),
 			// (boundingBox.getScaledRectangle().getY()+boundingBox.getScaledRectangle().getHeight()),
@@ -984,14 +1012,15 @@ public class VolumeGenerator {
 
 	}
 
-	public BoundingBox getBoundingBox(Node node, int level) {
+	public BoundingBox getBoundingBox(Node node, int imageToProcessId, int level) {
+		
+		Utils.debugNewLine("Computing bounding box for image: " + imageToProcessId + ", projection matrix id: " + projectionMatricesForImages.get(imageToProcessId), false);
+		
 		MatOfPoint3f encodedCorners = node.getCorners();
-		MatOfPoint2f encodedProjections = projectionGenerator.projectPoints(encodedCorners);
+		MatOfPoint2f encodedProjections = projectionGenerator.projectPoints(encodedCorners, projectionMatricesForImages.get(imageToProcessId));
 		List<ProjectedPoint> projections = projectionsAsList(encodedProjections);
 
-		assert false;
-		BoundingBox boundingBox = null;//computeBoundingBox(projections, calibrationImage.cols(), calibrationImage.rows(),
-				//level);
+		BoundingBox boundingBox = computeBoundingBox(projections, Utils.IMAGES_WIDTH, Utils.IMAGES_HEIGHT, level);
 		return boundingBox;
 	}
 
