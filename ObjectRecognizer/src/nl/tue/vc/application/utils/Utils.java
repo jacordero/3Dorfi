@@ -3,6 +3,16 @@ package nl.tue.vc.application.utils;
 import java.awt.image.BufferedImage;
 import java.awt.image.DataBufferByte;
 import java.io.ByteArrayInputStream;
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+import javax.imageio.ImageIO;
 
 import org.opencv.core.CvType;
 import org.opencv.core.Mat;
@@ -23,8 +33,22 @@ import javafx.scene.image.Image;
  * @since 1.0 (2016-09-17)
  *
  */
+
+
 public final class Utils
 {
+	
+	public static final int IMAGES_WIDTH = 1280;
+	
+	public static final int IMAGES_HEIGHT = 960;
+
+	public static final List<String> PROJECTION_MATRICES_IDS = Arrays.asList(
+			"deg-0",
+			"deg-90",
+			"deg-180",
+			"deg-270");
+
+	
 	/**
 	 * Convert a Mat object (OpenCV) in the corresponding Image for JavaFX
 	 *
@@ -130,6 +154,38 @@ public final class Utils
 	        out.put(0, 0, data);
 	        return out;
 	}
+		
+	public static Map<String, Mat> loadCalibrationImages(){
+		Map<String, Mat> calibrationImages = new HashMap<String, Mat>();
+		Mat img = loadCalibrationImage("images/projectionTest/calibration/calibration0.jpg");
+		calibrationImages.put("deg-0", img);
+		img = loadCalibrationImage("images/projectionTest/calibration/calibration90.jpg");
+		calibrationImages.put("deg-90", img);
+		img = loadCalibrationImage("images/projectionTest/calibration/calibration180.jpg");
+		calibrationImages.put("deg-180", img);
+		img = loadCalibrationImage("images/projectionTest/calibration/calibration270.jpg");
+		calibrationImages.put("deg-270", img);
+		return calibrationImages;
+	}
+	
+	private static Mat loadCalibrationImage(String calibrationImageFilename) {
+		BufferedImage bufferedImage = null;
+		Utils.debugNewLine("Loading calibration image: " + calibrationImageFilename, true);
+		try {
+			bufferedImage = ImageIO.read(new File(calibrationImageFilename));
+		} catch (FileNotFoundException e) {
+			e.printStackTrace();
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+
+		Mat calibrationImage = null;
+		if (bufferedImage != null) {
+			calibrationImage = Utils.bufferedImageToMat(bufferedImage);
+		}
+		return calibrationImage;
+	}
+
 	
 	
 	public static void debug(String str, boolean printInfo) {
