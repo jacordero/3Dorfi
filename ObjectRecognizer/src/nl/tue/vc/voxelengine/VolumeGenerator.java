@@ -211,12 +211,14 @@ public class VolumeGenerator {
 				}
 				currentNode.setColor(boxColor);
 			} else {
-				Node[] children = currentNode.getChildren();
-				for (int i = 0; i < children.length; i++) {
-					Node childNode = children[i];
-					if (childNode != null) {
-						childNode = getTestedNodeAux(childNode);
-						currentNode.setChildNode(childNode, i);
+				if(currentNode.getColor()==Color.GRAY) {
+					Node[] children = currentNode.getChildren();
+					for (int i = 0; i < children.length; i++) {
+						Node childNode = children[i];
+						if (childNode != null) {
+							childNode = getTestedNodeAux(childNode);
+							currentNode.setChildNode(childNode, i);
+						}
 					}
 				}
 			}
@@ -1020,7 +1022,7 @@ public class VolumeGenerator {
 			else
 				result = currentColor;
 		} else {
-			result = newColor;
+			result = currentColor;
 		}
 
 		return result;
