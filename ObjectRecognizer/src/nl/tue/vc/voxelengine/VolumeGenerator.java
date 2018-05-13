@@ -58,8 +58,8 @@ public class VolumeGenerator {
 	private List<BufferedImage> bufferedImagesForTest;
 	private TransformMatrices transformMatrices;
 	private int fieldOfView;
-	private int octreeHeight;
-		
+	private int octreeHeight;	
+	
 	public VolumeGenerator(Octree octree, BoxParameters boxParameters) {
 		this.octree = octree;
 		this.bufferedImagesForTest = new ArrayList<BufferedImage>();
@@ -105,10 +105,11 @@ public class VolumeGenerator {
 	private void buildProjectionGenerator(){
 		calibrationImages = Utils.loadCalibrationImages();
 		cameraCalibrator = new CameraCalibrator();
-		Map<String, Mat> calibrationImages = Utils.loadCalibrationImages();
+		//Map<String, Mat> calibrationImages = Utils.loadCalibrationImages();
 		projectionGenerator = cameraCalibrator.calibrateMatrices(calibrationImages, true);
 		
 		int index = 0;
+		Utils.debugNewLine("transformed arrays size: " + transformedArrays.size(), true);
 		for (int i = 0; i < transformedArrays.size(); i++){
 			projectionMatricesForImages.add(Utils.PROJECTION_MATRICES_IDS.get(index));
 			index++;
@@ -157,6 +158,8 @@ public class VolumeGenerator {
 		
 		// here we are supposed to use the multiple images			
 		root = getTestedNodeAux(root);
+		octree.setRoot(root);
+		
 		// end
 		lEndTime = System.nanoTime();
 
@@ -247,15 +250,24 @@ public class VolumeGenerator {
 
 				}
 				currentNode.setColor(boxColor);
-			} else {
+			} else if ((currentNode.getColor() != Color.WHITE) && (currentNode.getColor() != Color.BLACK)){
 				Node[] children = currentNode.getChildren();
+				//boolean paintAsBlack = true;
 				for (int i = 0; i < children.length; i++) {
 					Node childNode = children[i];
-					if (childNode != null) {
+					if (childNode != null && (childNode.getColor() != Color.BLACK && childNode.getColor() != Color.WHITE)) {
 						childNode = getTestedNodeAux(childNode);
 						currentNode.setChildNode(childNode, i);
+						//if (childNode.getColor() != Color.BLACK){
+						//	paintAsBlack = false;
+						//}
 					}
 				}
+				
+				// all children are black or white
+				//if (paintAsBlack){
+				//	currentNode.setColor(Color.BLACK);
+				//}
 			}
 		}
 		return currentNode;
@@ -759,6 +771,7 @@ public class VolumeGenerator {
 
 		PhongMaterial textureMaterial = new PhongMaterial();
 		Color diffuseColor = nodeColor == Color.WHITE ? Color.TRANSPARENT: nodeColor;
+		//Color diffuseColor = nodeColor == Color.BLACK ? nodeColor : Color.TRANSPARENT;
 		textureMaterial.setDiffuseColor(diffuseColor);
 		box.setMaterial(textureMaterial);
 		return box;
@@ -830,7 +843,7 @@ public class VolumeGenerator {
 		boundingBoxes.clear();
 		
 		if (bufferedImagesForTest.size() == 1){
-			iterateCubesForVisualizationAux(root, octree.getLevels());
+			iterateCubesForVisualizationAux(root, octree.getOctreeHeight());
 		} else {
 			for (int i = 0; i < bufferedImagesForTest.size(); i++){				
 				BoundingBox boundingBox = getBoundingBox(root, i, i);
@@ -1116,6 +1129,10 @@ public class VolumeGenerator {
 
 	public void setTransformMatrices(TransformMatrices transformMatrices) {
 		this.transformMatrices = transformMatrices;
+	}
+	
+	public Octree getOctree(){
+		return octree;
 	}
 
 }

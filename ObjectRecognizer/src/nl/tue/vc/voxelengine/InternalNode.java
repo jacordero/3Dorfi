@@ -113,4 +113,26 @@ public class InternalNode extends Node{
 		}
 		return builder.toString();
 	}
+	
+	/**
+	 * deltaHeight corresponds to the levels of splitting that are going to be done at the leaf level
+	 */
+	@Override
+	public Node splitNode(int deltaHeight){
+		if (deltaHeight > 0){
+			Utils.debugNewLine("++++++++++ split internal node", false);
+			Node[] splittedChildren = new Node[8];
+			if (children != null){
+				for (int i = 0; i < children.length; i++){
+					if (children[i] != null && children[i].getColor() == Color.GRAY){
+						splittedChildren[i] = children[i].splitNode(deltaHeight);
+					} else {
+						splittedChildren[i] = children[i];
+					}
+				}
+			}
+			children = splittedChildren;			
+		}
+		return this;
+	}
 }

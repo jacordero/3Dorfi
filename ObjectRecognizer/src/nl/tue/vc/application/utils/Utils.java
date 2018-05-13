@@ -170,9 +170,9 @@ public final class Utils
 		//img = loadCalibrationImage(prefix + "chessboard90.jpg");
 		//calibrationImages.put("deg-90", img);
 		img = loadCalibrationImage(prefix + "chessboard120.jpg");
-		//calibrationImages.put("deg-120", img);
+		calibrationImages.put("deg-120", img);
 		//img = loadCalibrationImage(prefix + "chessboard150.jpg");
-		calibrationImages.put("deg-150", img);
+		//calibrationImages.put("deg-150", img);
 		img = loadCalibrationImage(prefix + "chessboard180.jpg");
 		calibrationImages.put("deg-180", img);
 		//img = loadCalibrationImage(prefix + "chessboard210.jpg");
@@ -183,8 +183,8 @@ public final class Utils
 		//calibrationImages.put("deg-270", img);
 		img = loadCalibrationImage(prefix + "chessboard300.jpg");
 		calibrationImages.put("deg-300", img);
-		img = loadCalibrationImage(prefix + "chessboard330.jpg");
-		calibrationImages.put("deg-330", img);
+		//img = loadCalibrationImage(prefix + "chessboard330.jpg");
+		//calibrationImages.put("deg-330", img);
 		
 		return calibrationImages;
 	}
@@ -193,7 +193,7 @@ public final class Utils
 	
 	private static Mat loadCalibrationImage(String calibrationImageFilename) {
 		BufferedImage bufferedImage = null;
-		Utils.debugNewLine("Loading calibration image: " + calibrationImageFilename, true);
+		Utils.debugNewLine("Loading calibration image: " + calibrationImageFilename, false);
 		try {
 			bufferedImage = ImageIO.read(new File(calibrationImageFilename));
 		} catch (FileNotFoundException e) {

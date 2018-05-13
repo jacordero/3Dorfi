@@ -152,6 +152,8 @@ public abstract class Node {
 	
 	abstract void setChildNode(Node childNode, int childIndex);
 	
+	abstract public Node splitNode(int levels);
+	
 	@Override
 	public String toString() {
 		return "{BoxSize: " + boxSize + ", centerX: " + positionCenterX + ", centerY: " + positionCenterY + ", centerZ: " + positionCenterZ + ", Color: " + color.toString() +"}";
