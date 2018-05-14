@@ -37,7 +37,7 @@ public class Octree {
 		this.centerY = boxParams.getCenterY();
 		this.centerZ = boxParams.getCenterZ();
 		this.octreeHeight = octreeHeight;
-		this.node = constructRootNode(Color.BLACK, boxSize, this.centerX, this.centerY, this.centerZ, this.octreeHeight);
+		this.node = constructRootNode(NodeColor.BLACK, boxSize, this.centerX, this.centerY, this.centerZ, this.octreeHeight);
 		root = node;
 		//root = generateOctreeFractal(this.levels);
 		this.octreeVolume = new Group();
@@ -50,7 +50,7 @@ public class Octree {
 		this.centerY = centerValY;
 		this.centerZ = centerValZ;
 		this.octreeHeight = octreeHeight;
-		this.node = constructRootNode(Color.BLACK, boxSize, centerX, centerY, centerZ, octreeHeight);
+		this.node = constructRootNode(NodeColor.BLACK, boxSize, centerX, centerY, centerZ, octreeHeight);
 		root = node;		
 		this.octreeVolume = new Group();
 		this.boxParameters = new BoxParameters();
@@ -72,7 +72,7 @@ public class Octree {
 		
 	}
 
-	private Node constructRootNode(Color nodeColor, double boxSize, double centerX, double centerY, double centerZ, int octreeHeight){
+	private Node constructRootNode(NodeColor nodeColor, double boxSize, double centerX, double centerY, double centerZ, int octreeHeight){
 		if (octreeHeight > 0){
 			return new InternalNode(nodeColor, boxSize, centerX, centerY, centerZ, octreeHeight);
 		} else {
@@ -111,7 +111,7 @@ public class Octree {
 		if (level == 0) {
 			return generateInternalNode(nodesBoxSize);
 		} else {
-			Node internalNode = new InternalNode(Color.BLACK, nodesBoxSize);
+			Node internalNode = new InternalNode(NodeColor.BLACK, nodesBoxSize);
 			// create node 0
 			internalNode.getChildren()[0] = generateOctreeFractalAux(level - 1);
 
@@ -143,28 +143,28 @@ public class Octree {
 
 	private Node generateInternalNode(double nodesBoxSize) {
 
-		node.getChildren()[0] = new Leaf(Color.BLACK, nodesBoxSize/2);
+		node.getChildren()[0] = new Leaf(NodeColor.BLACK, nodesBoxSize/2);
 
 		// create node 1
-		node.getChildren()[1] = new Leaf(Color.RED, nodesBoxSize/2);
+		node.getChildren()[1] = new Leaf(NodeColor.GRAY, nodesBoxSize/2);
 
 		// create node 2
-		node.getChildren()[2] = new Leaf(Color.GREEN, nodesBoxSize/2);
+		node.getChildren()[2] = new Leaf(NodeColor.WHITE, nodesBoxSize/2);
 
 		// create node 3
-		node.getChildren()[3] = new Leaf(Color.YELLOW, nodesBoxSize/2);
+		node.getChildren()[3] = new Leaf(NodeColor.GRAY, nodesBoxSize/2);
 
 		// create node 4
-		node.getChildren()[4] = new Leaf(Color.GRAY, nodesBoxSize/2);
+		node.getChildren()[4] = new Leaf(NodeColor.BLACK, nodesBoxSize/2);
 
 		// create node 5
-		node.getChildren()[5] = new Leaf(Color.BROWN, nodesBoxSize/2);
+		node.getChildren()[5] = new Leaf(NodeColor.GRAY, nodesBoxSize/2);
 
 		// create node 6
-		node.getChildren()[6] = new Leaf(Color.CYAN, nodesBoxSize/2);
+		node.getChildren()[6] = new Leaf(NodeColor.WHITE, nodesBoxSize/2);
 
 		// create node 7
-		node.getChildren()[7] = new Leaf(Color.ORANGE, nodesBoxSize/2);
+		node.getChildren()[7] = new Leaf(NodeColor.GRAY, nodesBoxSize/2);
 
 		return node;
 	}
