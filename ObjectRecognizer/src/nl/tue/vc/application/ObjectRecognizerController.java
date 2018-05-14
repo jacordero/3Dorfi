@@ -286,7 +286,7 @@ public class ObjectRecognizerController {
 		calibrationTimerActive = false;
 		transformMatrices = new TransformMatrices(sceneWidth, sceneHeight, 32.3);
 		cameraCalibrator = new CameraCalibrator();
-		this.boxSize = 15;// 11;//Integer.parseInt(this.boxSizeField.getText());
+		this.boxSize = 12;
 		this.levels = 0;// Integer.parseInt(this.levelsField.getText());
 		this.centerX = 4;
 		this.centerY = 1;
@@ -1113,6 +1113,7 @@ public class ObjectRecognizerController {
 			Utils.debugNewLine("++++++++++++++++++++++++ Creating octree", true);
 		} else {
 			Utils.debugNewLine("++++++++++++++++++++++++ Updating octree", true);
+			octree.setBoxParameters(volumeBoxParameters);
 			octree.splitNodes(this.levels);
 		}
 

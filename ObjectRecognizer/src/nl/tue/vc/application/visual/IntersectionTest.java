@@ -224,10 +224,4 @@ public class IntersectionTest {
 		return bi;
 	}
 
-	public static Octree testIntersection(Octree octree) {
-
-		octree.getInernalNode().getChildren()[4].setColor(NodeColor.GRAY);
-		return octree;
-	}
-
 }

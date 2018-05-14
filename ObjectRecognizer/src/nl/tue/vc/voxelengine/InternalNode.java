@@ -14,7 +14,7 @@ public class InternalNode extends Node{
 	//private NodeColor[] colors = {NodeColor.BLACK, NodeColor.BLACK, NodeColor.BLACK, NodeColor.WHITE,
 	//		NodeColor.BLACK, NodeColor.BLACK, NodeColor.BLACK, NodeColor.WHITE};
 	
-	public InternalNode(NodeColor color, double boxSize, double parentCenterX, double parentCenterY, double parentCenterZ, int octreeHeight) {
+	public InternalNode(Color color, double boxSize, double parentCenterX, double parentCenterY, double parentCenterZ, int octreeHeight) {
 		this.color = color;
 		children = new Node[8];	
 		this.boxSize = boxSize;
@@ -33,15 +33,15 @@ public class InternalNode extends Node{
 			children = null;
 		} else {
 			double childrenBoxSize = boxSize / 2;
-			List<NodeColor> childrenColors = new ArrayList<NodeColor>();
-			childrenColors.add(NodeColor.GREEN);
-			childrenColors.add(NodeColor.RED);
-			childrenColors.add(NodeColor.YELLOW);
-			childrenColors.add(NodeColor.BROWN);
-			childrenColors.add(NodeColor.ORANGE);
-			childrenColors.add(NodeColor.CYAN);
-			childrenColors.add(NodeColor.BLUE);
-			childrenColors.add(NodeColor.MAGENTA);
+			List<Color> childrenColors = new ArrayList<Color>();
+			childrenColors.add(Color.GREEN);
+			childrenColors.add(Color.RED);
+			childrenColors.add(Color.YELLOW);
+			childrenColors.add(Color.BROWN);
+			childrenColors.add(Color.ORANGE);
+			childrenColors.add(Color.CYAN);
+			childrenColors.add(Color.BLUE);
+			childrenColors.add(Color.MAGENTA);
 			for (int i = 0; i < children.length; i++){
 				DeltaStruct displacementDirections = computeDisplacementDirections(i);
 				double displacementSize = childrenBoxSize / 2;
@@ -59,9 +59,9 @@ public class InternalNode extends Node{
 				**/
 				
 				if (octreeHeight > 1){
-					children[i] = new InternalNode(childrenColors.get(i), childrenBoxSize, newParentCenterX, newParentCenterY, newParentCenterZ, octreeHeight - 1);
+					children[i] = new InternalNode(Color.GRAY, childrenBoxSize, newParentCenterX, newParentCenterY, newParentCenterZ, octreeHeight - 1);
 				} else {
-					children[i] = new Leaf(childrenColors.get(i), childrenBoxSize, newParentCenterX, newParentCenterY, newParentCenterZ);
+					children[i] = new Leaf(Color.BLACK, childrenBoxSize, newParentCenterX, newParentCenterY, newParentCenterZ);
 				} 
 			}			
 		}
@@ -69,7 +69,7 @@ public class InternalNode extends Node{
 		//initializeChildren();
 	}
 
-	public InternalNode(NodeColor color, double boxSize) {
+	public InternalNode(Color color, double boxSize) {
 		this.color = color;
 		children = new Node[8];	
 		this.boxSize = boxSize;
@@ -126,7 +126,7 @@ public class InternalNode extends Node{
 			Node[] splittedChildren = new Node[8];
 			if (children != null){
 				for (int i = 0; i < children.length; i++){
-					if (children[i] != null && children[i].getColor() == NodeColor.GRAY){
+					if (children[i] != null && children[i].getColor() == Color.GRAY){
 						splittedChildren[i] = children[i].splitNode(deltaHeight);
 					} else {
 						splittedChildren[i] = children[i];

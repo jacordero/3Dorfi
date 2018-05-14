@@ -141,7 +141,7 @@
                         <Insets left="10.0" />
                      </HBox.margin>
                   </Label>
-                  <TextField fx:id="boxSizeField" maxWidth="50" text="7">
+                  <TextField fx:id="boxSizeField" maxWidth="50" text="12">
                      <HBox.margin>
                         <Insets left="10.0" />
                      </HBox.margin>

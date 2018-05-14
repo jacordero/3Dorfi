@@ -7,7 +7,7 @@ public class Leaf extends Node{
 
 	
 	
-	public Leaf(NodeColor color, double boxSize, double centerX, double centerY, double centerZ) {
+	public Leaf(Color color, double boxSize, double centerX, double centerY, double centerZ) {
 		this.boxSize = boxSize;
 		this.positionCenterX = centerX;
 		this.positionCenterY = centerY;
@@ -20,7 +20,7 @@ public class Leaf extends Node{
 		this.boxParameters.setCenterZ((int)centerZ);
 	}
 	
-	public Leaf(NodeColor color, double boxSize) {
+	public Leaf(Color color, double boxSize) {
 		this.boxSize = boxSize;
 		this.positionCenterX = 0;
 		this.positionCenterY = 0;
@@ -50,7 +50,7 @@ public class Leaf extends Node{
 	
 	@Override
 	public Node splitNode(int deltaHeight){
-		if (deltaHeight > 0 && color == NodeColor.GRAY){
+		if (deltaHeight > 0 && color == Color.GRAY){
 			Utils.debugNewLine("@@@@@@@@@@@@@ Leaf splitted up to " + deltaHeight + " levels", false);
 			return new InternalNode(color, boxSize, positionCenterX, positionCenterY, positionCenterZ, deltaHeight);
 		}
