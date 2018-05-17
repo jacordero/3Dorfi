@@ -54,10 +54,10 @@ public class Octree {
 		root = node;		
 		this.octreeVolume = new Group();
 		this.boxParameters = new BoxParameters();
-		this.boxParameters.setBoxSize((int)boxSize);
-		this.boxParameters.setCenterX((int)centerX);
-		this.boxParameters.setCenterY((int)centerY);
-		this.boxParameters.setCenterZ((int)centerZ);
+		this.boxParameters.setBoxSize(boxSize);
+		this.boxParameters.setCenterX(centerX);
+		this.boxParameters.setCenterY(centerY);
+		this.boxParameters.setCenterZ(centerZ);
 	}
 	
 	public void splitNodes(int newOctreeHeight){

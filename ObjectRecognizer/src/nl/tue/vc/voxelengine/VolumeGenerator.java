@@ -210,7 +210,7 @@ public class VolumeGenerator {
 			voxels.add(box);
 		} else {
 			Node[] children = currentNode.getChildren();
-			int newBoxSize = currentParameters.getBoxSize() / 2;
+			double newBoxSize = currentParameters.getBoxSize() / 2;
 
 			BoxParameters newParameters = new BoxParameters();
 			newParameters.setBoxSize(newBoxSize);
@@ -394,7 +394,7 @@ public class VolumeGenerator {
 		} else {
 			//Utils.debugNewLine("Root is Node", false);
 			Node[] children = currentNode.getChildren();
-			int newBoxSize = currentParameters.getBoxSize() / 2;
+			double newBoxSize = currentParameters.getBoxSize() / 2;
 			BoxParameters newParameters = new BoxParameters();
 			newParameters.setBoxSize(newBoxSize);
 			newParameters.setCenterX(currentParameters.getCenterX() + (currentDeltas.deltaX * newBoxSize));
@@ -811,15 +811,15 @@ public class VolumeGenerator {
 
 	private Box generateVoxel(BoxParameters boxParameters, DeltaStruct deltas, Color nodeColor) {
 
-		int sceneWidth = boxParameters.getCenterX();
-		int sceneHeight = boxParameters.getCenterY();
-		int sceneDepth = boxParameters.getCenterZ();
-		int boxSize = boxParameters.getBoxSize();
+		double sceneWidth = boxParameters.getCenterX();
+		double sceneHeight = boxParameters.getCenterY();
+		double sceneDepth = boxParameters.getCenterZ();
+		double boxSize = boxParameters.getBoxSize();
 
 		Box box = new Box(boxSize, boxSize, boxSize);
-		int posx = sceneWidth + (deltas.deltaX * boxSize / 2);
-		int posy = sceneHeight + (deltas.deltaY * boxSize / 2);
-		int posz = sceneDepth + (deltas.deltaZ * boxSize / 2);
+		double posx = sceneWidth + (deltas.deltaX * boxSize / 2);
+		double posy = sceneHeight + (deltas.deltaY * boxSize / 2);
+		double posz = sceneDepth + (deltas.deltaZ * boxSize / 2);
 
 		box.setTranslateX(posx);
 		box.setTranslateY(posy);

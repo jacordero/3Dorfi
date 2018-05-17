@@ -2,40 +2,40 @@ package nl.tue.vc.voxelengine;
 
 public class BoxParameters {
 
-	private int boxSize;
-	private int centerX;
-	private int centerY;
-	private int centerZ;
+	private double boxSize;
+	private double centerX;
+	private double centerY;
+	private double centerZ;
 	
-	public void setBoxSize(int boxSize) {
+	public void setBoxSize(double boxSize) {
 		this.boxSize = boxSize;
 	}
 	
-	public int getBoxSize() {
+	public double getBoxSize() {
 		return boxSize;
 	}
 	
-	public void setCenterX(int centerX) {
+	public void setCenterX(double centerX) {
 		this.centerX = centerX;
 	}
 	
-	public int getCenterX() {
+	public double getCenterX() {
 		return centerX;
 	}
 	
-	public void setCenterY(int centerY) {
+	public void setCenterY(double centerY) {
 		this.centerY = centerY;
 	}
 	
-	public int getCenterY() {
+	public double getCenterY() {
 		return centerY;
 	}
 
-	public void setCenterZ(int centerZ) {
+	public void setCenterZ(double centerZ) {
 		this.centerZ = centerZ;
 	}
 	
-	public int getCenterZ() {
+	public double getCenterZ() {
 		return centerZ;
 	}
 
