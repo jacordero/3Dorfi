@@ -150,7 +150,7 @@ public class VolumeGenerator {
 
 		long lEndTime = System.nanoTime();
 		long output = lEndTime - lStartTime;
-		System.out.println("Elapsed time for projectCubes in milliseconds: " + output / 1000000);
+		//System.out.println("Elapsed time for projectCubes in milliseconds: " + output / 1000000);
 
 		// start
 		lStartTime = System.nanoTime();
@@ -164,7 +164,7 @@ public class VolumeGenerator {
 
 		// time elapsed
 		output = lEndTime - lStartTime;
-		System.out.println("Elapsed time for getTestedNodeAux in milliseconds: " + output / 1000000);
+		//System.out.println("Elapsed time for getTestedNodeAux in milliseconds: " + output / 1000000);
 
 		ApplicationConfiguration appConfig = ApplicationConfiguration.getInstance();
 		int sceneWidth = 3 * appConfig.getVolumeSceneWidth() / 4;
@@ -186,7 +186,7 @@ public class VolumeGenerator {
 		// time elapsed
 		output = lEndTime - lStartTime;
 
-		System.out.println("Elapsed time for generateVolumeAux in milliseconds: " + output / 1000000);
+		//System.out.println("Elapsed time for generateVolumeAux in milliseconds: " + output / 1000000);
 
 		// List<Box> testedVoxels = generateTestedVolume(root, volumeBoxParameters,
 		// deltas);
@@ -461,7 +461,7 @@ public class VolumeGenerator {
 
 		// time elapsed
 		long output = lEndTime - lStartTime;
-		System.out.println("Elapsed time for getImageProjections in milliseconds: " + output / 1000000);
+		//System.out.println("Elapsed time for getImageProjections in milliseconds: " + output / 1000000);
 
 		return root2D;
 	}
@@ -641,7 +641,7 @@ public class VolumeGenerator {
 
 		// time elapsed
 		long output = lEndTime - lStartTime;
-		System.out.println("Elapsed time for getProjections in milliseconds: " + output / 1000000);
+		//System.out.println("Elapsed time for getProjections in milliseconds: " + output / 1000000);
 
 		return root2D;
 	}
@@ -828,6 +828,9 @@ public class VolumeGenerator {
 		PhongMaterial textureMaterial = new PhongMaterial();
 
 		Color diffuseColor = nodeColor;
+		if (nodeColor == Color.WHITE){
+			 diffuseColor = Color.TRANSPARENT;
+		}
 		// if (nodeColor == Color.WHITE || nodeColor == Color.GRAY){
 		// diffuseColor = Color.TRANSPARENT;
 		// } else if (nodeColor == Color.BLACK){
@@ -899,7 +902,7 @@ public class VolumeGenerator {
 
 		// time elapsed
 		long output = lEndTime - lStartTime;
-		System.out.println("Elapsed time for generateProjectionScene in milliseconds: " + output / 1000000);
+		//System.out.println("Elapsed time for generateProjectionScene in milliseconds: " + output / 1000000);
 
 		return subScene;
 	}
@@ -924,8 +927,7 @@ public class VolumeGenerator {
 		long lEndTime = System.nanoTime();
 		// time elapsed
 		long output = lEndTime - lStartTime;
-		Utils.debugNewLine("Elapsed time for iterateCubesForVisualizationAux in milliseconds: " + output / 1000000,
-				true);
+		//Utils.debugNewLine("Elapsed time for iterateCubesForVisualizationAux in milliseconds: " + output / 1000000, true);
 	}
 
 	public void iterateCubesForVisualizationAux(Node node, int level) {
@@ -937,7 +939,7 @@ public class VolumeGenerator {
 		MatOfPoint2f encodedProjections = projectionGenerator.projectPoints(encodedCorners);
 		long lEndTime = System.nanoTime();
 		long output = lEndTime - lStartTime;
-		System.out.println("Elapsed time for projectPoints in milliseconds: " + output / 1000000);
+		//System.out.println("Elapsed time for projectPoints in milliseconds: " + output / 1000000);
 
 		List<ProjectedPoint> projections = projectionsAsList(encodedProjections);
 
@@ -962,7 +964,7 @@ public class VolumeGenerator {
 		BoundingBox boundingBox = computeBoundingBox(projections, Utils.IMAGES_WIDTH, Utils.IMAGES_HEIGHT, level);
 		lEndTime = System.nanoTime();
 		output = lEndTime - lStartTime;
-		System.out.println("Elapsed time for computeBoundingBox in milliseconds: " + output / 1000000);
+		//System.out.println("Elapsed time for computeBoundingBox in milliseconds: " + output / 1000000);
 
 		boundingBoxes.add(boundingBox);
 
