@@ -270,6 +270,8 @@ public class ObjectRecognizerController {
 	private int boxSize;
 	private int centerX, centerY, centerZ;
 
+	private Octree octree;
+	
 	public ObjectRecognizerController() {
 
 		this.sceneWidth = 400;// 650.5;//440;
@@ -284,10 +286,10 @@ public class ObjectRecognizerController {
 		calibrationTimerActive = false;
 		transformMatrices = new TransformMatrices(sceneWidth, sceneHeight, 32.3);
 		cameraCalibrator = new CameraCalibrator();
-		this.boxSize = 15;// 11;//Integer.parseInt(this.boxSizeField.getText());
+		this.boxSize = 12;
 		this.levels = 0;// Integer.parseInt(this.levelsField.getText());
-		this.centerX = 8;
-		this.centerY = 3;
+		this.centerX = 4;
+		this.centerY = 1;
 		this.centerZ = 0;
 		
 		calibrationImageCounter = 0;
@@ -297,6 +299,7 @@ public class ObjectRecognizerController {
 		calibrationIndices.add("deg-180");
 		calibrationIndices.add("deg-270");
 		projectionGenerator = null;
+		octree = null;
 	}
 
 	@FXML
@@ -502,7 +505,7 @@ public class ObjectRecognizerController {
 					this.image = Imgcodecs.imread(file.getAbsolutePath(), Imgcodecs.CV_LOAD_IMAGE_COLOR);
 
 					if (enableCameraCalibration.isSelected()){
-						Utils.debugNewLine("Loading calibration image: " + file.getName(), true);
+						Utils.debugNewLine("Loading calibration image: " + file.getName(), false);
 						
 						calibrationImage = this.image;
 						calibrationFrame.setImage(Utils.mat2Image(calibrationImage));
@@ -1086,6 +1089,7 @@ public class ObjectRecognizerController {
 	 */
 	@FXML
 	protected void visualizeModel() {
+		octree = null;
 		renderModel();
 	}
 
@@ -1101,10 +1105,25 @@ public class ObjectRecognizerController {
 		volumeBoxParameters.setCenterX(this.centerX);
 		volumeBoxParameters.setCenterY(this.centerY);
 		volumeBoxParameters.setCenterZ(this.centerZ);
-		Octree octree = new Octree(volumeBoxParameters, this.levels);
+		
+		
+		// If there is no octree, create one. Otherwise, update the current one
+		if (octree == null || boxSize != octree.getBoxParameters().getBoxSize()){
+			octree = new Octree(volumeBoxParameters, this.levels);
+			Utils.debugNewLine("++++++++++++++++++++++++ Creating octree", true);
+		} else {
+			Utils.debugNewLine("++++++++++++++++++++++++ Updating octree", true);
+			octree.setBoxParameters(volumeBoxParameters);
+			octree.splitNodes(this.levels);
+		}
 
 		// try not create another volume renderer object to recompute the octree
 		// visualization
+		
+
+		if (octree == null){
+			Utils.debugNewLine("***************** something weird happened here", true);
+		}
 		volumeRenderer = new VolumeRenderer(octree);
 		// instantiate the volume generator object
 		volumeGenerator = new VolumeGenerator(octree, volumeBoxParameters, this.transformedInvertedArrays,
@@ -1114,9 +1133,12 @@ public class ObjectRecognizerController {
 		volumeGenerator.setTransformedArrays(this.transformedArrays);
 		volumeGenerator.setFieldOfView(this.fieldOfView);
 		volumeGenerator.setTransformMatrices(this.transformMatrices);
-		volumeGenerator.setProjectionGenerator(projectionGenerator);
+		volumeGenerator.setProjectionGenerator(projectionGenerator);		
 		volumeRenderer.generateVolumeScene(volumeGenerator.generateVolume());
 		rootGroup.setCenter(volumeRenderer.getSubScene());
+	
+		// The octree is update with the modified version in volume generator
+		octree = volumeGenerator.getOctree();
 	}
 
 	private void updateCameraPositionAxisX(int positionX) {

@@ -1,6 +1,7 @@
 package nl.tue.vc.voxelengine;
 
 import javafx.scene.paint.Color;
+import nl.tue.vc.application.utils.Utils;
 
 public class Leaf extends Node{
 
@@ -45,6 +46,15 @@ public class Leaf extends Node{
 	
 	public void setChildNode(Node childNode, int childIndex){
 		
+	}
+	
+	@Override
+	public Node splitNode(int deltaHeight){
+		if (deltaHeight > 0 && color == Color.GRAY){
+			Utils.debugNewLine("@@@@@@@@@@@@@ Leaf splitted up to " + deltaHeight + " levels", false);
+			return new InternalNode(color, boxSize, positionCenterX, positionCenterY, positionCenterZ, deltaHeight);
+		}
+		return this;
 	}
 	
 	@Override

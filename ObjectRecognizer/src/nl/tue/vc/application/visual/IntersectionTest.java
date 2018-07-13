@@ -17,6 +17,7 @@ import javafx.scene.paint.Color;
 import nl.tue.vc.application.utils.Utils;
 import nl.tue.vc.voxelengine.InternalNode;
 import nl.tue.vc.voxelengine.Node;
+import nl.tue.vc.voxelengine.NodeColor;
 import nl.tue.vc.voxelengine.Octree;
 
 public class IntersectionTest {
@@ -221,12 +222,6 @@ public class IntersectionTest {
 
 		BufferedImage bi = ImageIO.read(new ByteArrayInputStream(ba));
 		return bi;
-	}
-
-	public static Octree testIntersection(Octree octree) {
-
-		octree.getInernalNode().getChildren()[4].setColor(Color.GREEN);
-		return octree;
 	}
 
 }

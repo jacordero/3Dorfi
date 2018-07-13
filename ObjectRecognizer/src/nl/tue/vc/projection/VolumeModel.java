@@ -33,10 +33,10 @@ public class VolumeModel {
 	}
 	
 	public VolumeModel(BoxParameters boxParameters) {
-		int centerX = boxParameters.getCenterX();
-		int centerY = boxParameters.getCenterY();
-		int centerZ = boxParameters.getCenterZ();
-		int halfSize = boxParameters.getBoxSize()/2;
+		double centerX = boxParameters.getCenterX();
+		double centerY = boxParameters.getCenterY();
+		double centerZ = boxParameters.getCenterZ();
+		double halfSize = boxParameters.getBoxSize()/2;
 		
 		modelVertices = new Vector3D[] {
 			new Vector3D(centerX - halfSize, centerY + halfSize, centerZ + halfSize, 1),

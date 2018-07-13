@@ -4,29 +4,30 @@ import java.text.DecimalFormat;
 import java.text.NumberFormat;
 
 import javafx.scene.shape.Rectangle;
+import nl.tue.vc.voxelengine.SimpleRectangle;
 
 public class BoundingBox {
 
-	private Rectangle scaledRectangle;
-	private Rectangle unScaledRectangle;
+	private SimpleRectangle scaledRectangle;
+	private SimpleRectangle unScaledRectangle;
 	
 	public BoundingBox() {
 		
 	}
 
-	public Rectangle getScaledRectangle() {
+	public SimpleRectangle getScaledRectangle() {
 		return scaledRectangle;
 	}
 
-	public void setScaledRectangle(Rectangle scaledRectangle) {
+	public void setScaledRectangle(SimpleRectangle scaledRectangle) {
 		this.scaledRectangle = scaledRectangle;
 	}
 
-	public Rectangle getUnScaledRectangle() {
+	public SimpleRectangle getUnScaledRectangle() {
 		return unScaledRectangle;
 	}
 
-	public void setUnScaledRectangle(Rectangle unScaledRectangle) {
+	public void setUnScaledRectangle(SimpleRectangle unScaledRectangle) {
 		this.unScaledRectangle = unScaledRectangle;
 	}
 	

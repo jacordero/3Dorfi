@@ -58,7 +58,7 @@ public class ApplicationConfiguration {
 		silhouetteConfiguration.put("imageWidthLastPixel", 370);
 		silhouetteConfiguration.put("imageHeightFirstPixel", 20);
 		silhouetteConfiguration.put("imageHeightLastPixel", 280);
-		silhouetteConfiguration.put("binaryThreshold", 80);
+		silhouetteConfiguration.put("binaryThreshold", 105);
 		
 		volumeBoxParameters = new BoxParameters();		
 		volumeBoxParameters.setBoxSize(volumeBoxSize);

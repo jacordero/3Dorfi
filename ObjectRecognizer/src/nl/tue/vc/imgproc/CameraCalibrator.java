@@ -81,9 +81,9 @@ public class CameraCalibrator {
 		ProjectionGenerator projector = new ProjectionGenerator();
 		
 		for (String calibrationIndex: calibrationImages.keySet()){
-			Utils.debugNewLine("Calibration for " + calibrationIndex, true);
+			Utils.debugNewLine("Calibration for " + calibrationIndex, false);
 			Mat calibrationImage = calibrationImages.get(calibrationIndex);
-			ProjectionMatrices projectionMatrices = calibrateForOneImage(calibrationImage, true);
+			ProjectionMatrices projectionMatrices = calibrateForOneImage(calibrationImage, false);
 			projector.addProjectionMatrices(calibrationIndex, projectionMatrices);
 		}
 		

@@ -46,6 +46,7 @@ public class VolumeGenerator {
 
 	private CameraCalibrator cameraCalibrator;
 	private ProjectionGenerator projectionGenerator;
+
 	private List<String> projectionMatricesForImages;
 	private Map<String, Mat> calibrationImages;
 	private List<ProjectedPoint> projectedPoints;
@@ -62,20 +63,15 @@ public class VolumeGenerator {
 	public VolumeGenerator(Octree octree, BoxParameters boxParameters) {
 		this.octree = octree;
 		this.bufferedImagesForTest = new ArrayList<BufferedImage>();
-		Utils.debugNewLine("BufferedImagesForTest: " + this.bufferedImagesForTest.size(), false);
+		System.out.println("BufferedImagesForTest: " + this.bufferedImagesForTest.size());
 		this.fieldOfView = 32;
 		this.transformMatrices = new TransformMatrices(400, 290, fieldOfView);
 		transformedInvertedArrays = new ArrayList<int[][]>();
 		transformedArrays = new ArrayList<int[][]>();
-
-		calibrationImages = Utils.loadCalibrationImages();
-		Utils.debugNewLine(octree.toString(), false);
-		cameraCalibrator = new CameraCalibrator();
-		projectionGenerator = null;//cameraCalibrator.calibrateMultipleMatrices(calibrationImages, true);
+		System.out.println(octree);
 		projectedPoints = new ArrayList<ProjectedPoint>();
 		boundingBoxes = new ArrayList<BoundingBox>();
 		octreeHeight = -1;
-		
 		projectionGenerator = null;
 		projectionMatricesForImages = new ArrayList<String>();
 	}
@@ -87,58 +83,56 @@ public class VolumeGenerator {
 
 		this.octree = octree;
 		this.bufferedImagesForTest = new ArrayList<BufferedImage>();
-		Utils.debugNewLine("BufferedImagesForTest: " + this.bufferedImagesForTest.size(), false);
+		System.out.println("BufferedImagesForTest: " + this.bufferedImagesForTest.size());
 		this.transformedInvertedArrays = transformedInvertedBinArrays;
 		this.transformedArrays = transformedBinaryArrays;
 		this.fieldOfView = 32;
 		this.transformMatrices = new TransformMatrices(400, 290, fieldOfView);
-
-		//calibrationImages = Utils.loadCalibrationImages();
-		Utils.debugNewLine(octree.toString(), false);
-		//cameraCalibrator = new CameraCalibrator();
-		projectionGenerator = null;//cameraCalibrator.calibrateMultipleMatrices(calibrationImages, true);
+		System.out.println(octree);
+		projectionGenerator = null;// cameraCalibrator.calibrateMultipleMatrices(calibrationImages, true);
 		projectedPoints = new ArrayList<ProjectedPoint>();
 		boundingBoxes = new ArrayList<BoundingBox>();
 		this.octreeHeight = octreeHeight;
 		projectionGenerator = null;
 		projectionMatricesForImages = new ArrayList<String>();
 	}
-	
-	public void setProjectionGenerator(ProjectionGenerator projectionGenerator){
-			this.projectionGenerator = projectionGenerator;
-		}
-			
-		// TODO: make the calibration matrices id values be automatically detected
-		private void buildProjectionGenerator(){
-			calibrationImages = Utils.loadCalibrationImages();
-			cameraCalibrator = new CameraCalibrator();
-			Map<String, Mat> calibrationImages = Utils.loadCalibrationImages();
-			projectionGenerator = cameraCalibrator.calibrateMatrices(calibrationImages, true);
-			
-			int index = 0;
-			for (int i = 0; i < transformedArrays.size(); i++){
-				projectionMatricesForImages.add(Utils.PROJECTION_MATRICES_IDS.get(index));
-				index++;
-				if (index >= calibrationImages.keySet().size()){
-					index = 0;
-				}
+
+	public void setProjectionGenerator(ProjectionGenerator projectionGenerator) {
+		this.projectionGenerator = projectionGenerator;
+	}
+
+	// TODO: make the calibration matrices id values be automatically detected
+	private void buildProjectionGenerator() {
+		calibrationImages = Utils.loadCalibrationImages();
+		cameraCalibrator = new CameraCalibrator();
+		// Map<String, Mat> calibrationImages = Utils.loadCalibrationImages();
+		projectionGenerator = cameraCalibrator.calibrateMatrices(calibrationImages, true);
+
+		int index = 0;
+		//Utils.debugNewLine("transformed arrays size: " + transformedArrays.size(), true);
+		for (int i = 0; i < transformedArrays.size(); i++) {
+			projectionMatricesForImages.add(Utils.PROJECTION_MATRICES_IDS.get(index));
+			index++;
+			if (index >= calibrationImages.keySet().size()) {
+				index = 0;
 			}
 		}
+	}
 
 	public Group generateVolume() {
-		if (projectionGenerator == null){
-					buildProjectionGenerator();
-				}
-		
+		if (projectionGenerator == null) {
+			buildProjectionGenerator();
+		}
+
 		Group volume = new Group();
-		// Node root = octree.generateOctreeFractal(0);
+
 		Node root = octree.getRoot();
 		BoxParameters boxParameters = octree.getBoxParameters();
 		DeltaStruct deltas = new DeltaStruct();
-		if (octree.getInernalNode().isLeaf()) {
-			Utils.debugNewLine("Octree children: 1", false);
+		if (octree.getInternalNode().isLeaf()) {
+			System.out.println("Octree children: 1");
 		} else {
-			Utils.debugNewLine("Octree children: " + root.getChildren().length, false);
+			System.out.println("Octree children: " + root.getChildren().length);
 		}
 
 		// List<Box> voxels = generateVolumeAux(root, boxParameters, deltas);
@@ -148,25 +142,29 @@ public class VolumeGenerator {
 		volume.getChildren().addAll(imageProjection);
 
 		long lStartTime = System.nanoTime();
-		
+
 		projectCubesForVisualization();
-		if (octreeHeight <= 3){
-			volume.getChildren().addAll(getProjectedVolume());			
+		if (octreeHeight <= 3) {
+			volume.getChildren().addAll(getProjectedVolume());
 		}
 
 		long lEndTime = System.nanoTime();
 		long output = lEndTime - lStartTime;
-		Utils.debugNewLine("Elapsed time for projectCubes in milliseconds: " + output / 1000000, false);
-		
+		//System.out.println("Elapsed time for projectCubes in milliseconds: " + output / 1000000);
+
 		// start
 		lStartTime = System.nanoTime();
+
+		// here we are supposed to use the multiple images
 		root = getTestedNodeAux(root);
+		octree.setRoot(root);
+
 		// end
 		lEndTime = System.nanoTime();
 
 		// time elapsed
 		output = lEndTime - lStartTime;
-		Utils.debugNewLine("Elapsed time for getTestedNodeAux in milliseconds: " + output / 1000000, false);
+		//System.out.println("Elapsed time for getTestedNodeAux in milliseconds: " + output / 1000000);
 
 		ApplicationConfiguration appConfig = ApplicationConfiguration.getInstance();
 		int sceneWidth = 3 * appConfig.getVolumeSceneWidth() / 4;
@@ -188,7 +186,11 @@ public class VolumeGenerator {
 		// time elapsed
 		output = lEndTime - lStartTime;
 
-		Utils.debugNewLine("Elapsed time for generateVolumeAux in milliseconds: " + output / 1000000, false);
+		//System.out.println("Elapsed time for generateVolumeAux in milliseconds: " + output / 1000000);
+
+		// List<Box> testedVoxels = generateTestedVolume(root, volumeBoxParameters,
+		// deltas);
+		// volume.getChildren().addAll(testedVoxels);
 
 		return volume;
 	}
@@ -208,7 +210,7 @@ public class VolumeGenerator {
 			voxels.add(box);
 		} else {
 			Node[] children = currentNode.getChildren();
-			int newBoxSize = currentParameters.getBoxSize() / 2;
+			double newBoxSize = currentParameters.getBoxSize() / 2;
 
 			BoxParameters newParameters = new BoxParameters();
 			newParameters.setBoxSize(newBoxSize);
@@ -232,10 +234,11 @@ public class VolumeGenerator {
 
 	private Node getTestedNodeAux(Node currentNode) {
 
-		Utils.debugNewLine("#################### Intersection test for node: " + currentNode, false);
-		for (int j = 0; j < this.bufferedImagesForTest.size(); j++) {
-			Utils.debugNewLine("########## Testing against image " + (j + 1) + " ##########", false);
-			if (currentNode.isLeaf()) {
+		//Utils.debugNewLine("#################### Intersection test for node: " + currentNode, false);
+
+		if (currentNode.isLeaf()) {
+			for (int j = 0; j < this.bufferedImagesForTest.size(); j++) {
+				//Utils.debugNewLine("########## Testing against image " + (j + 1) + " ##########", false);
 				Color boxColor = Color.GRAY;
 				IntersectionStatus status = testIntersection(currentNode, j);
 				if (status == IntersectionStatus.INSIDE) {
@@ -247,20 +250,194 @@ public class VolumeGenerator {
 
 				}
 				currentNode.setColor(boxColor);
-			} else {
-				if(currentNode.getColor()==Color.GRAY) {
-					Node[] children = currentNode.getChildren();
-					for (int i = 0; i < children.length; i++) {
-						Node childNode = children[i];
-						if (childNode != null) {
-							childNode = getTestedNodeAux(childNode);
-							currentNode.setChildNode(childNode, i);
-						}
+				if(currentNode.getColor()==Color.BLACK) {
+					break;
+				}
+			}
+		} else {
+			if (currentNode.getColor() == Color.GRAY) {
+				Node[] children = currentNode.getChildren();
+				for (int i = 0; i < children.length; i++) {
+					Node childNode = children[i];
+					if (childNode != null) {
+						childNode = getTestedNodeAux(childNode);
+						currentNode.setChildNode(childNode, i);
 					}
 				}
 			}
 		}
+
 		return currentNode;
+
+		// //Utils.debugNewLine("#################### Intersection test for node: " +
+		// currentNode, false);
+		// //Utils.debugNewLine("########## Testing against image " + (j + 1) + "
+		// ##########", false);
+		// if (currentNode.isLeaf()) {
+		// for (int j = 0; j < this.bufferedImagesForTest.size(); j++) {
+		//
+		// NodeColor boxColor = Color.GRAY;
+		// IntersectionStatus status = testIntersection(currentNode, j);
+		// if (status == IntersectionStatus.INSIDE) {
+		// boxColor = getPaintColor(currentNode.getColor(), Color.BLACK);
+		// } else if (status == IntersectionStatus.PARTIAL) {
+		// boxColor = getPaintColor(currentNode.getColor(), Color.GRAY);
+		// } else {
+		// boxColor = getPaintColor(currentNode.getColor(), Color.WHITE);
+		//
+		// }
+		// currentNode.setColor(boxColor);
+		// // No need to test for the rest of the images because the node
+		// // will be black
+		//
+		//
+		// if (currentNode.getColor() == Color.BLACK) {
+		// break;
+		// }
+		//
+		// }
+		// } else if ((currentNode.getColor() != Color.WHITE) && (currentNode.getColor()
+		// != Color.BLACK)){
+		// Node[] children = currentNode.getChildren();
+		// //boolean paintAsBlack = true;
+		// for (int i = 0; i < children.length; i++) {
+		// Node childNode = children[i];
+		// if (childNode != null && (childNode.getColor() != Color.BLACK &&
+		// childNode.getColor() != Color.WHITE)) {
+		// childNode = getTestedNodeAux(childNode);
+		// currentNode.setChildNode(childNode, i);
+		// /**
+		// if (Color.BLACK != childNode.getColor()){
+		// paintAsBlack = false;
+		// }
+		// **/
+		// }
+		// }
+		//
+		// // all children are black or white
+		// /**
+		// if (paintAsBlack){
+		// currentNode.setColor(Color.BLACK);
+		// }
+		// **/
+		// }
+		//
+		// return currentNode;
+	}
+
+	/**
+	 * private Node getTestedNodeAux(Node currentNode) {
+	 * 
+	 * //Utils.debugNewLine("#################### Intersection test for node: " +
+	 * currentNode, false); for (int j = 0; j < this.bufferedImagesForTest.size();
+	 * j++) { //Utils.debugNewLine("########## Testing against image " + (j + 1) + "
+	 * ##########", false); if (currentNode.isLeaf()) { NodeColor boxColor =
+	 * Color.GRAY; IntersectionStatus status = testIntersection(currentNode, j); if
+	 * (status == IntersectionStatus.INSIDE) { boxColor =
+	 * getPaintColor(currentNode.getColor(), Color.BLACK); } else if (status ==
+	 * IntersectionStatus.PARTIAL) { boxColor =
+	 * getPaintColor(currentNode.getColor(), Color.GRAY); } else { boxColor =
+	 * getPaintColor(currentNode.getColor(), Color.WHITE);
+	 * 
+	 * } currentNode.setColor(boxColor); } else if ((currentNode.getColor() !=
+	 * Color.WHITE) && (currentNode.getColor() != Color.BLACK)){ Node[] children =
+	 * currentNode.getChildren(); boolean paintAsBlack = true; for (int i = 0; i <
+	 * children.length; i++) { Node childNode = children[i]; if (childNode != null
+	 * && (childNode.getColor() != Color.BLACK && childNode.getColor() !=
+	 * Color.WHITE)) { childNode = getTestedNodeAux(childNode);
+	 * currentNode.setChildNode(childNode, i); if (Color.BLACK !=
+	 * childNode.getColor()){ paintAsBlack = false; } } }
+	 * 
+	 * // all children are black or white if (paintAsBlack){
+	 * currentNode.setColor(Color.BLACK); } }
+	 * 
+	 * // No need to test for the rest of the images because the node will be black
+	 * if (currentNode.getColor() == Color.BLACK){ break; } } return currentNode; }
+	 **/
+
+	private List<Box> generateTestedVolume(Node currentNode, BoxParameters currentParameters,
+			DeltaStruct currentDeltas) {
+		List<Box> voxels = new ArrayList<Box>();
+
+		if (currentNode == null) {
+			return voxels;
+		}
+
+		if (currentNode.isLeaf()) {
+			currentNode.setBoxParameters(currentParameters);
+			currentNode.setDisplacementDirection(currentDeltas);
+			Box box = new Box();
+			Color boxColor = Color.GRAY;
+			Color finalColor = Color.WHITE;
+			for (int i = 0; i < this.transformedArrays.size(); i++) {
+				IntersectionStatus status = testIntersection(currentNode, i);
+				if (status == IntersectionStatus.INSIDE) {
+					boxColor = Color.BLACK;// getPaintColor(currentNode.getColor(), Color.BLACK);
+					finalColor = boxColor;
+				} else if (status == IntersectionStatus.PARTIAL) {
+					boxColor = getPaintColor(currentNode.getColor(), Color.GRAY);
+					if (finalColor != Color.BLACK) {
+						finalColor = boxColor;
+					}
+				} else {
+					boxColor = getPaintColor(currentNode.getColor(), Color.WHITE);
+					if (finalColor != Color.BLACK) {
+						finalColor = boxColor;
+					}
+				}
+
+			}
+
+			box = generateVoxel(currentParameters, currentDeltas, finalColor);
+			voxels.add(box);
+			//Utils.debugNewLine("Root is leaf", false);
+		} else {
+			//Utils.debugNewLine("Root is Node", false);
+			Node[] children = currentNode.getChildren();
+			double newBoxSize = currentParameters.getBoxSize() / 2;
+			BoxParameters newParameters = new BoxParameters();
+			newParameters.setBoxSize(newBoxSize);
+			newParameters.setCenterX(currentParameters.getCenterX() + (currentDeltas.deltaX * newBoxSize));
+			newParameters.setCenterY(currentParameters.getCenterY() + (currentDeltas.deltaY * newBoxSize));
+			newParameters.setCenterZ(currentParameters.getCenterZ() + (currentDeltas.deltaZ * newBoxSize));
+
+			for (int i = 0; i < children.length; i++) {
+				// compute deltaX, deltaY, and deltaZ for new voxels
+				Node childNode = children[i];
+				if (childNode != null) {
+					childNode.setBoxParameters(newParameters);
+					DeltaStruct displacementDirections = computeDeltaDirections(i);
+					childNode.setDisplacementDirection(displacementDirections);
+					// Box box = new Box();
+					Color boxColor = Color.GRAY;
+					Color finalColor = Color.WHITE;
+					for (int i1 = 0; i1 < this.transformedArrays.size(); i1++) {
+						IntersectionStatus status = testIntersection(currentNode, i1);
+						if (status == IntersectionStatus.INSIDE) {
+							boxColor = Color.BLACK;// getPaintColor(currentNode.getColor(), Color.BLACK);
+							finalColor = boxColor;
+						} else if (status == IntersectionStatus.PARTIAL) {
+							boxColor = getPaintColor(currentNode.getColor(), Color.GRAY);
+							if (finalColor != Color.BLACK) {
+								finalColor = boxColor;
+							}
+						} else {
+							boxColor = getPaintColor(currentNode.getColor(), Color.WHITE);
+							if (finalColor != Color.BLACK) {
+								finalColor = boxColor;
+							}
+						}
+
+					}
+
+					// box = generateVoxel(newParameters, displacementDirections, finalColor);
+					List<Box> innerBoxes = generateTestedVolume(childNode, newParameters, displacementDirections);
+					voxels.addAll(innerBoxes);
+					// voxels.add(box);
+				}
+			}
+		}
+		return voxels;
 	}
 
 	public Group getImageProjections(int index) {
@@ -274,7 +451,7 @@ public class VolumeGenerator {
 		imageRect.setY(0);
 		imageRect.setWidth(Utils.IMAGES_WIDTH / 2);
 		imageRect.setHeight(Utils.IMAGES_HEIGHT / 2);
-		Utils.debugNewLine("img width: " + imageRect.getWidth() + ", height: " + imageRect.getHeight(), false);
+		System.out.println("img width: " + imageRect.getWidth() + ", height: " + imageRect.getHeight());
 		imageRect.setFill(new ImagePattern(img));
 		imageRect.setStroke(Color.BLACK);
 		root2D.getChildren().add(imageRect);
@@ -284,7 +461,7 @@ public class VolumeGenerator {
 
 		// time elapsed
 		long output = lEndTime - lStartTime;
-		Utils.debugNewLine("Elapsed time for getImageProjections in milliseconds: " + output / 1000000, false);
+		//System.out.println("Elapsed time for getImageProjections in milliseconds: " + output / 1000000);
 
 		return root2D;
 	}
@@ -334,10 +511,10 @@ public class VolumeGenerator {
 
 		Image img = SwingFXUtils.toFXImage(this.bufferedImagesForTest.get(0), null);
 		Rectangle imageRect = new Rectangle();
-		imageRect.setX(0);
-		imageRect.setY(0);
+		imageRect.setX(0);// imageBoxParameters.getCenterX() - (img.getWidth() / 2));
+		imageRect.setY(0);// imageBoxParameters.getCenterY() - (img.getHeight() / 2));
 		imageRect.setWidth(img.getWidth());
-		Utils.debugNewLine("img width: " + img.getWidth() + ", height: " + img.getHeight(), false);
+		System.out.println("img width: " + img.getWidth() + ", height: " + img.getHeight());
 		imageRect.setHeight(img.getHeight());
 		imageRect.setFill(new ImagePattern(img));
 		imageRect.setStroke(Color.BLACK);
@@ -347,9 +524,9 @@ public class VolumeGenerator {
 				bottomMostPos - topMostPos);
 		boundingBox.setFill(Color.CHARTREUSE);
 		boundingBox.setStroke(Color.BLACK);
-		Utils.debugNewLine("(" + boundingBox.getX() + "," + boundingBox.getY() + ") - (" + boundingBox.getX() + ","
-				+ (boundingBox.getY() + boundingBox.getHeight()) + ")", false);
-		root2D.getChildren().add(boundingBox);		
+		System.out.println("(" + boundingBox.getX() + "," + boundingBox.getY() + ") - (" + boundingBox.getX() + ","
+				+ (boundingBox.getY() + boundingBox.getHeight()) + ")");
+		root2D.getChildren().add(boundingBox);
 
 		List<Color> cornerColors = new ArrayList<Color>();
 		cornerColors.add(Color.RED);
@@ -464,24 +641,23 @@ public class VolumeGenerator {
 
 		// time elapsed
 		long output = lEndTime - lStartTime;
-		Utils.debugNewLine("Elapsed time for getProjections in milliseconds: " + output / 1000000, false);
+		//System.out.println("Elapsed time for getProjections in milliseconds: " + output / 1000000);
 
 		return root2D;
 	}
-	
 
 	public IntersectionStatus testIntersection(Node node, int imgIndex) {
 
+		// Utils.debugNewLine(">> testIntersection: imgIndex = " + imgIndex, false);
 		BoundingBox boundingBox = getBoundingBox(node, imgIndex, 0);
-		Utils.debugNewLine(">> testIntersection: imgIndex = " + imgIndex, false);
-		Rectangle boundingRectangle = boundingBox.getUnScaledRectangle();
+		SimpleRectangle boundingRectangle = boundingBox.getUnScaledRectangle();
 		IntersectionStatus status = IntersectionStatus.INSIDE;
 		int[][] transformedArray = transformedArrays.get(imgIndex);
 		int[][] transformedInvertedArray = transformedInvertedArrays.get(imgIndex);
 		int xVal = (int) boundingRectangle.getX();
 		int yVal = (int) (boundingRectangle.getY() + boundingRectangle.getHeight());
-		int arrayRows = transformedArray.length;
-		int arrayCols = transformedArray[0].length;
+		int arrayRows = Utils.IMAGES_HEIGHT;// transformedArray.length;
+		int arrayCols = Utils.IMAGES_WIDTH;// transformedArray[0].length;
 
 		// TODO: check this values
 		if (xVal < 0) {
@@ -499,7 +675,7 @@ public class VolumeGenerator {
 			yVal = arrayRows - 1;
 		}
 
-		Utils.debugNewLine("xVal = " + xVal + ", yVal = " + yVal, false);
+		// Utils.debugNewLine("xVal = " + xVal + ", yVal = " + yVal, false);
 
 		int transformedValue = transformedArray[yVal][xVal];
 		int transformedInvertedValue = transformedInvertedArray[yVal][xVal];
@@ -509,29 +685,43 @@ public class VolumeGenerator {
 			determiningValue = (int) boundingRectangle.getHeight();
 		}
 
-		Utils.debugNewLine("transformedValue: " + transformedValue + ", projected box size: " + determiningValue, false);
-		Utils.debugNewLine(
-				"transformedInvertedValue: " + transformedInvertedValue + ", projected box size: " + determiningValue, false);
+//		Utils.debugNewLine("transformedValue: " + transformedValue + ", projected box size: " + determiningValue, true);
+//		Utils.debugNewLine(
+//				"transformedInvertedValue: " + transformedInvertedValue + ", projected box size: " + determiningValue,
+//				true);
 
 		if (determiningValue <= transformedValue) {
-			Utils.debugNewLine(
-					"Projection is totally inside iiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiii", false);
+
+//			Utils.debugNewLine(
+//					"Projection is totally inside iiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiii",
+//					true);
+
 			status = IntersectionStatus.INSIDE;
 		} else if (determiningValue <= transformedInvertedValue) {
-			Utils.debugNewLine(
-					"Projection is totally outside oooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooo", false);
+
+//			Utils.debugNewLine(
+//					"Projection is totally outside oooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooo",
+//					true);
+
 			status = IntersectionStatus.OUTSIDE;
 		} else if (checkForPartial(determiningValue, transformedInvertedValue, xVal, yVal, arrayCols, arrayRows,
 				(int) boundingRectangle.getWidth(), (int) boundingRectangle.getHeight())) {
-			Utils.debugNewLine(
-					"Projection is partially inside ====================================================================================", false);
+
+//			Utils.debugNewLine(
+//					"Projection is partially inside ====================================================================================",
+//					true);
+
 			status = IntersectionStatus.PARTIAL;
 		} else if (checkForOutsideInCorners(determiningValue, transformedValue, transformedInvertedValue, xVal, yVal,
 				arrayCols)) {
-			Utils.debugNewLine("Projection out of bounds but totally outside oooooooooooooooooooooooooooooooooo", false);
+
+//			Utils.debugNewLine("Projection out of bounds but totally outside oooooooooooooooooooooooooooooooooo", true);
+
 			status = IntersectionStatus.OUTSIDE;
 		} else {
-			Utils.debugNewLine("Projection is partially inside ====================================================================================", false);
+//			Utils.debugNewLine(
+//					"Projection is partially inside ====================================================================================",
+//					true);
 			status = IntersectionStatus.PARTIAL;
 		}
 
@@ -562,9 +752,7 @@ public class VolumeGenerator {
 
 		if (xPos < 0 || yPos < 0) {
 			result = false;
-		}
-
-		if ((xPos + xLen) > width || (yPos + yLen) > height) {
+		} else if ((xPos + xLen) > width || (yPos + yLen) > height) {
 			result = false;
 		}
 
@@ -623,22 +811,35 @@ public class VolumeGenerator {
 
 	private Box generateVoxel(BoxParameters boxParameters, DeltaStruct deltas, Color nodeColor) {
 
-		int sceneWidth = boxParameters.getCenterX();
-		int sceneHeight = boxParameters.getCenterY();
-		int sceneDepth = boxParameters.getCenterZ();
-		int boxSize = boxParameters.getBoxSize();
+		double sceneWidth = boxParameters.getCenterX();
+		double sceneHeight = boxParameters.getCenterY();
+		double sceneDepth = boxParameters.getCenterZ();
+		double boxSize = boxParameters.getBoxSize();
 
 		Box box = new Box(boxSize, boxSize, boxSize);
-		int posx = sceneWidth + (deltas.deltaX * boxSize / 2);
-		int posy = sceneHeight + (deltas.deltaY * boxSize / 2);
-		int posz = sceneDepth + (deltas.deltaZ * boxSize / 2);
+		double posx = sceneWidth + (deltas.deltaX * boxSize / 2);
+		double posy = sceneHeight + (deltas.deltaY * boxSize / 2);
+		double posz = sceneDepth + (deltas.deltaZ * boxSize / 2);
 
 		box.setTranslateX(posx);
 		box.setTranslateY(posy);
 		box.setTranslateZ(posz);
 
 		PhongMaterial textureMaterial = new PhongMaterial();
+
 		Color diffuseColor = nodeColor;
+		if (nodeColor == Color.WHITE){
+			 diffuseColor = Color.TRANSPARENT;
+		}
+		// if (nodeColor == Color.WHITE || nodeColor == Color.GRAY){
+		// diffuseColor = Color.TRANSPARENT;
+		// } else if (nodeColor == Color.BLACK){
+		// diffuseColor = Color.BLACK;
+		// } else {
+		// diffuseColor = Color.GRAY;
+		// }
+		// Color diffuseColor = nodeColor == Color.BLACK ? nodeColor :
+		// Color.TRANSPARENT;
 		textureMaterial.setDiffuseColor(diffuseColor);
 		box.setMaterial(textureMaterial);
 		return box;
@@ -648,19 +849,23 @@ public class VolumeGenerator {
 		// start
 		long lStartTime = System.nanoTime();
 
-		Utils.debugNewLine("\nGenerateProjectionScene is called\n", false);
+		System.out.println("\nGenerateProjectionScene is called\n");
 
 		Group root2D = new Group();
 
 		for (ProjectedPoint projection : projectedPoints) {
-			Utils.debugNewLine(projection.toString(), false);
+			System.out.println(projection);
 			Ellipse circle = new Ellipse(projection.getScaledX(), projection.getScaledY(), 5, 5);
 			circle.setFill(Color.RED);
 			root2D.getChildren().add(circle);
 		}
 
 		for (BoundingBox boundingBox : boundingBoxes) {
-			root2D.getChildren().add(boundingBox.getScaledRectangle());
+			SimpleRectangle sr = boundingBox.getScaledRectangle();
+			Rectangle visualRectangle = new Rectangle(sr.getX(), sr.getY(), sr.getWidth(), sr.getHeight());
+			visualRectangle.setStroke(Color.BLACK);
+			visualRectangle.setFill(Color.TRANSPARENT);
+			root2D.getChildren().add(visualRectangle);
 		}
 
 		// Hardcoded corners
@@ -681,7 +886,8 @@ public class VolumeGenerator {
 		 * corner4.setFill(Color.BLUE); root2D.getChildren().add(corner4);
 		 **/
 
-		SubScene subScene = new SubScene(root2D, Utils.IMAGES_WIDTH / 2, Utils.IMAGES_HEIGHT / 2, true, SceneAntialiasing.BALANCED);
+		SubScene subScene = new SubScene(root2D, Utils.IMAGES_WIDTH / 2, Utils.IMAGES_HEIGHT / 2, true,
+				SceneAntialiasing.BALANCED);
 
 		PerspectiveCamera perspectiveCamera = new PerspectiveCamera(false);
 		perspectiveCamera.setTranslateX(140);
@@ -696,61 +902,73 @@ public class VolumeGenerator {
 
 		// time elapsed
 		long output = lEndTime - lStartTime;
-		Utils.debugNewLine("Elapsed time for generateProjectionScene in milliseconds: " + output / 1000000, false);
+		//System.out.println("Elapsed time for generateProjectionScene in milliseconds: " + output / 1000000);
 
 		return subScene;
 	}
 
 	public void projectCubesForVisualization() {
-		
+
 		// start
 		long lStartTime = System.nanoTime();
-
 		Node root = octree.getRoot();
 		boundingBoxes.clear();
-			
-			if (bufferedImagesForTest.size() == 1){
-				iterateCubesForVisualizationAux(root, octree.getLevels());
-			} else {
-				for (int i = 0; i < bufferedImagesForTest.size(); i++){				
-					BoundingBox boundingBox = getBoundingBox(root, i, 0);
-					boundingBoxes.add(boundingBox);
-				}
+
+		if (bufferedImagesForTest.size() == 1) {
+			iterateCubesForVisualizationAux(root, octree.getOctreeHeight());
+		} else {
+			for (int i = 0; i < bufferedImagesForTest.size(); i++) {
+				BoundingBox boundingBox = getBoundingBox(root, i, i);
+				boundingBoxes.add(boundingBox);
 			}
+		}
 
 		// end
 		long lEndTime = System.nanoTime();
-
 		// time elapsed
 		long output = lEndTime - lStartTime;
-		Utils.debugNewLine("Elapsed time for iterateCubesAux in milliseconds: " + output / 1000000, false);
+		//Utils.debugNewLine("Elapsed time for iterateCubesForVisualizationAux in milliseconds: " + output / 1000000, true);
 	}
 
 	public void iterateCubesForVisualizationAux(Node node, int level) {
 
 		MatOfPoint3f encodedCorners = node.getCorners();
-		List<Point3> corners = encodedCorners.toList();
+		// List<Point3> corners = encodedCorners.toList();
+
+		long lStartTime = System.nanoTime();
 		MatOfPoint2f encodedProjections = projectionGenerator.projectPoints(encodedCorners);
+		long lEndTime = System.nanoTime();
+		long output = lEndTime - lStartTime;
+		//System.out.println("Elapsed time for projectPoints in milliseconds: " + output / 1000000);
 
 		List<ProjectedPoint> projections = projectionsAsList(encodedProjections);
-		NumberFormat formatter = new DecimalFormat("#0.00");
 
-		Utils.debugNewLine("\n************ Projecting parent ****************", false);
-		for (int i = 0; i < corners.size(); i++) {
-			Point3 corner = corners.get(i);
-			ProjectedPoint projection = projections.get(i);
-			String infoStr = "BoxSize: " + node.getBoxSize();
-			infoStr += "\tCorner: [x: " + formatter.format(corner.x) + ", y: " + formatter.format(corner.y) + ", z: "
-					+ formatter.format(corner.z) + "]";
-			infoStr += "\tProjection: [x: " + formatter.format(projection.getX()) + ", y:"
-					+ formatter.format(projection.getY()) + "]";
-			Utils.debugNewLine(infoStr, false);
-		}
+		// NumberFormat formatter = new DecimalFormat("#0.00");
 
+		// Utils.debugNewLine("\n************ Projecting parent ****************",
+		// false);
+
+		/**
+		 * for (int i = 0; i < corners.size(); i++) { Point3 corner = corners.get(i);
+		 * ProjectedPoint projection = projections.get(i); String infoStr = "BoxSize: "
+		 * + node.getBoxSize(); infoStr += "\tCorner: [x: " + formatter.format(corner.x)
+		 * + ", y: " + formatter.format(corner.y) + ", z: " + formatter.format(corner.z)
+		 * + "]"; infoStr += "\tProjection: [x: " + formatter.format(projection.getX())
+		 * + ", y:" + formatter.format(projection.getY()) + "]";
+		 * Utils.debugNewLine(infoStr, false);
+		 * 
+		 * }
+		 **/
+
+		lStartTime = System.nanoTime();
 		BoundingBox boundingBox = computeBoundingBox(projections, Utils.IMAGES_WIDTH, Utils.IMAGES_HEIGHT, level);
-						//level);
+		lEndTime = System.nanoTime();
+		output = lEndTime - lStartTime;
+		//System.out.println("Elapsed time for computeBoundingBox in milliseconds: " + output / 1000000);
 
 		boundingBoxes.add(boundingBox);
+
+		// System.out.println(boundingBox);
 
 		// scale to fit the visualization canvas
 		/**
@@ -761,7 +979,7 @@ public class VolumeGenerator {
 		projectedPoints.addAll(projections);
 
 		if (!node.isLeaf()) {
-			Utils.debugNewLine("\n********** Projecting children *************", false);
+			//Utils.debugNewLine("\n********** Projecting children *************", false);
 			for (Node children : node.getChildren()) {
 				iterateCubesForVisualizationAux(children, level + 1);
 			}
@@ -800,7 +1018,7 @@ public class VolumeGenerator {
 			}
 		}
 
-		Rectangle unScaledRectangle = new Rectangle(leftMostPos, topMostPos, rightMostPos - leftMostPos,
+		SimpleRectangle unScaledRectangle = new SimpleRectangle(leftMostPos, topMostPos, rightMostPos - leftMostPos,
 				bottomMostPos - topMostPos);
 
 		leftMostPos = leftMostPos / 2;
@@ -808,41 +1026,25 @@ public class VolumeGenerator {
 		topMostPos = topMostPos / 2;
 		bottomMostPos = bottomMostPos / 2;
 
-		Rectangle scaledRectangle = new Rectangle(leftMostPos, topMostPos, rightMostPos - leftMostPos,
+		SimpleRectangle scaledRectangle = new SimpleRectangle(leftMostPos, topMostPos, rightMostPos - leftMostPos,
 				bottomMostPos - topMostPos);
-		if (level == 1) {
-			scaledRectangle.setFill(Color.YELLOW);
-		} else if (level > 1) {
-			scaledRectangle.setFill(Color.BLUE);
-		} else {
-			scaledRectangle.setFill(Color.CHARTREUSE);
-		}
-		scaledRectangle.setFill(Color.TRANSPARENT);
+
+		/**
+		 * if (level == 0) { scaledRectangle.setFill(Color.RED);
+		 * scaledRectangle.setStroke(Color.RED); } else if (level >= 1) {
+		 * scaledRectangle.setFill(Color.BLUE); scaledRectangle.setStroke(Color.BLACK);
+		 * } else { scaledRectangle.setFill(Color.CHARTREUSE);
+		 * scaledRectangle.setStroke(Color.BLACK);
+		 * 
+		 * } scaledRectangle.setFill(Color.TRANSPARENT);
+		 **/
 		// scaledRectangle.setFill(Color.YELLOW);
-		scaledRectangle.setStroke(Color.BLACK);
 
 		BoundingBox boundingBox = new BoundingBox();
 		boundingBox.setScaledRectangle(scaledRectangle);
 		boundingBox.setUnScaledRectangle(unScaledRectangle);
 		return boundingBox;
 	}
-
-//	private Mat loadCalibrationImage() {
-//		BufferedImage bufferedImage = null;
-//		try {
-//			bufferedImage = ImageIO.read(new File(CALIBRATION_IMAGE));
-//		} catch (FileNotFoundException e) {
-//			e.printStackTrace();
-//		} catch (IOException e) {
-//			e.printStackTrace();
-//		}
-//
-//		Mat calibrationImage = null;
-//		if (bufferedImage != null) {
-//			calibrationImage = Utils.bufferedImageToMat(bufferedImage);
-//		}
-//		return calibrationImage;
-//	}
 
 	public void calibrateCamera() {
 		projectionGenerator = cameraCalibrator.calibrateMatrices(calibrationImages, true);
@@ -859,7 +1061,7 @@ public class VolumeGenerator {
 	public Group getProjectedVolume() {
 		Group root2D = new Group();
 
-		Utils.debugNewLine("Projected points length: " + projectedPoints.size(), true);	
+		//Utils.debugNewLine("Projected points length: " + projectedPoints.size(), true);
 		for (ProjectedPoint projection : projectedPoints) {
 			Ellipse circle = new Ellipse(projection.getScaledX(), projection.getScaledY(), 5, 5);
 			circle.setFill(Color.RED);
@@ -884,7 +1086,7 @@ public class VolumeGenerator {
 		 * corner4.setFill(Color.BLUE); root2D.getChildren().add(corner4);
 		 **/
 
-		Utils.debugNewLine("Bounding boxes length: " + boundingBoxes.size(), false);
+		//Utils.debugNewLine("Bounding boxes length: " + boundingBoxes.size(), true);
 		for (BoundingBox boundingBox : boundingBoxes) {
 			// Ellipse circle = new Ellipse(boundingBox.getScaledRectangle().getX(),
 			// (boundingBox.getScaledRectangle().getY()+boundingBox.getScaledRectangle().getHeight()),
@@ -893,14 +1095,19 @@ public class VolumeGenerator {
 			// root2D.getChildren().add(circle);
 
 			/**
-			System.out.println(boundingBox.getScaledRectangle().getFill());
-			System.out.println(boundingBox.getScaledRectangle().getX());
-			System.out.println(boundingBox.getScaledRectangle().getY());
-			System.out.println(boundingBox.getScaledRectangle().getWidth());
-			System.out.println(boundingBox.getScaledRectangle().getHeight());
-			**/
+			 * System.out.println(boundingBox.getScaledRectangle().getFill());
+			 * System.out.println(boundingBox.getScaledRectangle().getX());
+			 * System.out.println(boundingBox.getScaledRectangle().getY());
+			 * System.out.println(boundingBox.getScaledRectangle().getWidth());
+			 * System.out.println(boundingBox.getScaledRectangle().getHeight());
+			 **/
 
-			root2D.getChildren().add(boundingBox.getScaledRectangle());
+			SimpleRectangle sr = boundingBox.getScaledRectangle();
+			Rectangle visualRectangle = new Rectangle(sr.getX(), sr.getY(), sr.getWidth(), sr.getHeight());
+			visualRectangle.setStroke(Color.BLACK);
+			visualRectangle.setFill(Color.TRANSPARENT);
+
+			root2D.getChildren().add(visualRectangle);
 		}
 		return root2D;
 	}
@@ -910,14 +1117,30 @@ public class VolumeGenerator {
 	}
 
 	public BoundingBox getBoundingBox(Node node, int imageToProcessId, int level) {
-		
-		Utils.debugNewLine("Computing bounding box for image: " + imageToProcessId + ", projection matrix id: " + projectionMatricesForImages.get(imageToProcessId), false);
-		
+
+		// Utils.debugNewLine("Computing bounding box for image: " + imageToProcessId +
+		// ", projection matrix id: " +
+		// projectionMatricesForImages.get(imageToProcessId), false);
+
 		MatOfPoint3f encodedCorners = node.getCorners();
-		MatOfPoint2f encodedProjections = projectionGenerator.projectPoints(encodedCorners, projectionMatricesForImages.get(imageToProcessId));
+
+		// long lStartTime = System.nanoTime();
+		MatOfPoint2f encodedProjections = projectionGenerator.projectPoints(encodedCorners,
+				projectionMatricesForImages.get(imageToProcessId));
+		// long lEndTime = System.nanoTime();
+		// long output = lEndTime - lStartTime;
+		// System.out.println("Elapsed time for projectPoints in milliseconds: " +
+		// output);
+
 		List<ProjectedPoint> projections = projectionsAsList(encodedProjections);
 
+		// lStartTime = System.nanoTime();
 		BoundingBox boundingBox = computeBoundingBox(projections, Utils.IMAGES_WIDTH, Utils.IMAGES_HEIGHT, level);
+		// lEndTime = System.nanoTime();
+		// output = lEndTime - lStartTime;
+		// System.out.println("Elapsed time for computeBoundingBox in milliseconds: " +
+		// output);
+
 		return boundingBox;
 	}
 
@@ -933,11 +1156,11 @@ public class VolumeGenerator {
 	public Color getPaintColor(Color currentColor, Color newColor) {
 		Color result = Color.GRAY;
 
-//		if (currentColor == Color.WHITE)
-//			currentColor = Color.TRANSPARENT;
-//
-//		if (newColor == Color.WHITE)
-//			newColor = Color.TRANSPARENT;
+		// if (currentColor == Color.WHITE)
+		// currentColor = Color.TRANSPARENT;
+		//
+		// if (newColor == Color.WHITE)
+		// newColor = Color.TRANSPARENT;
 
 		if (currentColor == Color.GRAY) {
 			if (newColor == Color.WHITE || newColor == Color.GRAY)
@@ -945,10 +1168,7 @@ public class VolumeGenerator {
 			else
 				result = currentColor;
 		} else if (currentColor == Color.WHITE) {
-			if (newColor == Color.WHITE)
-				result = newColor;
-			else
-				result = currentColor;
+			result = currentColor;
 		} else {
 			result = newColor;
 		}
@@ -965,7 +1185,7 @@ public class VolumeGenerator {
 		deltas.deltaX = 0;
 		deltas.deltaY = 0;
 		deltas.deltaZ = 0;
-		Box box = generateVoxel(boxParameters, deltas, Color.CYAN);
+		Box box = generateVoxel(boxParameters, deltas, Color.GRAY);
 		Group volume = new Group();
 		volume.getChildren().addAll(box);
 		return volume;
@@ -1009,6 +1229,10 @@ public class VolumeGenerator {
 
 	public void setTransformMatrices(TransformMatrices transformMatrices) {
 		this.transformMatrices = transformMatrices;
+	}
+
+	public Octree getOctree() {
+		return octree;
 	}
 
 }

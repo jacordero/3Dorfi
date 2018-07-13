@@ -152,9 +152,19 @@ public abstract class Node {
 	
 	abstract void setChildNode(Node childNode, int childIndex);
 	
+	abstract public Node splitNode(int levels);
+	
 	@Override
 	public String toString() {
-		return "{BoxSize: " + boxSize + ", centerX: " + positionCenterX + ", centerY: " + positionCenterY + ", centerZ: " + positionCenterZ + ", Color: " + color.toString() +"}";
+		String str = "{BoxSize: " + boxSize + ", centerX: " + positionCenterX + ", centerY: " + positionCenterY + ", centerZ: " + positionCenterZ + ", Color: ";
+		if (color == Color.BLACK){
+			str += " black}";
+		} else if (color == Color.GRAY){
+			str += " gray}";
+		} else if (color == Color.WHITE){
+			str += " white}";
+		}
+		return str;
 	}
 	
 }

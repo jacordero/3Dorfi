@@ -109,10 +109,10 @@ public class Visualizer extends Application {
 		box.setScaleY(10);
 		box.setScaleZ(10);
 		
-		int centerX = boxParameters.getCenterX();
-		int centerY = boxParameters.getCenterY();
-		int centerZ = boxParameters.getCenterZ();
-		int halfSize = boxParameters.getBoxSize()/2;
+		double centerX = boxParameters.getCenterX();
+		double centerY = boxParameters.getCenterY();
+		double centerZ = boxParameters.getCenterZ();
+		double halfSize = boxParameters.getBoxSize()/2;
 		
 		Point3D boxCorner1 = new Point3D(centerX - 40, centerY + halfSize, centerZ + 30);
 		Point3D boxCorner2 = new Point3D(centerX + 40, centerY + halfSize, centerZ + 30);
@@ -349,12 +349,12 @@ public class Visualizer extends Application {
 		return sphere;
 	}
 	
-	private Box generateVoxel(int x, int y, int z, double width, double height, double depth, Color nodeColor) {
+	private Box generateVoxel(double x, double y, double z, double width, double height, double depth, Color nodeColor) {
 		Box box = new Box(width, height, depth);
 
-		int posx = x;//boxParameters.getCenterX();// + (deltas.deltaX * boxParameters.getBoxSize() / 2);
-		int posy = y;//boxParameters.getCenterY();// + (deltas.deltaY * boxParameters.getBoxSize() / 2);
-		int posz = z;//boxParameters.getCenterZ();// + (deltas.deltaZ * boxParameters.getBoxSize() / 2);
+		double posx = x;//boxParameters.getCenterX();// + (deltas.deltaX * boxParameters.getBoxSize() / 2);
+		double posy = y;//boxParameters.getCenterY();// + (deltas.deltaY * boxParameters.getBoxSize() / 2);
+		double posz = z;//boxParameters.getCenterZ();// + (deltas.deltaZ * boxParameters.getBoxSize() / 2);
 		
 		box.setTranslateX(posx);
 		box.setTranslateY(posy);
