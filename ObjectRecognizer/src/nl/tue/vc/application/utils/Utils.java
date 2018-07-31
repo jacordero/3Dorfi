@@ -139,6 +139,7 @@ public final class Utils
 	        int r, g, b;
 
 	        if (bufferedImage.getType() == BufferedImage.TYPE_INT_RGB) {
+	        	System.out.println("TYPE_INT_RGB");
 	            out = new Mat(bufferedImage.getHeight(), bufferedImage.getWidth(), CvType.CV_8UC3);
 	            data = new byte[bufferedImage.getWidth() * bufferedImage.getHeight() * (int) out.elemSize()];
 	            int[] dataBuff = bufferedImage.getRGB(0, 0, bufferedImage.getWidth(), bufferedImage.getHeight(), 
@@ -148,7 +149,19 @@ public final class Utils
 	                data[i * 3 + 1] = (byte) ((dataBuff[i] >> 8) & 0xFF);
 	                data[i * 3 + 2] = (byte) ((dataBuff[i] >> 16) & 0xFF);
 	            }
+	        } else if (bufferedImage.getType() == BufferedImage.TYPE_3BYTE_BGR) {
+	            out = new Mat(bufferedImage.getHeight(), bufferedImage.getWidth(), CvType.CV_8UC3);
+	            data = new byte[bufferedImage.getWidth() * bufferedImage.getHeight() * (int) out.elemSize()];
+	            int[] dataBuff = bufferedImage.getRGB(0, 0, bufferedImage.getWidth(), bufferedImage.getHeight(), 
+	            		null, 0, bufferedImage.getWidth());
+	            for (int i = 0; i < dataBuff.length; i++) {
+	                data[i * 3] = (byte) ((dataBuff[i] >> 16) & 0xFF);
+	                data[i * 3 + 1] = (byte) ((dataBuff[i] >> 8) & 0xFF);
+	                data[i * 3 + 2] = (byte) ((dataBuff[i] >> 0) & 0xFF);
+	            }	        
 	        } else {
+	        	System.out.println("Image type: " + bufferedImage.getType());
+	        	System.out.println("NOT TYPE_INT_RGB");
 	            out = new Mat(bufferedImage.getHeight(), bufferedImage.getWidth(), CvType.CV_8UC1);
 	            data = new byte[bufferedImage.getWidth() * bufferedImage.getHeight() * (int) out.elemSize()];
 	            int[] dataBuff = bufferedImage.getRGB(0, 0, bufferedImage.getWidth(), bufferedImage.getHeight(),
@@ -168,41 +181,40 @@ public final class Utils
 		String prefix = "images/cameraTest/";
 		
 		Map<String, Mat> calibrationImages = new HashMap<String, Mat>();
-		Mat img = loadCalibrationImage(prefix + "chessboard0.jpg");
+		Mat img = loadImage(prefix + "chessboard0.jpg");
 		calibrationImages.put("deg-0", img);
-		img = loadCalibrationImage(prefix + "chessboard30.jpg");
+		img = loadImage(prefix + "chessboard30.jpg");
 		calibrationImages.put("deg-30", img);
-		img = loadCalibrationImage(prefix + "chessboard60.jpg");
+		img = loadImage(prefix + "chessboard60.jpg");
 		calibrationImages.put("deg-60", img);
-		img = loadCalibrationImage(prefix + "chessboard90.jpg");
+		img = loadImage(prefix + "chessboard90.jpg");
 		calibrationImages.put("deg-90", img);
-		img = loadCalibrationImage(prefix + "chessboard120.jpg");
+		img = loadImage(prefix + "chessboard120.jpg");
 		calibrationImages.put("deg-120", img);
-		img = loadCalibrationImage(prefix + "chessboard150.jpg");
+		img = loadImage(prefix + "chessboard150.jpg");
 		calibrationImages.put("deg-150", img);
-		img = loadCalibrationImage(prefix + "chessboard180.jpg");
+		img = loadImage(prefix + "chessboard180.jpg");
 		calibrationImages.put("deg-180", img);
-		img = loadCalibrationImage(prefix + "chessboard210.jpg");
+		img = loadImage(prefix + "chessboard210.jpg");
 		calibrationImages.put("deg-210", img);
-		img = loadCalibrationImage(prefix + "chessboard240.jpg");
+		img = loadImage(prefix + "chessboard240.jpg");
 		calibrationImages.put("deg-240", img);
-		img = loadCalibrationImage(prefix + "chessboard270.jpg");
+		img = loadImage(prefix + "chessboard270.jpg");
 		calibrationImages.put("deg-270", img);
-		img = loadCalibrationImage(prefix + "chessboard300.jpg");
+		img = loadImage(prefix + "chessboard300.jpg");
 		calibrationImages.put("deg-300", img);
-		img = loadCalibrationImage(prefix + "chessboard330.jpg");
+		img = loadImage(prefix + "chessboard330.jpg");
 		calibrationImages.put("deg-330", img);
 		
 		return calibrationImages;
 	}
 
 	
-	
-	private static Mat loadCalibrationImage(String calibrationImageFilename) {
+	public static Mat loadImage(String imageFilename){
 		BufferedImage bufferedImage = null;
-		Utils.debugNewLine("Loading calibration image: " + calibrationImageFilename, false);
+		Utils.debugNewLine("Loading  image: " + imageFilename, false);
 		try {
-			bufferedImage = ImageIO.read(new File(calibrationImageFilename));
+			bufferedImage = ImageIO.read(new File(imageFilename));
 		} catch (FileNotFoundException e) {
 			e.printStackTrace();
 		} catch (IOException e) {
@@ -214,8 +226,19 @@ public final class Utils
 			calibrationImage = Utils.bufferedImageToMat(bufferedImage);
 		}
 		return calibrationImage;
+		
 	}
-
+	
+	public static void saveImage(Mat image, String outputFilename){
+		BufferedImage imgToSave = Utils.matToBufferedImage(image);
+		try{
+			File outputFile = new File(outputFilename);
+			ImageIO.write(imgToSave, "png", outputFile);
+			System.out.println("Image " + outputFilename + " was saved!!");
+		} catch (IOException ioe){
+			ioe.printStackTrace();
+		}
+	}
 	
 	
 	public static void debug(String str, boolean printInfo) {
