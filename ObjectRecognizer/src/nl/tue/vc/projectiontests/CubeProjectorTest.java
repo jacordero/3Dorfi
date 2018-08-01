@@ -36,7 +36,7 @@ public class CubeProjectorTest {
 		float dx = -1	;
 		float dy = 0;
 		float dz = -2;
-		float cube_length = 12;
+		//float cube_length = 12;
 		float clx = 16;
 		float cly = 8;
 		float clz = 12;

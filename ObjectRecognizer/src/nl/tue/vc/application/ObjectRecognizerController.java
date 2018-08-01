@@ -57,6 +57,10 @@ import nl.tue.vc.voxelengine.CameraPosition;
 import nl.tue.vc.voxelengine.Octree;
 import nl.tue.vc.voxelengine.VolumeGenerator;
 import nl.tue.vc.voxelengine.VolumeRenderer;
+import nl.tue.vc.model.BoxParametersTest;
+import nl.tue.vc.model.test.OctreeTest;
+import nl.tue.vc.model.test.VolumeGeneratorTest;
+import nl.tue.vc.model.test.VolumeRendererTest;
 
 /**
  * The controller associated to the only view of our application. The
@@ -172,6 +176,9 @@ public class ObjectRecognizerController {
 	@FXML
 	private Button generateButton;
 
+	@FXML
+	private Button testButton;
+	
 	private int fieldOfView;
 	private TransformMatrices transformMatrices;
 
@@ -227,6 +234,10 @@ public class ObjectRecognizerController {
 
 	List<BufferedImage> bufferedImagesForTest = new ArrayList<>();
 
+	private Map<String, BufferedImage> imagesForDistanceComputation = new HashMap<String, BufferedImage>();
+	private Map<String, int[][]> distanceArrays = new HashMap<String, int[][]>();
+	private Map<String, int[][]> invertedDistanceArrays = new HashMap<String, int[][]>();
+	
 	// the main stage
 	private Stage stage;
 	// the JavaFX file chooser
@@ -271,6 +282,11 @@ public class ObjectRecognizerController {
 	private int centerX, centerY, centerZ;
 
 	private Octree octree;
+	private OctreeTest octreeTest;
+	
+	private VolumeGeneratorTest volumeGeneratorTest;
+	
+	private VolumeRendererTest volumeRendererTest;
 	
 	public ObjectRecognizerController() {
 
@@ -685,7 +701,7 @@ public class ObjectRecognizerController {
 		this.vboxRight.getChildren().clear();
 		this.vboxRight.getChildren().add(processedImagesView);
 	}
-
+	
 	/**
 	 * Store all the chessboard properties, update the UI and prepare other needed
 	 * variables
@@ -1167,6 +1183,185 @@ public class ObjectRecognizerController {
 		volumeRenderer.updateCameraPosition(cameraPosition);
 	}
 
+	/**
+	 * Button used to test the generation of the model using predefined images
+	 */
+	@FXML
+	public void modelGenerationTest(){
+		
+		Utils.debugNewLine("modelGenreationTest", true);
+		
+		
+		// Load calibration images
+		List<String> calibrationImageFilenames = new ArrayList<String>();
+		String imgPrefix = "images/projectionTest/calibration";
+		calibrationImageFilenames.add(imgPrefix + "/calibration0.jpg");
+		calibrationImageFilenames.add(imgPrefix + "/calibration90.jpg");
+		calibrationImageFilenames.add(imgPrefix + "/calibration180.jpg");
+		calibrationImageFilenames.add(imgPrefix + "/calibration270.jpg");
+		Map<String, Mat> calibrationImages = new HashMap<String, Mat>();
+		String[] calibrationIndices = {"cal0", "cal90", "cal180", "cal270"};
+		int calIndex = 0;
+		for (String filename: calibrationImageFilenames){
+			Mat image = Utils.loadImage(filename);
+			if (image != null){
+				calibrationImages.put(calibrationIndices[calIndex], image);							
+				calIndex++;
+			}
+		}		
+
+		// compute calibration matrices
+		projectionGenerator = cameraCalibrator.calibrateMatrices(calibrationImages, true);
+
+		// Load object images
+		List<String> objectImageFilenames = new ArrayList<String>();
+		objectImageFilenames.add(imgPrefix + "/cube-mod0.jpg");
+		objectImageFilenames.add(imgPrefix + "/cube-mod90.jpg");
+		objectImageFilenames.add(imgPrefix + "/cube-mod180.jpg");
+		objectImageFilenames.add(imgPrefix + "/cube-mod270.jpg");
+		Map<String, Mat> objectImages = new HashMap<String, Mat>();
+		calIndex = 0;
+		for (String filename: objectImageFilenames){
+			Mat image = Utils.loadImage(filename);
+			if (image != null){
+				objectImages.put(calibrationIndices[calIndex], image);							
+				calIndex++;
+			}
+		}
+
+		
+		Map<String, Mat> binarizedImages = extractSilhouettesTest(objectImages);
+		for (String imageKey: binarizedImages.keySet()){
+			Mat binaryImage = binarizedImages.get(imageKey);
+			try {
+				bufferedImagesForTest.add(IntersectionTest.Mat2BufferedImage(binaryImage));
+			} catch (Exception e) {
+				e.printStackTrace();
+			}
+		}
+
+		computeDistanceArraysTest();
+		int maxLevels = 9;
+		for (int i = 0; i < maxLevels; i++){
+			generateModelTest(i);			
+		}
+	}
+	
+	private Map<String, Mat> extractSilhouettesTest(Map<String, Mat> images){
+		Utils.debugNewLine("extractSilhouettesTest", true);
+
+		Map<String, Mat> binarizedImages = new HashMap<String, Mat>();
+		
+		for (String imgKey : images.keySet()) {
+			Mat image = images.get(imgKey);
+			silhouetteExtractor.extract(image, segmentationAlgorithm.getValue());
+			segmentedImages.add(silhouetteExtractor.getSegmentedImage());
+
+			try {
+				imagesForDistanceComputation.put(imgKey, IntersectionTest.Mat2BufferedImage(silhouetteExtractor.getSegmentedImage()));
+			} catch (Exception e) {
+				System.out.println("Something went really wrong!!!");
+				e.printStackTrace();
+			}
+
+			binarizedImages.put(imgKey, silhouetteExtractor.getSegmentedImage());
+		}
+		
+		return binarizedImages;
+		
+	}
+
+
+	/**
+	 * This method could be executed using multiple threads
+	 */
+	private void computeDistanceArraysTest() {
+		Utils.debugNewLine("computeDistanceArraysTest", true);
+
+		for (String imageKey : imagesForDistanceComputation.keySet()) {
+			// System.out.println("Converted mat width = " + convertedMat.getWidth() + ",
+			// height = " + convertedMat.getHeight());
+			BufferedImage image = imagesForDistanceComputation.get(imageKey);
+			int[][] sourceArray = IntersectionTest.getBinaryArray(image);
+			int[][] transformedArray = IntersectionTest.computeDistanceTransform(sourceArray);
+			distanceArrays.put(imageKey, transformedArray);
+			
+			int[][] invertedArray = IntersectionTest.getInvertedArray(sourceArray);
+			int[][] transformedInvertedArray = IntersectionTest.computeDistanceTransform(invertedArray);
+			invertedDistanceArrays.put(imageKey, transformedInvertedArray);			
+		}
+	}
+	
+	public void generateModelTest(int octreeLevels) {
+		Utils.debugNewLine("generateModelTest", true);
+
+		CameraPosition cameraPosition = new CameraPosition();
+		cameraPosition.positionAxisX = 0;
+		cameraPosition.positionAxisY = 0;
+		cameraPosition.positionAxisZ = 0;
+
+		float clx = 16;
+		float cly = 8;
+		float clz = 12;
+		
+		float dx = -1;
+		float dy = 0;
+		float dz = -2;
+		
+		float centerX = (clx + dx) / 2;
+		float centerY = (cly + dy) / 2;
+		float centerZ = (clz + dz) / 2;
+		
+		BoxParametersTest volumeBoxParameters = new BoxParametersTest();
+		volumeBoxParameters.setSizeX(clx);
+		volumeBoxParameters.setSizeY(cly);
+		volumeBoxParameters.setSizeZ(clz);
+		
+		volumeBoxParameters.setCenterX(centerX);
+		volumeBoxParameters.setCenterY(centerY);
+		volumeBoxParameters.setCenterZ(centerZ);
+		
+		
+		// If there is no octree, create one. Otherwise, update the current one
+		if (octreeTest == null ){
+			Utils.debugNewLine("++++++++++++++++++++++++ Creating octree", true);
+			octreeTest = new OctreeTest(volumeBoxParameters, octreeLevels);
+			Utils.debugNewLine(octreeTest.toString(), true);
+		} else {
+			Utils.debugNewLine("++++++++++++++++++++++++ Updating octree", true);
+			octreeTest.setBoxParametersTest(volumeBoxParameters);
+			octreeTest.splitNodes(octreeLevels);
+		}
+
+		// try not create another volume renderer object to recompute the octree
+		// visualization
+		
+
+		if (octreeTest == null){
+			Utils.debugNewLine("***************** something weird happened here", true);
+		}
+
+		volumeRendererTest = new VolumeRendererTest(octreeTest);
+		// instantiate the volume generator object
+		// TODO: Maybe this generator could be a builder 
+		volumeGeneratorTest = new VolumeGeneratorTest(octreeTest, volumeBoxParameters, distanceArrays,
+				invertedDistanceArrays, this.levels);
+		volumeGeneratorTest.setImagesForDistanceComputation(this.imagesForDistanceComputation);
+		volumeGeneratorTest.setDistanceArrays(distanceArrays);
+		volumeGeneratorTest.setInvertedDistanceArrays(invertedDistanceArrays);
+		volumeGeneratorTest.setFieldOfView(this.fieldOfView);
+		volumeGeneratorTest.setTransformMatrices(this.transformMatrices);
+		volumeGeneratorTest.setProjectionGenerator(projectionGenerator);		
+
+		volumeRendererTest.generateVolumeScene(volumeGeneratorTest.generateVolume());
+		rootGroup.setCenter(volumeRendererTest.getSubScene());
+	
+		// The octree is update with the modified version in volume generator
+		octreeTest = volumeGeneratorTest.getOctree();
+	}
+
+
+	
 	/**
 	 * Optimize the image dimensions
 	 *

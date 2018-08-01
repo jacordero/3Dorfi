@@ -220,6 +220,7 @@
             </Button>
 				<Button fx:id="constructButton" mnemonicParsing="false" onAction="#constructModel" text="Construct 3D Model" />
 				<Button fx:id="visualizeButton" mnemonicParsing="false" onAction="#visualizeModel" text="Visualize Model" />
+            <Button fx:id="testButton" mnemonicParsing="false" onAction="#modelGenerationTest" text="Test" />
 			</children>
 		</HBox>
 	</bottom>
