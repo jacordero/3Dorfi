@@ -91,6 +91,37 @@ public class VolumeGeneratorTest {
 	}
 
 	// TODO: make the calibration matrices id values be automatically detected
+
+	public List<Box> generateOctreeVoxels(){
+		Utils.debugNewLine("[VolumeGenerator] generateVolume", true);
+		Utils.debugNewLine("ImagesForDistanceComputation: " + imagesForDistanceComputation.size(), true);
+		
+		NodeTest root = octree.getRoot();
+		DeltaStruct deltas = new DeltaStruct();
+		System.out.println("Octree height: "  + octree.getOctreeHeight());
+		if (octree.getInternalNode().isLeaf()) {
+			System.out.println("Octree children: 1");
+		} else {
+			System.out.println("Octree children: " + root.getChildren().length);
+		}
+		root = getTestedNodeAux(root);
+		octree.setRoot(root);
+		
+		ApplicationConfiguration appConfig = ApplicationConfiguration.getInstance();
+		int sceneWidth = 3 * appConfig.getVolumeSceneWidth() / 4;
+		int sceneHeight = 3 * appConfig.getVolumeSceneHeight() / 4;
+		int sceneDepth = appConfig.getVolumeSceneDepth() / 2;
+		BoxParametersTest volumeBoxParameters = new BoxParametersTest();
+		volumeBoxParameters.setSizeX(160);
+		volumeBoxParameters.setSizeY(80);
+		volumeBoxParameters.setSizeZ(120);
+		volumeBoxParameters.setCenterX(sceneWidth);
+		volumeBoxParameters.setCenterY(sceneHeight);
+		volumeBoxParameters.setCenterZ(sceneDepth);
+
+		return generateVolumeAux(root, volumeBoxParameters, deltas);
+	}
+	
 	public Group generateVolume() {
 		Utils.debugNewLine("[VolumeGenerator] generateVolume", true);
 		Utils.debugNewLine("ImagesForDistanceComputation: " + imagesForDistanceComputation.size(), true);
@@ -684,15 +715,15 @@ public class VolumeGeneratorTest {
 //				"transformedInvertedValue: " + transformedInvertedValue + ", projected box size: " + determiningValue,
 //				true);
 
-		if (determiningValue <= transformedValue) {
+		if (determiningValue <= transformedValue && transformedInvertedValue == 0) {
 			//Utils.debugNewLine( "++++ INSIDE +++++", true);
 //			Utils.debugNewLine(
 //					"Projection is totally inside iiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiii",
 //					true);
 
 			status = IntersectionStatus.INSIDE;
-		} else if (determiningValue <= transformedInvertedValue) {
-			//Utils.debugNewLine( "++++ PARTIALLY OUTSIDE +++++", true);
+		} else if (determiningValue <= transformedInvertedValue && transformedValue == 0) {
+			//Utils.debugNewLine( "++++ OUTSIDE +++++", true);
 			
 //			Utils.debugNewLine(
 //					"Projection is totally outside oooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooo",
@@ -701,13 +732,13 @@ public class VolumeGeneratorTest {
 			status = IntersectionStatus.OUTSIDE;
 		} else if (checkForPartial(determiningValue, transformedInvertedValue, xVal, yVal, arrayCols, arrayRows,
 				(int) boundingRectangle.getWidth(), (int) boundingRectangle.getHeight())) {
-			//Utils.debugNewLine( "++++ PARTIALLY INSIDE +++++", true);
+			//Utils.debugNewLine( "++++ C-PARTIALLY INSIDE +++++", true);
 
 			status = IntersectionStatus.PARTIAL;
 		} else if (checkForOutsideInCorners(determiningValue, transformedValue, transformedInvertedValue, xVal, yVal,
 				arrayCols)) {
 
-			//Utils.debugNewLine( "++++ OUTSIDE +++++", true);
+			//Utils.debugNewLine( "++++ C-OUTSIDE +++++", true);
 //			Utils.debugNewLine("Projection out of bounds but totally outside oooooooooooooooooooooooooooooooooo", true);
 
 			status = IntersectionStatus.OUTSIDE;
@@ -727,11 +758,19 @@ public class VolumeGeneratorTest {
 		boolean result = false;
 
 		// check for the top boundary
-		if ((boundingSize > yPos) && (invertedSquareSize > 0) && (boundingSize > invertedSquareSize)) {
-			result = true;
-		} else if ((boundingSize > (width - xPos)) && (invertedSquareSize > 0) && (boundingSize > invertedSquareSize)) {
-			// check for the right boundary
-			result = true;
+		/**
+		System.out.println("[boundingSize: " + boundingSize + ", transformedSquareSize: " + transformedSquareSize);
+		System.out.println(", invertedSquareSize: " + invertedSquareSize + ", xPos: " + xPos + ", yPos: " + yPos + ", width: " + width);
+		**/
+		
+		// If the bounding size is too big we may be getting errors by using octrees with too few subdivisions
+		if (boundingSize < 100){
+			if ((boundingSize > yPos) && (invertedSquareSize > 0) && (boundingSize > invertedSquareSize)) {
+				result = true;
+			} else if ((boundingSize > (width - xPos)) && (invertedSquareSize > 0) && (boundingSize > invertedSquareSize)) {
+				// check for the right boundary
+				result = true;
+			}			
 		}
 		return result;
 	}
@@ -825,11 +864,12 @@ public class VolumeGeneratorTest {
 
 		PhongMaterial textureMaterial = new PhongMaterial();
 
-		//Color diffuseColor = nodeColor;
+		Color diffuseColor = nodeColor;
 		/**
 		if (nodeColor == Color.WHITE){
 			 diffuseColor = Color.TRANSPARENT;
 		}
+		
 		
 		 if (nodeColor == Color.WHITE){
 			 diffuseColor = Color.TRANSPARENT;
@@ -837,11 +877,14 @@ public class VolumeGeneratorTest {
 			diffuseColor = Color.BLACK;
 		} else {
 			diffuseColor = Color.GRAY;
-		 }*/
-		 //
+		 }
+		 **/
 		 
-		 Color diffuseColor = nodeColor == Color.BLACK ? nodeColor : Color.TRANSPARENT;
-		textureMaterial.setDiffuseColor(diffuseColor);
+		 
+		 //diffuseColor = nodeColor == Color.BLACK ? nodeColor : Color.TRANSPARENT;
+		 diffuseColor = nodeColor == Color.WHITE ? Color.TRANSPARENT: nodeColor;
+		
+		 textureMaterial.setDiffuseColor(diffuseColor);
 		box.setMaterial(textureMaterial);
 		return box;
 	}

@@ -82,7 +82,10 @@ public class OctreeTest {
 	}
 
 	private NodeTest constructRootNode(Color Color, double sizeX, double sizeY, double sizeZ, double centerX, double centerY, double centerZ, int octreeHeight){
-		Utils.debugNewLine("Octree height: " + octreeHeight, true);
+		String message = "RootNode: {SizeX: " + sizeX + ", SizeY: " + sizeY + ", SizeZ: " + sizeZ;
+		message += ", CenterX: " + centerX + ", CenterY: " + centerY + ", CenterZ: " + centerZ + ", Height: " + octreeHeight + "}";
+		
+		Utils.debugNewLine(message, true);
 		if (octreeHeight > 0){
 			return new InternalNodeTest(Color, sizeX, sizeY, sizeZ, centerX, centerY, centerZ, octreeHeight);
 		} else {

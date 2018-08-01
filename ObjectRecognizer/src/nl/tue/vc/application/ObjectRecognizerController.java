@@ -42,6 +42,7 @@ import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.VBox;
+import javafx.scene.shape.Box;
 import javafx.stage.FileChooser;
 import javafx.stage.Stage;
 import nl.tue.vc.application.utils.Utils;
@@ -1189,18 +1190,29 @@ public class ObjectRecognizerController {
 	@FXML
 	public void modelGenerationTest(){
 		
-		Utils.debugNewLine("modelGenreationTest", true);
+		Utils.debugNewLine("ModelGenerationTest", true);
 		
+		String[] calibrationIndices = {"cal0", "cal30", "cal60", "cal90", "cal120", 
+				"cal150", "cal180", "cal210", "cal240", "cal270", "cal300", "cal330"};
+
 		
 		// Load calibration images
 		List<String> calibrationImageFilenames = new ArrayList<String>();
-		String imgPrefix = "images/projectionTest/calibration";
-		calibrationImageFilenames.add(imgPrefix + "/calibration0.jpg");
-		calibrationImageFilenames.add(imgPrefix + "/calibration90.jpg");
-		calibrationImageFilenames.add(imgPrefix + "/calibration180.jpg");
-		calibrationImageFilenames.add(imgPrefix + "/calibration270.jpg");
+		String imgPrefix = "images/cameraTest/";
+		calibrationImageFilenames.add(imgPrefix + "chessboard0.jpg");
+		calibrationImageFilenames.add(imgPrefix + "chessboard30.jpg");
+		calibrationImageFilenames.add(imgPrefix + "chessboard60.jpg");
+		calibrationImageFilenames.add(imgPrefix + "chessboard90.jpg");
+		calibrationImageFilenames.add(imgPrefix + "chessboard120.jpg");
+		calibrationImageFilenames.add(imgPrefix + "chessboard150.jpg");
+		calibrationImageFilenames.add(imgPrefix + "chessboard180.jpg");
+		calibrationImageFilenames.add(imgPrefix + "chessboard210.jpg");
+		calibrationImageFilenames.add(imgPrefix + "chessboard240.jpg");
+		calibrationImageFilenames.add(imgPrefix + "chessboard270.jpg");
+		calibrationImageFilenames.add(imgPrefix + "chessboard300.jpg");
+		calibrationImageFilenames.add(imgPrefix + "chessboard330.jpg");
+
 		Map<String, Mat> calibrationImages = new HashMap<String, Mat>();
-		String[] calibrationIndices = {"cal0", "cal90", "cal180", "cal270"};
 		int calIndex = 0;
 		for (String filename: calibrationImageFilenames){
 			Mat image = Utils.loadImage(filename);
@@ -1215,10 +1227,18 @@ public class ObjectRecognizerController {
 
 		// Load object images
 		List<String> objectImageFilenames = new ArrayList<String>();
-		objectImageFilenames.add(imgPrefix + "/cube-mod0.jpg");
-		objectImageFilenames.add(imgPrefix + "/cube-mod90.jpg");
-		objectImageFilenames.add(imgPrefix + "/cube-mod180.jpg");
-		objectImageFilenames.add(imgPrefix + "/cube-mod270.jpg");
+		objectImageFilenames.add(imgPrefix + "cube-deg0-mod.jpg");
+		objectImageFilenames.add(imgPrefix + "cube-deg30-mod.jpg");
+		objectImageFilenames.add(imgPrefix + "cube-deg60-mod.jpg");
+		objectImageFilenames.add(imgPrefix + "cube-deg90-mod.jpg");
+		objectImageFilenames.add(imgPrefix + "cube-deg120-mod.jpg");
+		objectImageFilenames.add(imgPrefix + "cube-deg150-mod.jpg");
+		objectImageFilenames.add(imgPrefix + "cube-deg180-mod.jpg");
+		objectImageFilenames.add(imgPrefix + "cube-deg210-mod.jpg");
+		objectImageFilenames.add(imgPrefix + "cube-deg240-mod.jpg");
+		objectImageFilenames.add(imgPrefix + "cube-deg270-mod.jpg");
+		objectImageFilenames.add(imgPrefix + "cube-deg300-mod.jpg");
+		objectImageFilenames.add(imgPrefix + "cube-deg330-mod.jpg");
 		Map<String, Mat> objectImages = new HashMap<String, Mat>();
 		calIndex = 0;
 		for (String filename: objectImageFilenames){
@@ -1240,11 +1260,35 @@ public class ObjectRecognizerController {
 			}
 		}
 
+		List<String> binaryImageFilenames = new ArrayList<String>();
+		binaryImageFilenames.add(imgPrefix + "binary-cube-deg0.png");
+		binaryImageFilenames.add(imgPrefix + "binary-cube-deg30.png");
+		binaryImageFilenames.add(imgPrefix + "binary-cube-deg60.png");
+		binaryImageFilenames.add(imgPrefix + "binary-cube-deg90.png");
+		binaryImageFilenames.add(imgPrefix + "binary-cube-deg120.png");
+		binaryImageFilenames.add(imgPrefix + "binary-cube-deg150.png");
+		binaryImageFilenames.add(imgPrefix + "binary-cube-deg180.png");
+		binaryImageFilenames.add(imgPrefix + "binary-cube-deg210.png");
+		binaryImageFilenames.add(imgPrefix + "binary-cube-deg240.png");
+		binaryImageFilenames.add(imgPrefix + "binary-cube-deg270.png");
+		binaryImageFilenames.add(imgPrefix + "binary-cube-deg300.png");
+		binaryImageFilenames.add(imgPrefix + "binary-cube-deg330.png");
+
+		int imageFilenameIndex = 0;
+		for (String imageKey: binarizedImages.keySet()){
+			Mat binaryImage = binarizedImages.get(imageKey);
+			Utils.saveImage(binaryImage, binaryImageFilenames.get(imageFilenameIndex));
+			imageFilenameIndex++;
+		}
+		
 		computeDistanceArraysTest();
-		int maxLevels = 9;
+		int maxLevels = 8;
+		/**
 		for (int i = 0; i < maxLevels; i++){
 			generateModelTest(i);			
 		}
+		**/
+		generateModelMultipleOctrees(maxLevels - 1);
 	}
 	
 	private Map<String, Mat> extractSilhouettesTest(Map<String, Mat> images){
@@ -1300,22 +1344,22 @@ public class ObjectRecognizerController {
 		cameraPosition.positionAxisY = 0;
 		cameraPosition.positionAxisZ = 0;
 
-		float clx = 16;
-		float cly = 8;
-		float clz = 12;
-		
-		float dx = -1;
+		float dx = -3;
 		float dy = 0;
-		float dz = -2;
+		float dz = -4;
+
+		float cubeLengthX = 12;
+		float cubeLengthY = 6;
+		float cubeLengthZ = 12;
 		
-		float centerX = (clx + dx) / 2;
-		float centerY = (cly + dy) / 2;
-		float centerZ = (clz + dz) / 2;
+		float centerX = (cubeLengthX + dx) / 2;
+		float centerY = (cubeLengthY + dy) / 2;
+		float centerZ = (cubeLengthZ + dz) / 2;
 		
 		BoxParametersTest volumeBoxParameters = new BoxParametersTest();
-		volumeBoxParameters.setSizeX(clx);
-		volumeBoxParameters.setSizeY(cly);
-		volumeBoxParameters.setSizeZ(clz);
+		volumeBoxParameters.setSizeX(cubeLengthX);
+		volumeBoxParameters.setSizeY(cubeLengthY);
+		volumeBoxParameters.setSizeZ(cubeLengthZ);
 		
 		volumeBoxParameters.setCenterX(centerX);
 		volumeBoxParameters.setCenterY(centerY);
@@ -1341,7 +1385,7 @@ public class ObjectRecognizerController {
 			Utils.debugNewLine("***************** something weird happened here", true);
 		}
 
-		volumeRendererTest = new VolumeRendererTest(octreeTest);
+		volumeRendererTest = new VolumeRendererTest();
 		// instantiate the volume generator object
 		// TODO: Maybe this generator could be a builder 
 		volumeGeneratorTest = new VolumeGeneratorTest(octreeTest, volumeBoxParameters, distanceArrays,
@@ -1360,6 +1404,97 @@ public class ObjectRecognizerController {
 		octreeTest = volumeGeneratorTest.getOctree();
 	}
 
+	public void generateModelMultipleOctrees(int octreeLevels) {
+		Utils.debugNewLine("generateModelTest", true);
+
+		CameraPosition cameraPosition = new CameraPosition();
+		cameraPosition.positionAxisX = 0;
+		cameraPosition.positionAxisY = 0;
+		cameraPosition.positionAxisZ = 0;
+
+		float dx = -3;
+		float dy = 0;
+		float dz = -4;
+
+		float cubeLengthX = 3;
+		float cubeLengthY = 3;
+		float cubeLengthZ = 3;
+
+		float initialCenterX = (cubeLengthX/2) + dx;
+		float initialCenterY = (cubeLengthY/2) + dy;
+		float initialCenterZ = (cubeLengthZ/2) + dz;
+		
+		float[] centersX = {initialCenterX, initialCenterX + cubeLengthX, initialCenterX + 2*cubeLengthX, initialCenterX + 3*cubeLengthX};
+		float[] centersY = {initialCenterY, initialCenterY + cubeLengthY};
+		float[] centersZ = {initialCenterZ, initialCenterZ + cubeLengthZ, initialCenterZ + 2*cubeLengthZ, initialCenterZ + 3*cubeLengthZ};
+
+		List<BoxParametersTest> octreeParameters = new ArrayList<BoxParametersTest>();
+		for (int idX = 0; idX < centersX.length; idX++){
+			for (int idY = 0; idY < centersY.length; idY++){
+				for (int idZ = 0; idZ < centersZ.length; idZ++){
+					float centerX = centersX[idX];
+					float centerY = centersY[idY];
+					float centerZ = centersZ[idZ];
+					
+					BoxParametersTest volumeBoxParameters = new BoxParametersTest();
+					volumeBoxParameters.setSizeX(cubeLengthX);
+					volumeBoxParameters.setSizeY(cubeLengthY);
+					volumeBoxParameters.setSizeZ(cubeLengthZ);
+					volumeBoxParameters.setCenterX(centerX);
+					volumeBoxParameters.setCenterY(centerY);
+					volumeBoxParameters.setCenterZ(centerZ);
+					octreeParameters.add(volumeBoxParameters);			
+				}
+			}
+		}
+		
+				
+		List<OctreeTest> octrees = new ArrayList<OctreeTest>();
+		// Create octree containing only the root node
+		for (int i = 0; i < octreeParameters.size(); i++){
+			BoxParametersTest boxParameters = octreeParameters.get(i);
+			Utils.debugNewLine("++++++++++++++++++++++++ Creating octree", true);
+			OctreeTest octree = new OctreeTest(boxParameters, 0);			
+			octrees.add(octree);
+		}
+
+		
+		for (int octreeLevel = 1; octreeLevel < octreeLevels; octreeLevel++){
+			List<Box> objectVolume = new ArrayList<Box>();
+			for (int j = 0; j < octreeParameters.size(); j++){
+				BoxParametersTest boxParameters = octreeParameters.get(j);
+				OctreeTest octree = octrees.get(j);
+				// update octree using its corresponding box parameters
+				Utils.debugNewLine("++++++++++++++++++++++++ Updating octree", true);
+				octree.setBoxParametersTest(boxParameters);
+				octree.splitNodes(octreeLevel);
+
+				List<Box> octreeVolume = generateVolumeForOctree(octree, boxParameters, distanceArrays,
+						invertedDistanceArrays, octreeLevel);
+				objectVolume.addAll(octreeVolume);
+			}
+			
+			volumeRendererTest = new VolumeRendererTest();
+			volumeRendererTest.generateVolumeScene(objectVolume);
+			rootGroup.setCenter(volumeRendererTest.getSubScene());			
+		}
+	}
+
+	
+	public List<Box> generateVolumeForOctree(OctreeTest octree, BoxParametersTest volumeBoxParameters,
+			Map<String, int[][]> distanceArrays, Map<String, int[][]> invertedDistanceArrays, int octreeHeight){
+		VolumeGeneratorTest volumeGenerator = new VolumeGeneratorTest(octree, volumeBoxParameters, distanceArrays,
+				invertedDistanceArrays, octreeHeight);
+		volumeGenerator.setImagesForDistanceComputation(this.imagesForDistanceComputation);
+		volumeGenerator.setDistanceArrays(distanceArrays);
+		volumeGenerator.setInvertedDistanceArrays(invertedDistanceArrays);
+		volumeGenerator.setFieldOfView(this.fieldOfView);
+		volumeGenerator.setTransformMatrices(this.transformMatrices);
+		volumeGenerator.setProjectionGenerator(projectionGenerator);		
+				
+		return volumeGenerator.generateOctreeVoxels();
+	}
+	
 
 	
 	/**

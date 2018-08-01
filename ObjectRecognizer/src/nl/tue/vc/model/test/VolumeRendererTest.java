@@ -1,5 +1,6 @@
 package nl.tue.vc.model.test;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import javafx.animation.Animation;
@@ -10,6 +11,7 @@ import javafx.scene.PointLight;
 import javafx.scene.SceneAntialiasing;
 import javafx.scene.SubScene;
 import javafx.scene.paint.Color;
+import javafx.scene.shape.Box;
 import javafx.scene.transform.Rotate;
 import javafx.util.Duration;
 import nl.tue.vc.application.ApplicationConfiguration;
@@ -30,42 +32,36 @@ public class VolumeRendererTest {
 	private int lightPositionX;
 	private int lightPositionY;
 	private int lightPositionZ;
-	private int boxSize;
+	private float boxSizeX;
+	private float boxSizeY;
+	private float boxSizeZ;
+	private float boxSizeFactor;
 	
 	// Variables used to control the camera
 	private PerspectiveCamera camera;    
     private Group root3D = new Group();
 	
-	
 	private PointLight light;
 	private SubScene subScene;
-	private OctreeTest octree;
 	private VolumeGeneratorTest volumeGenerator;
 	
 	
 	public VolumeRendererTest() {
-		this.octree = new OctreeTest(this.volumeBoxParameters, 2);
+		boxSizeFactor = 20;
 		//this.octree = new Octree(ApplicationConfiguration.getInstance().getVolumeBoxSize());
 		configVolumeScene();
 		//volumeGenerator = new VolumeGenerator(octree, volumeBoxParameters);
 	}
-	
-	public VolumeRendererTest(OctreeTest octree) {
-		this.octree = octree;
-		configVolumeScene();
-		//volumeGenerator = new VolumeGenerator(octree, volumeBoxParameters);
-	}
-	
+		
 	private void configVolumeScene() {
 		ApplicationConfiguration appConfig = ApplicationConfiguration.getInstance();
 		sceneWidth = appConfig.getVolumeSceneWidth();
 		sceneHeight = appConfig.getVolumeSceneHeight();
 		sceneDepth = appConfig.getVolumeSceneDepth();
 		cameraPosition = appConfig.getCameraPosition();
-		boxSize = appConfig.getVolumeBoxSize();
-		double sizeX = 256;
-		double sizeY = 196;
-		double sizeZ = 256;
+		boxSizeX = boxSizeFactor * 12;
+		boxSizeY = boxSizeFactor * 6;
+		boxSizeZ = boxSizeFactor * 12;
 		
 		lightPositionX = sceneWidth/2;
 		lightPositionY = sceneHeight/2;
@@ -73,9 +69,9 @@ public class VolumeRendererTest {
 		light = new PointLight();		
 
 		volumeBoxParameters = new BoxParametersTest();		
-		volumeBoxParameters.setSizeX(sizeX);
-		volumeBoxParameters.setSizeY(sizeY);
-		volumeBoxParameters.setSizeZ(sizeZ);		
+		volumeBoxParameters.setSizeX(boxSizeX);
+		volumeBoxParameters.setSizeY(boxSizeY);
+		volumeBoxParameters.setSizeZ(boxSizeZ);		
 		volumeBoxParameters.setCenterX(sceneWidth/2);
 		volumeBoxParameters.setCenterY(sceneHeight/2);
 		volumeBoxParameters.setCenterZ(sceneDepth/2);
@@ -104,11 +100,9 @@ public class VolumeRendererTest {
 		// add the camera and the shapes
 		//System.out.println(octree.getRoot().toString());
 		//volumeGenerator = new VolumeGenerator(octree, volumeBoxParameters);
-		if (octree == null) {
-			root3D = volumeGenerator.getDefaultVolume(volumeBoxParameters);
-		} else {
-			root3D = volumeGenerator.generateVolume();
-		}
+		
+		
+		root3D = volumeGenerator.generateVolume();
 		
 		RotateTransition rotation = new RotateTransition(Duration.seconds(20), root3D);
 		rotation.setCycleCount(Animation.INDEFINITE);
@@ -143,6 +137,28 @@ public class VolumeRendererTest {
 		//subScene.setFill(Color.CADETBLUE);
 		subScene.setFill(Color.WHITE);
 		//setListeners(true);
+	}
+	
+	public void generateVolumeScene(List<Box> volumeVoxels){
+		Utils.debugNewLine("GenerateVolumeScene from voxels", true);
+
+		
+		Group volumeGroup = new Group();
+		volumeGroup.getChildren().addAll(volumeVoxels);
+
+		RotateTransition rotation = new RotateTransition(Duration.seconds(20), volumeGroup);
+		rotation.setCycleCount(Animation.INDEFINITE);
+		rotation.setFromAngle(0);
+		rotation.setToAngle(360);
+		rotation.setAutoReverse(false);
+		rotation.setAxis(Rotate.Y_AXIS);
+		rotation.play();
+
+		
+		subScene = new SubScene(volumeGroup, sceneWidth, sceneHeight, true, SceneAntialiasing.BALANCED);
+		subScene.setCamera(camera);
+		//subScene.setFill(Color.CADETBLUE);
+		subScene.setFill(Color.WHITE);
 	}
 	
 	public SubScene getSubScene() {
