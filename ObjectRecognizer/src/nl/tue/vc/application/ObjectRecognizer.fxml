@@ -9,218 +9,276 @@
 <?import javafx.scene.layout.BorderPane?>
 <?import javafx.scene.text.*?>
 
-<BorderPane prefHeight="640.0" prefWidth="960.0" xmlns="http://javafx.com/javafx/8" xmlns:fx="http://javafx.com/fxml/1" fx:controller="nl.tue.vc.application.ObjectRecognizerController">
-	<top>
-		<VBox>
+<AnchorPane maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="700.0" prefWidth="1050.0" xmlns="http://javafx.com/javafx/8" xmlns:fx="http://javafx.com/fxml/1" fx:controller="nl.tue.vc.application.ObjectRecognizerController">
    <children>
-   			<HBox alignment="CENTER" spacing="10">
-   				<padding>
-   					<Insets bottom="10" top="10" />
-   				</padding>
-      <children>
-                  <CheckBox fx:id="turnOnCamera" mnemonicParsing="false" text="Start cam" />
-                  <CheckBox fx:id="enableCameraCalibration" mnemonicParsing="false" text="Calibrate" />
-      				<Label text="Boards #" />
-      				<TextField fx:id="numBoards" maxWidth="50" text="20" />
-      				<Label text="Horizontal corners #" />
-      				<TextField fx:id="numHorCorners" maxWidth="50" text="9" />
-      				<Label text="Vertical corners #" />
-      				<TextField fx:id="numVertCorners" maxWidth="50" text="6" />
-      				<Button fx:id="applyButton" alignment="center" onAction="#updateSettings" text="Apply" />
-                  <Button fx:id="calibrateExtrinsicParamsButton" mnemonicParsing="false" onAction="#calibrateCameraForExtrinsicParams" text="Calibrate">
-                     <HBox.margin>
-                        <Insets left="10.0" />
-                     </HBox.margin>
-                  </Button>
-      </children>
-   			</HBox>
-            <VBox prefWidth="100.0">
-               <children>
-                  <HBox prefHeight="35.0" prefWidth="200.0">
+      <TabPane layoutX="20.0" layoutY="20.0" maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="650.0" prefWidth="1000.0" tabClosingPolicy="UNAVAILABLE">
+         <tabs>
+            <Tab text="Main">
+               <content>
+                  <AnchorPane minHeight="0.0" minWidth="0.0" prefHeight="600.0" prefWidth="1000.0">
                      <children>
-                        <CheckBox fx:id="debugSegmentation" mnemonicParsing="false" text="Debug segmentation algorithm">
-                           <HBox.margin>
-                              <Insets left="10.0" right="20.0" top="5.0" />
-                           </HBox.margin>
-                        </CheckBox>
-                        <Label text="Segmentation alg:">
-                           <HBox.margin>
-                              <Insets left="10.0" right="5.0" top="5.0" />
-                           </HBox.margin>
-                        </Label>
-                        <ComboBox fx:id="segmentationAlgorithm" prefWidth="150.0">
-                           <HBox.margin>
-                              <Insets right="20.0" top="5.0" />
-                           </HBox.margin>
-                        </ComboBox>
-                        <Label fx:id="thresholdLabel" text="Threshold: ">
-                           <HBox.margin>
-                              <Insets left="10.0" right="5.0" top="5.0" />
-                           </HBox.margin>
-                        </Label>
-                        <Slider fx:id="binaryThreshold" blockIncrement="5.0" max="255.0" value="105.0">
-                           <HBox.margin>
-                              <Insets right="20.0" top="5.0" />
-                           </HBox.margin></Slider>
+                        <BorderPane prefHeight="600.0" prefWidth="1000.0">
+                           <bottom>
+                              <HBox alignment="CENTER" spacing="10" BorderPane.alignment="CENTER">
+                                 <children>
+                                    <Button alignment="center" onAction="#loadImage" text="Load Images" />
+                                    <Button fx:id="snapshotButton" alignment="center" onAction="#takeSnapshot" text="Take snapshot" />
+                                    <Button fx:id="extractButton" alignment="center" onAction="#extractSilhouettes" text="Extract Silhouettes" />
+                                    <Button fx:id="refreshButton" mnemonicParsing="false" onAction="#clearLoadedImages" text="Refresh">
+                                       <HBox.margin>
+                                          <Insets />
+                                       </HBox.margin>
+                                    </Button>
+                                    <Button fx:id="constructButton" mnemonicParsing="false" onAction="#constructModel" text="Construct 3D Model" />
+                                    <Button fx:id="visualizeButton" mnemonicParsing="false" onAction="#visualizeModel" text="Visualize Model" />
+                                 </children>
+                                 <padding>
+                                    <Insets bottom="25" left="25" right="25" top="25" />
+                                 </padding>
+                              </HBox>
+                           </bottom>
+                           <center>
+                              <VBox alignment="CENTER" BorderPane.alignment="CENTER">
+                                 <children>
+                                    <ImageView fx:id="originalFrame" />
+                                 </children>
+                                 <padding>
+                                    <Insets left="10" right="10" />
+                                 </padding>
+                              </VBox>
+                           </center>
+                           <left>
+                              <VBox fx:id="vboxLeft" alignment="CENTER" BorderPane.alignment="CENTER">
+                                 <children>
+                                    <ImageView fx:id="cameraFrameView" fitHeight="140.0" fitWidth="120.0" pickOnBounds="true" preserveRatio="true">
+                                       <VBox.margin>
+                                          <Insets bottom="10.0" top="10.0" />
+                                       </VBox.margin>
+                                    </ImageView>
+                                 </children>
+                                 <padding>
+                                    <Insets left="10" right="10" />
+                                 </padding>
+                              </VBox>
+                           </left>
+                           <right>
+                              <VBox fx:id="vboxRight" alignment="CENTER" spacing="10" BorderPane.alignment="CENTER">
+                                 <children>
+                                    <ImageView fx:id="calibrationFrame" />
+                                 </children>
+                                 <padding>
+                                    <Insets left="10" right="10" />
+                                 </padding>
+                              </VBox>
+                           </right>
+                           <top>
+                              <VBox minWidth="-Infinity" prefHeight="50.0" prefWidth="717.0" BorderPane.alignment="CENTER">
+                                 <children>
+                                    <HBox alignment="CENTER" spacing="10">
+                                       <children>
+                                          <CheckBox fx:id="turnOnCamera" mnemonicParsing="false" text="Start cam" />
+                                          <CheckBox fx:id="enableCameraCalibration" mnemonicParsing="false" text="Calibrate" />
+                                          <Label text="Boards #" />
+                                          <TextField fx:id="numBoards" maxWidth="50" text="20" />
+                                          <Label text="Horizontal corners #" />
+                                          <TextField fx:id="numHorCorners" maxWidth="50" text="9" />
+                                          <Label text="Vertical corners #" />
+                                          <TextField fx:id="numVertCorners" maxWidth="50" text="6" />
+                                          <Button fx:id="applyButton" alignment="center" onAction="#updateSettings" text="Apply" />
+                                          <Button fx:id="calibrateExtrinsicParamsButton" mnemonicParsing="false" onAction="#calibrateCameraForExtrinsicParams" text="Calibrate">
+                                             <HBox.margin>
+                                                <Insets left="10.0" />
+                                             </HBox.margin>
+                                          </Button>
+                                       </children>
+                                       <padding>
+                                          <Insets bottom="10" top="10" />
+                                       </padding>
+                                    </HBox>
+                                 </children>
+                              </VBox>
+                           </top>
+                        </BorderPane>
                      </children>
-                  </HBox>
-                  <HBox prefHeight="30.0" prefWidth="200.0">
+                  </AnchorPane>
+               </content>
+            </Tab>
+            <Tab text="Image Operations">
+               <content>
+                  <AnchorPane minHeight="0.0" minWidth="0.0" prefHeight="180.0" prefWidth="200.0">
                      <children>
-                        <Label text="Cam X:">
-                           <HBox.margin>
-                              <Insets left="10.0" right="5.0" />
-                           </HBox.margin></Label>
-                        <Slider fx:id="cameraAxisX" max="200.0" min="-50.0" />
-                        <Label text="Cam Y:">
-                           <HBox.margin>
-                              <Insets left="10.0" right="5.0" />
-                           </HBox.margin></Label>
-                        <Slider fx:id="cameraAxisY" max="200.0" min="-50.0" />
-                        <Label text="Cam Z:">
-                           <HBox.margin>
-                              <Insets left="10.0" right="5.0" />
-                           </HBox.margin></Label>
-                        <Slider fx:id="cameraAxisZ" max="100.0" min="-200.0">
-                           <HBox.margin>
-                              <Insets />
-                           </HBox.margin>
-                        </Slider>
+                        <BorderPane prefHeight="600.0" prefWidth="1000.0">
+                           <top>
+                              <VBox minHeight="-Infinity" minWidth="-Infinity" prefWidth="717.0" BorderPane.alignment="CENTER">
+                                 <children>
+                                    <HBox spacing="10.0">
+                                       <children>
+                                          <CheckBox fx:id="debugSegmentation" mnemonicParsing="false" text="Debug segmentation algorithm">
+                                             <HBox.margin>
+                                                <Insets left="10.0" right="20.0" top="5.0" />
+                                             </HBox.margin>
+                                          </CheckBox>
+                                          <Label text="Segmentation alg:">
+                                             <HBox.margin>
+                                                <Insets left="10.0" right="5.0" top="5.0" />
+                                             </HBox.margin>
+                                          </Label>
+                                          <ComboBox fx:id="segmentationAlgorithm" prefWidth="150.0">
+                                             <HBox.margin>
+                                                <Insets right="20.0" top="5.0" />
+                                             </HBox.margin>
+                                          </ComboBox>
+                                          <Label fx:id="thresholdLabel" text="Threshold: ">
+                                             <HBox.margin>
+                                                <Insets left="10.0" right="5.0" top="5.0" />
+                                             </HBox.margin>
+                                          </Label>
+                                          <Slider fx:id="binaryThreshold" blockIncrement="5.0" max="255.0" value="105.0">
+                                             <HBox.margin>
+                                                <Insets right="20.0" top="5.0" />
+                                             </HBox.margin>
+                                          </Slider>
+                                       </children>
+                                       <padding>
+                                          <Insets bottom="10.0" top="10.0" />
+                                       </padding>
+                                    </HBox>
+                                 </children>
+                              </VBox>
+                           </top>
+                        </BorderPane>
                      </children>
-                     <VBox.margin>
-                        <Insets bottom="5.0" left="10.0" top="5.0" />
-                     </VBox.margin>
-                  </HBox>
-                  <HBox layoutX="20.0" layoutY="50.0" prefHeight="30.0" prefWidth="200.0">
+                  </AnchorPane>
+               </content>
+            </Tab>
+            <Tab text="Rendering Operations">
+               <content>
+                  <AnchorPane minHeight="0.0" minWidth="0.0" prefHeight="180.0" prefWidth="200.0">
                      <children>
-                        <Label text="Center X-coordinate:">
-                           <HBox.margin>
-                              <Insets left="10.0" right="5.0" />
-                           </HBox.margin>
-                        </Label>
-                        <Slider fx:id="centerAxisX" blockIncrement="1.0" max="50.0" min="-10.0" showTickMarks="true" value="-1.0" />
-                        <Label text="Center Y-coordinate:">
-                           <HBox.margin>
-                              <Insets left="10.0" right="5.0" />
-                           </HBox.margin>
-                        </Label>
-                        <Slider fx:id="centerAxisY" blockIncrement="1.0" max="50.0" min="-10.0" showTickMarks="true" value="2.0" />
-                        <Label text="Center Z-coordinate:">
-                           <HBox.margin>
-                              <Insets left="10.0" right="5.0" />
-                           </HBox.margin>
-                        </Label>
-                        <Slider fx:id="centerAxisZ" blockIncrement="1.0" max="50.0" min="-10.0" showTickMarks="true">
-                           <HBox.margin>
-                              <Insets />
-                           </HBox.margin>
-                        </Slider>
+                        <BorderPane minHeight="-Infinity" minWidth="-Infinity" prefHeight="600.0" prefWidth="1000.0">
+                           <top>
+                              <VBox minHeight="-Infinity" minWidth="-Infinity" prefHeight="600.0" prefWidth="1000.0" spacing="10.0" BorderPane.alignment="CENTER">
+                                 <children>
+                                    <HBox prefWidth="900.0">
+                                       <children>
+                                          <Label text="Cam X:">
+                                             <HBox.margin>
+                                                <Insets left="10.0" right="5.0" />
+                                             </HBox.margin>
+                                          </Label>
+                                          <Slider fx:id="cameraAxisX" max="200.0" min="-50.0" />
+                                          <Label text="Cam Y:">
+                                             <HBox.margin>
+                                                <Insets left="10.0" right="5.0" />
+                                             </HBox.margin>
+                                          </Label>
+                                          <Slider fx:id="cameraAxisY" max="200.0" min="-50.0" />
+                                          <Label text="Cam Z:">
+                                             <HBox.margin>
+                                                <Insets left="10.0" right="5.0" />
+                                             </HBox.margin>
+                                          </Label>
+                                          <Slider fx:id="cameraAxisZ" max="100.0" min="-200.0">
+                                             <HBox.margin>
+                                                <Insets />
+                                             </HBox.margin>
+                                          </Slider>
+                                       </children>
+                                    </HBox>
+                                    <Separator />
+                                    <HBox prefWidth="900.0">
+                                       <children>
+                                          <Label text="Center X-coordinate:">
+                                             <HBox.margin>
+                                                <Insets left="10.0" right="5.0" />
+                                             </HBox.margin>
+                                          </Label>
+                                          <Slider fx:id="centerAxisX" blockIncrement="1.0" max="50.0" min="-10.0" showTickMarks="true" value="-1.0" />
+                                          <Label text="Center Y-coordinate:">
+                                             <HBox.margin>
+                                                <Insets left="10.0" right="5.0" />
+                                             </HBox.margin>
+                                          </Label>
+                                          <Slider fx:id="centerAxisY" blockIncrement="1.0" max="50.0" min="-10.0" showTickMarks="true" value="2.0" />
+                                          <Label text="Center Z-coordinate:">
+                                             <HBox.margin>
+                                                <Insets left="10.0" right="5.0" />
+                                             </HBox.margin>
+                                          </Label>
+                                          <Slider fx:id="centerAxisZ" blockIncrement="1.0" max="50.0" min="-10.0" showTickMarks="true">
+                                             <HBox.margin>
+                                                <Insets />
+                                             </HBox.margin>
+                                          </Slider>
+                                       </children>
+                                    </HBox>
+                                    <Separator />
+                                    <HBox prefHeight="50.0" prefWidth="1000.0">
+                                       <children>
+                                          <Label text="World rotation Y angle:">
+                                             <opaqueInsets>
+                                                <Insets />
+                                             </opaqueInsets>
+                                             <HBox.margin>
+                                                <Insets right="10.0" />
+                                             </HBox.margin>
+                                             <padding>
+                                                <Insets left="10.0" />
+                                             </padding>
+                                          </Label>
+                                          <Slider fx:id="worldRotationYAngleSlider" showTickMarks="true">
+                                             <HBox.margin>
+                                                <Insets right="10.0" />
+                                             </HBox.margin>
+                                          </Slider>
+                                          <Label text="FOV:">
+                                             <HBox.margin>
+                                                <Insets right="10.0" />
+                                             </HBox.margin>
+                                          </Label>
+                                          <Slider fx:id="fieldOfViewSlider" max="180.0" min="1.0" showTickMarks="true" value="50.0" />
+                                          <Label layoutX="293.0" layoutY="10.0" text="Octree box size:">
+                                             <HBox.margin>
+                                                <Insets left="10.0" />
+                                             </HBox.margin>
+                                          </Label>
+                                          <TextField fx:id="boxSizeField" maxWidth="50" text="12">
+                                             <HBox.margin>
+                                                <Insets left="10.0" />
+                                             </HBox.margin>
+                                          </TextField>
+                                          <Label layoutX="468.0" layoutY="10.0" text="Octree levels:">
+                                             <HBox.margin>
+                                                <Insets left="10.0" />
+                                             </HBox.margin>
+                                          </Label>
+                                          <TextField fx:id="levelsField" layoutX="493.0" layoutY="10.0" maxWidth="50" text="0">
+                                             <HBox.margin>
+                                                <Insets left="10.0" />
+                                             </HBox.margin>
+                                          </TextField>
+                                          <Button fx:id="generateButton" alignment="center" onAction="#updateOctreeSettings" text="Generate">
+                                             <HBox.margin>
+                                                <Insets left="10.0" />
+                                             </HBox.margin>
+                                          </Button>
+                                       </children>
+                                    </HBox>
+                                 </children>
+                                 <padding>
+                                    <Insets bottom="10.0" top="10.0" />
+                                 </padding>
+                                 <BorderPane.margin>
+                                    <Insets />
+                                 </BorderPane.margin>
+                              </VBox>
+                           </top>
+                        </BorderPane>
                      </children>
-                  </HBox>
-               </children>
-            </VBox>
-            <HBox prefHeight="50.0" prefWidth="200.0">
-               <children>
-                  <Label text="World rotation Y angle:">
-                     <opaqueInsets>
-                        <Insets />
-                     </opaqueInsets>
-                     <HBox.margin>
-                        <Insets right="10.0" />
-                     </HBox.margin></Label>
-                  <Slider fx:id="worldRotationYAngleSlider" showTickMarks="true">
-                     <HBox.margin>
-                        <Insets right="10.0" />
-                     </HBox.margin></Slider>
-                  <Label text="FOV:">
-                     <HBox.margin>
-                        <Insets right="10.0" />
-                     </HBox.margin></Label>
-                  <Slider fx:id="fieldOfViewSlider" max="180.0" min="1.0" showTickMarks="true" value="50.0" />
-                  <Label layoutX="293.0" layoutY="10.0" text="Octree box size:">
-                     <HBox.margin>
-                        <Insets left="10.0" />
-                     </HBox.margin>
-                  </Label>
-                  <TextField fx:id="boxSizeField" maxWidth="50" text="12">
-                     <HBox.margin>
-                        <Insets left="10.0" />
-                     </HBox.margin>
-                  </TextField>
-                  <Label layoutX="468.0" layoutY="10.0" text="Octree levels:">
-                     <HBox.margin>
-                        <Insets left="10.0" />
-                     </HBox.margin>
-                  </Label>
-                  <TextField fx:id="levelsField" layoutX="493.0" layoutY="10.0" maxWidth="50" text="0">
-                     <HBox.margin>
-                        <Insets left="10.0" />
-                     </HBox.margin>
-                  </TextField>
-                  <Button fx:id="generateButton" alignment="center" onAction="#updateOctreeSettings" text="Generate">
-                     <HBox.margin>
-                        <Insets left="10.0" />
-                     </HBox.margin>
-                  </Button>
-               </children>
-               <VBox.margin>
-                  <Insets left="20.0" />
-               </VBox.margin>
-            </HBox>
-   			<Separator />
-            <Separator />
+                  </AnchorPane>
+               </content>
+            </Tab>
+         </tabs>
+      </TabPane>
    </children>
-		</VBox>
-	</top>
-	<left>
-		<VBox fx:id="vboxLeft" alignment="CENTER">
-			<padding>
-				<Insets left="10" right="10" />
-			</padding>
-         <children>
-            <ImageView fx:id="cameraFrameView" fitHeight="140.0" fitWidth="120.0" pickOnBounds="true" preserveRatio="true">
-               <VBox.margin>
-                  <Insets bottom="10.0" top="10.0" />
-               </VBox.margin></ImageView>
-         </children>
-		</VBox>
-	</left>
-	<center>
-		<VBox alignment="CENTER">
-			<padding>
-				<Insets left="10" right="10" />
-			</padding>
-   <children>
-   			<ImageView fx:id="originalFrame" />
-   </children>
-		</VBox>
-	</center>
-	<right>
-		<VBox fx:id="vboxRight" alignment="CENTER" spacing="10">
-			<padding>
-				<Insets left="10" right="10" />
-			</padding>
-			<children>
-				<ImageView fx:id="calibrationFrame" />
-			</children>
-		</VBox>
-	</right>
-	<bottom>
-		<HBox alignment="CENTER" spacing="10">
-			<padding>
-				<Insets bottom="25" left="25" right="25" top="25" />
-			</padding>
-			<children>
-				<Button alignment="center" onAction="#loadImage" text="Load Images" />
-				<Button fx:id="snapshotButton" alignment="center" onAction="#takeSnapshot" text="Take snapshot" />
-				<Button fx:id="extractButton" alignment="center" onAction="#extractSilhouettes" text="Extract Silhouettes" />
-            <Button fx:id="refreshButton" mnemonicParsing="false" onAction="#clearLoadedImages" text="Refresh">
-               <HBox.margin>
-                  <Insets />
-               </HBox.margin>
-            </Button>
-				<Button fx:id="constructButton" mnemonicParsing="false" onAction="#constructModel" text="Construct 3D Model" />
-				<Button fx:id="visualizeButton" mnemonicParsing="false" onAction="#visualizeModel" text="Visualize Model" />
-			</children>
-		</HBox>
-	</bottom>
-</BorderPane>
+</AnchorPane>

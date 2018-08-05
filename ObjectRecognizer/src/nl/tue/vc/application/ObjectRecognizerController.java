@@ -37,9 +37,12 @@ import javafx.scene.control.Label;
 import javafx.scene.control.ListCell;
 import javafx.scene.control.ListView;
 import javafx.scene.control.Slider;
+import javafx.scene.control.Tab;
+import javafx.scene.control.TabPane;
 import javafx.scene.control.TextField;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
+import javafx.scene.layout.AnchorPane;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.VBox;
 import javafx.stage.FileChooser;
@@ -239,7 +242,12 @@ public class ObjectRecognizerController {
 	private double calibrationResult = 0;
 
 	// The rootGroup
-	private BorderPane rootGroup;
+	private AnchorPane rootGroup;
+	private TabPane tabPane;
+	private BorderPane displayBorderPane;
+	private Tab mainTab;
+	private AnchorPane mainTabAnchor;
+	
 
 	private VolumeRenderer volumeRenderer;
 	private VolumeGenerator volumeGenerator;
@@ -1135,7 +1143,12 @@ public class ObjectRecognizerController {
 		volumeGenerator.setTransformMatrices(this.transformMatrices);
 		volumeGenerator.setProjectionGenerator(projectionGenerator);		
 		volumeRenderer.generateVolumeScene(volumeGenerator.generateVolume());
-		rootGroup.setCenter(volumeRenderer.getSubScene());
+		
+		tabPane = (TabPane) rootGroup.getChildren().get(0);
+		mainTab = tabPane.getTabs().get(0);
+		mainTabAnchor = (AnchorPane) mainTab.getContent();
+		displayBorderPane = (BorderPane) mainTabAnchor.getChildren().get(0);
+		displayBorderPane.setCenter(volumeRenderer.getSubScene());
 	
 		// The octree is update with the modified version in volume generator
 		octree = volumeGenerator.getOctree();
@@ -1259,7 +1272,7 @@ public class ObjectRecognizerController {
 		this.stage = stage;
 	}
 
-	public void setRootGroup(BorderPane rootGroup) {
+	public void setRootGroup(AnchorPane rootGroup) {
 		this.rootGroup = rootGroup;
 	}
 
