@@ -30,6 +30,7 @@ import javafx.beans.value.ObservableValue;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.fxml.FXML;
+import javafx.scene.SubScene;
 import javafx.scene.control.Button;
 import javafx.scene.control.CheckBox;
 import javafx.scene.control.ComboBox;
@@ -37,9 +38,12 @@ import javafx.scene.control.Label;
 import javafx.scene.control.ListCell;
 import javafx.scene.control.ListView;
 import javafx.scene.control.Slider;
+import javafx.scene.control.Tab;
+import javafx.scene.control.TabPane;
 import javafx.scene.control.TextField;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
+import javafx.scene.layout.AnchorPane;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.VBox;
 import javafx.scene.shape.Box;
@@ -251,7 +255,11 @@ public class ObjectRecognizerController {
 	private double calibrationResult = 0;
 
 	// The rootGroup
-	private BorderPane rootGroup;
+	private AnchorPane rootGroup;
+	private TabPane tabPane;
+	private BorderPane displayBorderPane;
+	private Tab mainTab;
+	private AnchorPane mainTabAnchor;
 
 	private VolumeRenderer volumeRenderer;
 	private VolumeGenerator volumeGenerator;
@@ -1152,7 +1160,8 @@ public class ObjectRecognizerController {
 		volumeGenerator.setTransformMatrices(this.transformMatrices);
 		volumeGenerator.setProjectionGenerator(projectionGenerator);		
 		volumeRenderer.generateVolumeScene(volumeGenerator.generateVolume());
-		rootGroup.setCenter(volumeRenderer.getSubScene());
+		//rootGroup.setCenter(volumeRenderer.getSubScene());
+		setSubScene(volumeRenderer.getSubScene());
 	
 		// The octree is update with the modified version in volume generator
 		octree = volumeGenerator.getOctree();
@@ -1398,7 +1407,8 @@ public class ObjectRecognizerController {
 		volumeGeneratorTest.setProjectionGenerator(projectionGenerator);		
 
 		volumeRendererTest.generateVolumeScene(volumeGeneratorTest.generateVolume());
-		rootGroup.setCenter(volumeRendererTest.getSubScene());
+		//rootGroup.setCenter(volumeRendererTest.getSubScene());
+		setSubScene(volumeRenderer.getSubScene());
 	
 		// The octree is update with the modified version in volume generator
 		octreeTest = volumeGeneratorTest.getOctree();
@@ -1476,10 +1486,18 @@ public class ObjectRecognizerController {
 			
 			volumeRendererTest = new VolumeRendererTest();
 			volumeRendererTest.generateVolumeScene(objectVolume);
-			rootGroup.setCenter(volumeRendererTest.getSubScene());			
+			setSubScene(volumeRendererTest.getSubScene());
+			
 		}
 	}
 
+	public void setSubScene(SubScene volumeSubScene) {
+		tabPane = (TabPane) rootGroup.getChildren().get(0);
+		mainTab = tabPane.getTabs().get(0);
+		mainTabAnchor = (AnchorPane) mainTab.getContent();
+		displayBorderPane = (BorderPane) mainTabAnchor.getChildren().get(0);
+		displayBorderPane.setCenter(volumeSubScene);
+	}
 	
 	public List<Box> generateVolumeForOctree(OctreeTest octree, BoxParametersTest volumeBoxParameters,
 			Map<String, int[][]> distanceArrays, Map<String, int[][]> invertedDistanceArrays, int octreeHeight){
@@ -1589,7 +1607,7 @@ public class ObjectRecognizerController {
 		this.stage = stage;
 	}
 
-	public void setRootGroup(BorderPane rootGroup) {
+	public void setRootGroup(AnchorPane rootGroup) {
 		this.rootGroup = rootGroup;
 	}
 
