@@ -1413,7 +1413,7 @@ public class ObjectRecognizerController {
 
 		volumeRendererTest.generateVolumeScene(volumeGeneratorTest.generateVolume());
 		//rootGroup.setCenter(volumeRendererTest.getSubScene());
-		setSubScene(volumeRenderer.getSubScene());
+		setSubScene(volumeRendererTest.getSubScene());
 	
 		// The octree is update with the modified version in volume generator
 		octreeTest = volumeGeneratorTest.getOctree();
