@@ -6,6 +6,9 @@ import javafx.application.Application;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Scene;
 import javafx.scene.SubScene;
+import javafx.scene.control.Tab;
+import javafx.scene.control.TabPane;
+import javafx.scene.layout.AnchorPane;
 import javafx.scene.layout.BorderPane;
 import javafx.stage.Stage;
 import nl.tue.vc.voxelengine.CameraPosition;
@@ -25,7 +28,11 @@ public class ObjectRecognizer extends Application {
 	//private Scene volumeScene;
 	//private BorderPane rootGroup;
 	private SubScene volumeScene;
-	BorderPane rootGroup;
+	private AnchorPane rootGroup;
+	private TabPane tabPane;
+	private BorderPane displayBorderPane;
+	private Tab mainTab;
+	private AnchorPane mainTabAnchor;
 	
 	
 	@Override
@@ -37,11 +44,12 @@ public class ObjectRecognizer extends Application {
 			//VolumeRenderer volumeRenderer = new VolumeRenderer();
 			//volumeRenderer.generateVolumeScene();
 			//volumeScene = volumeRenderer.getSubScene();			
-			rootGroup = (BorderPane) loader.load();
+			rootGroup = (AnchorPane) loader.load();
 
 			// set a whitesmoke background
 			rootGroup.setStyle("-fx-background-color: whitesmoke;");
-			rootGroup.setCenter(volumeScene);
+			//rootGroup.setCenter(volumeScene);
+			setSubScene(volumeScene);
 			
 			Scene scene = new Scene(rootGroup, appConfig.getWindowWidth(), appConfig.getWindowHeight());
 			scene.getStylesheets().add(getClass().getResource("application.css").toExternalForm());
@@ -60,6 +68,14 @@ public class ObjectRecognizer extends Application {
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
+	}
+	
+	public void setSubScene(SubScene volumeSubScene) {
+		tabPane = (TabPane) rootGroup.getChildren().get(0);
+		mainTab = tabPane.getTabs().get(0);
+		mainTabAnchor = (AnchorPane) mainTab.getContent();
+		displayBorderPane = (BorderPane) mainTabAnchor.getChildren().get(0);
+		displayBorderPane.setCenter(volumeSubScene);
 	}
 
 	public static void main(String[] args) {
