@@ -1198,19 +1198,19 @@ public class ObjectRecognizerController {
 		
 		// Load calibration images
 		List<String> calibrationImageFilenames = new ArrayList<String>();
-		String imgPrefix = "images/cameraTest/";
-		calibrationImageFilenames.add(imgPrefix + "chessboard0.jpg");
-		calibrationImageFilenames.add(imgPrefix + "chessboard30.jpg");
-		calibrationImageFilenames.add(imgPrefix + "chessboard60.jpg");
-		calibrationImageFilenames.add(imgPrefix + "chessboard90.jpg");
-		calibrationImageFilenames.add(imgPrefix + "chessboard120.jpg");
-		calibrationImageFilenames.add(imgPrefix + "chessboard150.jpg");
-		calibrationImageFilenames.add(imgPrefix + "chessboard180.jpg");
-		calibrationImageFilenames.add(imgPrefix + "chessboard210.jpg");
-		calibrationImageFilenames.add(imgPrefix + "chessboard240.jpg");
-		calibrationImageFilenames.add(imgPrefix + "chessboard270.jpg");
-		calibrationImageFilenames.add(imgPrefix + "chessboard300.jpg");
-		calibrationImageFilenames.add(imgPrefix + "chessboard330.jpg");
+		String imgPrefix = "images/multiOctreesTest/";
+		calibrationImageFilenames.add(imgPrefix + "chessboard-0.jpg");
+		calibrationImageFilenames.add(imgPrefix + "chessboard-30.jpg");
+		calibrationImageFilenames.add(imgPrefix + "chessboard-60.jpg");
+		calibrationImageFilenames.add(imgPrefix + "chessboard-90.jpg");
+		calibrationImageFilenames.add(imgPrefix + "chessboard-120.jpg");
+		calibrationImageFilenames.add(imgPrefix + "chessboard-150.jpg");
+		calibrationImageFilenames.add(imgPrefix + "chessboard-180.jpg");
+		calibrationImageFilenames.add(imgPrefix + "chessboard-210.jpg");
+		calibrationImageFilenames.add(imgPrefix + "chessboard-240.jpg");
+		calibrationImageFilenames.add(imgPrefix + "chessboard-270.jpg");
+		calibrationImageFilenames.add(imgPrefix + "chessboard-300.jpg");
+		calibrationImageFilenames.add(imgPrefix + "chessboard-330.jpg");
 
 		Map<String, Mat> calibrationImages = new HashMap<String, Mat>();
 		int calIndex = 0;
@@ -1220,25 +1220,26 @@ public class ObjectRecognizerController {
 				calibrationImages.put(calibrationIndices[calIndex], image);							
 				calIndex++;
 			}
-		}		
-
+		}
+		
 		// compute calibration matrices
 		projectionGenerator = cameraCalibrator.calibrateMatrices(calibrationImages, true);
-
+		System.out.println("Calibration map size: " + projectionGenerator.effectiveSize());
+		
 		// Load object images
 		List<String> objectImageFilenames = new ArrayList<String>();
-		objectImageFilenames.add(imgPrefix + "cube-deg0-mod.jpg");
-		objectImageFilenames.add(imgPrefix + "cube-deg30-mod.jpg");
-		objectImageFilenames.add(imgPrefix + "cube-deg60-mod.jpg");
-		objectImageFilenames.add(imgPrefix + "cube-deg90-mod.jpg");
-		objectImageFilenames.add(imgPrefix + "cube-deg120-mod.jpg");
-		objectImageFilenames.add(imgPrefix + "cube-deg150-mod.jpg");
-		objectImageFilenames.add(imgPrefix + "cube-deg180-mod.jpg");
-		objectImageFilenames.add(imgPrefix + "cube-deg210-mod.jpg");
-		objectImageFilenames.add(imgPrefix + "cube-deg240-mod.jpg");
-		objectImageFilenames.add(imgPrefix + "cube-deg270-mod.jpg");
-		objectImageFilenames.add(imgPrefix + "cube-deg300-mod.jpg");
-		objectImageFilenames.add(imgPrefix + "cube-deg330-mod.jpg");
+		objectImageFilenames.add(imgPrefix + "object-0.jpg");
+		objectImageFilenames.add(imgPrefix + "object-30.jpg");
+		objectImageFilenames.add(imgPrefix + "object-60.jpg");
+		objectImageFilenames.add(imgPrefix + "object-90.jpg");
+		objectImageFilenames.add(imgPrefix + "object-120.jpg");
+		objectImageFilenames.add(imgPrefix + "object-150.jpg");
+		objectImageFilenames.add(imgPrefix + "object-180.jpg");
+		objectImageFilenames.add(imgPrefix + "object-210.jpg");
+		objectImageFilenames.add(imgPrefix + "object-240.jpg");
+		objectImageFilenames.add(imgPrefix + "object-270.jpg");
+		objectImageFilenames.add(imgPrefix + "object-300.jpg");
+		objectImageFilenames.add(imgPrefix + "object-330.jpg");
 		Map<String, Mat> objectImages = new HashMap<String, Mat>();
 		calIndex = 0;
 		for (String filename: objectImageFilenames){
@@ -1261,18 +1262,18 @@ public class ObjectRecognizerController {
 		}
 
 		List<String> binaryImageFilenames = new ArrayList<String>();
-		binaryImageFilenames.add(imgPrefix + "binary-cube-deg0.png");
-		binaryImageFilenames.add(imgPrefix + "binary-cube-deg30.png");
-		binaryImageFilenames.add(imgPrefix + "binary-cube-deg60.png");
-		binaryImageFilenames.add(imgPrefix + "binary-cube-deg90.png");
-		binaryImageFilenames.add(imgPrefix + "binary-cube-deg120.png");
-		binaryImageFilenames.add(imgPrefix + "binary-cube-deg150.png");
-		binaryImageFilenames.add(imgPrefix + "binary-cube-deg180.png");
-		binaryImageFilenames.add(imgPrefix + "binary-cube-deg210.png");
-		binaryImageFilenames.add(imgPrefix + "binary-cube-deg240.png");
-		binaryImageFilenames.add(imgPrefix + "binary-cube-deg270.png");
-		binaryImageFilenames.add(imgPrefix + "binary-cube-deg300.png");
-		binaryImageFilenames.add(imgPrefix + "binary-cube-deg330.png");
+		binaryImageFilenames.add(imgPrefix + "bin-object-0.png");
+		binaryImageFilenames.add(imgPrefix + "bin-object-30.png");
+		binaryImageFilenames.add(imgPrefix + "bin-object-60.png");
+		binaryImageFilenames.add(imgPrefix + "bin-object-90.png");
+		binaryImageFilenames.add(imgPrefix + "bin-object-120.png");
+		binaryImageFilenames.add(imgPrefix + "bin-object-150.png");
+		binaryImageFilenames.add(imgPrefix + "bin-object-180.png");
+		binaryImageFilenames.add(imgPrefix + "bin-object-210.png");
+		binaryImageFilenames.add(imgPrefix + "bin-object-240.png");
+		binaryImageFilenames.add(imgPrefix + "bin-object-270.png");
+		binaryImageFilenames.add(imgPrefix + "bin-object-300.png");
+		binaryImageFilenames.add(imgPrefix + "bin-object-330.png");
 
 		int imageFilenameIndex = 0;
 		for (String imageKey: binarizedImages.keySet()){
@@ -1283,12 +1284,12 @@ public class ObjectRecognizerController {
 		
 		computeDistanceArraysTest();
 		int maxLevels = 8;
-		/**
+		
 		for (int i = 0; i < maxLevels; i++){
 			generateModelTest(i);			
 		}
-		**/
-		generateModelMultipleOctrees(maxLevels - 1);
+		
+		//generateModelMultipleOctrees(maxLevels - 1);
 	}
 	
 	private Map<String, Mat> extractSilhouettesTest(Map<String, Mat> images){
@@ -1344,13 +1345,17 @@ public class ObjectRecognizerController {
 		cameraPosition.positionAxisY = 0;
 		cameraPosition.positionAxisZ = 0;
 
-		float dx = -3;
-		float dy = 0;
-		float dz = -4;
+		float dx =-2;
+		float dy = -1;
+		float dz = -2;
 
-		float cubeLengthX = 12;
-		float cubeLengthY = 6;
-		float cubeLengthZ = 12;
+		//float clx = 10;
+		//float cly = 8;
+		//float clz = 8;
+		
+		float cubeLengthX = 10;
+		float cubeLengthY = 8;
+		float cubeLengthZ = 8;
 		
 		float centerX = (cubeLengthX + dx) / 2;
 		float centerY = (cubeLengthY + dy) / 2;
@@ -1412,22 +1417,33 @@ public class ObjectRecognizerController {
 		cameraPosition.positionAxisY = 0;
 		cameraPosition.positionAxisZ = 0;
 
-		float dx = -3;
-		float dy = 0;
-		float dz = -4;
-
-		float cubeLengthX = 3;
-		float cubeLengthY = 3;
-		float cubeLengthZ = 3;
-
-		float initialCenterX = (cubeLengthX/2) + dx;
-		float initialCenterY = (cubeLengthY/2) + dy;
-		float initialCenterZ = (cubeLengthZ/2) + dz;
+		float dx = -2;
+		float dy = -1;
+		float dz = -2;
 		
-		float[] centersX = {initialCenterX, initialCenterX + cubeLengthX, initialCenterX + 2*cubeLengthX, initialCenterX + 3*cubeLengthX};
-		float[] centersY = {initialCenterY, initialCenterY + cubeLengthY};
-		float[] centersZ = {initialCenterZ, initialCenterZ + cubeLengthZ, initialCenterZ + 2*cubeLengthZ, initialCenterZ + 3*cubeLengthZ};
+		int nCubesX = 10;
+		int nCubesY = 8;
+		int nCubesZ = 8;
+		
+		float[] centersX = new float[nCubesX];
+		centersX[0] = (float) (0.5 + dx);
+		for (int i = 1; i < nCubesX; i++){
+			centersX[i] = centersX[i-1] + 1;
+		}
+		
+		float[] centersY = new float[nCubesY];
+		centersY[0] = (float) (0.5 + dy);
+		for (int i = 1; i < nCubesY; i++){
+			centersY[i] = centersY[i-1] + 1;
+		}
 
+		float[] centersZ = new float[nCubesZ];
+		centersZ[0] = (float) (0.5 + dz);
+		for (int i = 1; i < nCubesZ; i++){
+			centersZ[i] = centersZ[i-1] + 1;
+		}
+
+		
 		List<BoxParametersTest> octreeParameters = new ArrayList<BoxParametersTest>();
 		for (int idX = 0; idX < centersX.length; idX++){
 			for (int idY = 0; idY < centersY.length; idY++){
@@ -1437,9 +1453,9 @@ public class ObjectRecognizerController {
 					float centerZ = centersZ[idZ];
 					
 					BoxParametersTest volumeBoxParameters = new BoxParametersTest();
-					volumeBoxParameters.setSizeX(cubeLengthX);
-					volumeBoxParameters.setSizeY(cubeLengthY);
-					volumeBoxParameters.setSizeZ(cubeLengthZ);
+					volumeBoxParameters.setSizeX(1.0);
+					volumeBoxParameters.setSizeY(1.0);
+					volumeBoxParameters.setSizeZ(1.0);
 					volumeBoxParameters.setCenterX(centerX);
 					volumeBoxParameters.setCenterY(centerY);
 					volumeBoxParameters.setCenterZ(centerZ);

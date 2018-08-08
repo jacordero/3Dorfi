@@ -33,13 +33,13 @@ public class CubeProjectorTest {
 	}
 	
 	private MatOfPoint3f createPointsToProject(){
-		float dx = -3;
-		float dy = 0;
-		float dz = -4;
+		float dx =-2;
+		float dy = -1;
+		float dz = -2;
 
-		float clx = 12;
-		float cly = 6;
-		float clz = 12;
+		float clx = 10;
+		float cly = 8;
+		float clz = 8;
 		Point3[] corners = new Point3[8];
 		corners[0] = new Point3(dx + 0, dy + 0, dz + 0);
 		corners[1] = new Point3(dx + clx, dy + 0 , dz + 0);
@@ -132,19 +132,19 @@ public class CubeProjectorTest {
 		
 		System.loadLibrary(Core.NATIVE_LIBRARY_NAME);
 		List<String> calibrationImageFilenames = new ArrayList<String>();
-		String imgPrefix = "images/cameraTest/";
-		calibrationImageFilenames.add(imgPrefix + "chessboard0.jpg");
-		calibrationImageFilenames.add(imgPrefix + "chessboard30.jpg");
-		calibrationImageFilenames.add(imgPrefix + "chessboard60.jpg");
-		calibrationImageFilenames.add(imgPrefix + "chessboard90.jpg");
-		calibrationImageFilenames.add(imgPrefix + "chessboard120.jpg");
-		calibrationImageFilenames.add(imgPrefix + "chessboard150.jpg");
-		calibrationImageFilenames.add(imgPrefix + "chessboard180.jpg");
-		calibrationImageFilenames.add(imgPrefix + "chessboard210.jpg");
-		calibrationImageFilenames.add(imgPrefix + "chessboard240.jpg");
-		calibrationImageFilenames.add(imgPrefix + "chessboard270.jpg");
-		calibrationImageFilenames.add(imgPrefix + "chessboard300.jpg");
-		calibrationImageFilenames.add(imgPrefix + "chessboard330.jpg");
+		String imgPrefix = "images/multiOctreesTest/";
+		calibrationImageFilenames.add(imgPrefix + "chessboard-0.jpg");
+		calibrationImageFilenames.add(imgPrefix + "chessboard-30.jpg");
+		calibrationImageFilenames.add(imgPrefix + "chessboard-60.jpg");
+		calibrationImageFilenames.add(imgPrefix + "chessboard-90.jpg");
+		calibrationImageFilenames.add(imgPrefix + "chessboard-120.jpg");
+		calibrationImageFilenames.add(imgPrefix + "chessboard-150.jpg");
+		calibrationImageFilenames.add(imgPrefix + "chessboard-180.jpg");
+		calibrationImageFilenames.add(imgPrefix + "chessboard-210.jpg");
+		calibrationImageFilenames.add(imgPrefix + "chessboard-240.jpg");
+		calibrationImageFilenames.add(imgPrefix + "chessboard-270.jpg");
+		calibrationImageFilenames.add(imgPrefix + "chessboard-300.jpg");
+		calibrationImageFilenames.add(imgPrefix + "chessboard-330.jpg");
 
 		Map<String, Mat> calibrationImages = new HashMap<String, Mat>();
 		String[] calibrationIndices = {"cal0", "cal30", "cal60", "cal90", "cal120", 
@@ -160,18 +160,18 @@ public class CubeProjectorTest {
 		
 		
 		List<String> objectImageFilenames = new ArrayList<String>();
-		objectImageFilenames.add(imgPrefix + "/cube-deg0-mod.jpg");
-		objectImageFilenames.add(imgPrefix + "/cube-deg30-mod.jpg");
-		objectImageFilenames.add(imgPrefix + "/cube-deg60-mod.jpg");
-		objectImageFilenames.add(imgPrefix + "/cube-deg90-mod.jpg");
-		objectImageFilenames.add(imgPrefix + "/cube-deg120-mod.jpg");
-		objectImageFilenames.add(imgPrefix + "/cube-deg150-mod.jpg");
-		objectImageFilenames.add(imgPrefix + "/cube-deg180-mod.jpg");
-		objectImageFilenames.add(imgPrefix + "/cube-deg210-mod.jpg");
-		objectImageFilenames.add(imgPrefix + "/cube-deg240-mod.jpg");
-		objectImageFilenames.add(imgPrefix + "/cube-deg270-mod.jpg");
-		objectImageFilenames.add(imgPrefix + "/cube-deg300-mod.jpg");
-		objectImageFilenames.add(imgPrefix + "/cube-deg330-mod.jpg");
+		objectImageFilenames.add(imgPrefix + "object-0.jpg");
+		objectImageFilenames.add(imgPrefix + "object-30.jpg");
+		objectImageFilenames.add(imgPrefix + "object-60.jpg");
+		objectImageFilenames.add(imgPrefix + "object-90.jpg");
+		objectImageFilenames.add(imgPrefix + "object-120.jpg");
+		objectImageFilenames.add(imgPrefix + "object-150.jpg");
+		objectImageFilenames.add(imgPrefix + "object-180.jpg");
+		objectImageFilenames.add(imgPrefix + "object-210.jpg");
+		objectImageFilenames.add(imgPrefix + "object-240.jpg");
+		objectImageFilenames.add(imgPrefix + "object-270.jpg");
+		objectImageFilenames.add(imgPrefix + "object-300.jpg");
+		objectImageFilenames.add(imgPrefix + "object-330.jpg");
 		List<Mat> objectImages = new ArrayList<Mat>();
 		for (String filename: objectImageFilenames){
 			Mat image = Utils.loadImage(filename);

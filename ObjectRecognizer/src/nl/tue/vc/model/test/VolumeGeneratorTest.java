@@ -848,19 +848,25 @@ public class VolumeGeneratorTest {
 		double sceneHeight = boxParameters.getCenterY();
 		double sceneDepth = boxParameters.getCenterZ();
 		double sizeX = boxParameters.getSizeX();
+		
+		// invert the axis
 		double sizeY = boxParameters.getSizeY();
-		double sizeZ = boxParameters.getCenterZ();
+		double sizeZ = boxParameters.getSizeZ();
 		
 		
-		Box box = new Box(sizeX, sizeY, sizeZ);
+		Box box = new Box(sizeX, sizeZ, sizeY);
 		double posx = sceneWidth + (deltas.deltaX * (sizeX / 2));
+		
+		// invert the axis
 		double posy = sceneHeight + (deltas.deltaY * (sizeY / 2));
 		double posz = sceneDepth + (deltas.deltaZ * (sizeZ / 2));
 		
 		//Mirror the position in the y axis. So far only works for a maximum value of 80		
 		box.setTranslateX(posx);
-		box.setTranslateY(posy);
-		box.setTranslateZ(posz);
+		
+		
+		box.setTranslateY(posz);
+		box.setTranslateZ(posy);
 
 		PhongMaterial textureMaterial = new PhongMaterial();
 
@@ -881,8 +887,8 @@ public class VolumeGeneratorTest {
 		 **/
 		 
 		 
-		 //diffuseColor = nodeColor == Color.BLACK ? nodeColor : Color.TRANSPARENT;
-		 diffuseColor = nodeColor == Color.WHITE ? Color.TRANSPARENT: nodeColor;
+		 diffuseColor = nodeColor == Color.BLACK ? nodeColor : Color.TRANSPARENT;
+		 //diffuseColor = nodeColor == Color.WHITE ? Color.TRANSPARENT: nodeColor;
 		
 		 textureMaterial.setDiffuseColor(diffuseColor);
 		box.setMaterial(textureMaterial);
@@ -958,6 +964,7 @@ public class VolumeGeneratorTest {
 		NodeTest root = octree.getRoot();
 		boundingBoxes.clear();
 
+		System.out.println("Calibration matrices keyset: " + projectionGenerator.keysStr());
 		if (imagesForDistanceComputation.size() == 1) {
 			iterateCubesForVisualizationAux(root, octree.getOctreeHeight());
 		} else {

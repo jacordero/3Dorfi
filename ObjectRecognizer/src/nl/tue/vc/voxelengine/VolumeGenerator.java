@@ -828,9 +828,12 @@ public class VolumeGenerator {
 		PhongMaterial textureMaterial = new PhongMaterial();
 
 		Color diffuseColor = nodeColor;
+		
+		/**
 		if (nodeColor == Color.WHITE){
 			 diffuseColor = Color.TRANSPARENT;
 		}
+		**/
 		// if (nodeColor == Color.WHITE || nodeColor == Color.GRAY){
 		// diffuseColor = Color.TRANSPARENT;
 		// } else if (nodeColor == Color.BLACK){
@@ -838,8 +841,7 @@ public class VolumeGenerator {
 		// } else {
 		// diffuseColor = Color.GRAY;
 		// }
-		// Color diffuseColor = nodeColor == Color.BLACK ? nodeColor :
-		// Color.TRANSPARENT;
+		diffuseColor = nodeColor == Color.BLACK ? nodeColor : Color.TRANSPARENT;
 		textureMaterial.setDiffuseColor(diffuseColor);
 		box.setMaterial(textureMaterial);
 		return box;
