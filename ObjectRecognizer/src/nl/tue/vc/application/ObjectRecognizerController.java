@@ -1294,11 +1294,13 @@ public class ObjectRecognizerController {
 		computeDistanceArraysTest();
 		int maxLevels = 8;
 		
+		/**
 		for (int i = 0; i < maxLevels; i++){
 			generateModelTest(i);			
 		}
+		**/
 		
-		//generateModelMultipleOctrees(maxLevels - 1);
+		generateModelMultipleOctrees(maxLevels - 1);
 	}
 	
 	private Map<String, Mat> extractSilhouettesTest(Map<String, Mat> images){

@@ -59,9 +59,9 @@ public class VolumeRendererTest {
 		sceneHeight = appConfig.getVolumeSceneHeight();
 		sceneDepth = appConfig.getVolumeSceneDepth();
 		cameraPosition = appConfig.getCameraPosition();
-		boxSizeX = boxSizeFactor * 12;
-		boxSizeY = boxSizeFactor * 6;
-		boxSizeZ = boxSizeFactor * 12;
+		boxSizeX = boxSizeFactor * 10;
+		boxSizeY = boxSizeFactor * 8;
+		boxSizeZ = boxSizeFactor * 8;
 		
 		lightPositionX = sceneWidth/2;
 		lightPositionY = sceneHeight/2;

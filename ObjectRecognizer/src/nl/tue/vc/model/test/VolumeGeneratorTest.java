@@ -53,7 +53,8 @@ public class VolumeGeneratorTest {
 	private TransformMatrices transformMatrices;
 	private int fieldOfView;
 	private int octreeHeight;
-
+	private int cubeLengthFactor = 20;
+	
 	public VolumeGeneratorTest(OctreeTest octree, BoxParametersTest boxParameters) {
 		this.octree = octree;
 		this.imagesForDistanceComputation = new HashMap<String, BufferedImage>();
@@ -108,16 +109,16 @@ public class VolumeGeneratorTest {
 		octree.setRoot(root);
 		
 		ApplicationConfiguration appConfig = ApplicationConfiguration.getInstance();
-		int sceneWidth = 3 * appConfig.getVolumeSceneWidth() / 4;
-		int sceneHeight = 3 * appConfig.getVolumeSceneHeight() / 4;
-		int sceneDepth = appConfig.getVolumeSceneDepth() / 2;
+		int volumeCenterX = appConfig.getVolumeSceneWidth() / 2;
+		int volumeCenterY = appConfig.getVolumeSceneHeight() /2;
+		int volumeCenterZ = appConfig.getVolumeSceneDepth() / 2;
 		BoxParametersTest volumeBoxParameters = new BoxParametersTest();
-		volumeBoxParameters.setSizeX(160);
-		volumeBoxParameters.setSizeY(80);
-		volumeBoxParameters.setSizeZ(120);
-		volumeBoxParameters.setCenterX(sceneWidth);
-		volumeBoxParameters.setCenterY(sceneHeight);
-		volumeBoxParameters.setCenterZ(sceneDepth);
+		volumeBoxParameters.setSizeX(cubeLengthFactor);
+		volumeBoxParameters.setSizeY(cubeLengthFactor);
+		volumeBoxParameters.setSizeZ(cubeLengthFactor);
+		volumeBoxParameters.setCenterX(volumeCenterX + root.getPositionCenterX()*cubeLengthFactor);
+		volumeBoxParameters.setCenterY(volumeCenterY + root.getPositionCenterY()*cubeLengthFactor);
+		volumeBoxParameters.setCenterZ(volumeCenterZ + root.getPositionCenterZ()*cubeLengthFactor);
 
 		return generateVolumeAux(root, volumeBoxParameters, deltas);
 	}
@@ -147,60 +148,26 @@ public class VolumeGeneratorTest {
 		// List<Box> voxels = generateVolumeAux(root, boxParameters, deltas);
 		// volume.getChildren().addAll(voxels);
 
-		Group imageProjection = getImageProjections("cal0");
-		volume.getChildren().addAll(imageProjection);
-
-		long lStartTime = System.nanoTime();
-
-		projectCubesForVisualization();
-		if (octreeHeight <= 3) {
-			volume.getChildren().addAll(getProjectedVolume());
-		}
-
-		long lEndTime = System.nanoTime();
-		long output = lEndTime - lStartTime;
-		//System.out.println("Elapsed time for projectCubes in milliseconds: " + output / 1000000);
-
-		// start
-		lStartTime = System.nanoTime();
 
 		root = getTestedNodeAux(root);
 		octree.setRoot(root);
 
-		// end
-		lEndTime = System.nanoTime();
-
-		// time elapsed
-		output = lEndTime - lStartTime;
-		//System.out.println("Elapsed time for getTestedNodeAux in milliseconds: " + output / 1000000);
 
 		ApplicationConfiguration appConfig = ApplicationConfiguration.getInstance();
-		int sceneWidth = 3 * appConfig.getVolumeSceneWidth() / 4;
-		int sceneHeight = 3 * appConfig.getVolumeSceneHeight() / 4;
+		int sceneWidth =  appConfig.getVolumeSceneWidth() / 2;
+		int sceneHeight = appConfig.getVolumeSceneHeight() / 2;
 		int sceneDepth = appConfig.getVolumeSceneDepth() / 2;
 		BoxParametersTest volumeBoxParameters = new BoxParametersTest();
-		volumeBoxParameters.setSizeX(160);
+		volumeBoxParameters.setSizeX(100);
 		volumeBoxParameters.setSizeY(80);
-		volumeBoxParameters.setSizeZ(120);
+		volumeBoxParameters.setSizeZ(80);
 		volumeBoxParameters.setCenterX(sceneWidth);
 		volumeBoxParameters.setCenterY(sceneHeight);
 		volumeBoxParameters.setCenterZ(sceneDepth);
 
 		// start
-		lStartTime = System.nanoTime();
 		List<Box> voxels = generateVolumeAux(root, volumeBoxParameters, deltas);
 		volume.getChildren().addAll(voxels);
-		// end
-		lEndTime = System.nanoTime();
-
-		// time elapsed
-		output = lEndTime - lStartTime;
-
-		//System.out.println("Elapsed time for generateVolumeAux in milliseconds: " + output / 1000000);
-
-		// List<Box> testedVoxels = generateTestedVolume(root, volumeBoxParameters,
-		// deltas);
-		// volume.getChildren().addAll(testedVoxels);
 
 		return volume;
 	}
