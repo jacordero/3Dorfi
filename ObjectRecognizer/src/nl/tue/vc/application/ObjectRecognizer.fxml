@@ -62,16 +62,6 @@
                                  </padding>
                               </VBox>
                            </left>
-                           <right>
-                              <VBox fx:id="vboxRight" alignment="CENTER" spacing="10" BorderPane.alignment="CENTER">
-                                 <children>
-                                    <ImageView fx:id="calibrationFrame" />
-                                 </children>
-                                 <padding>
-                                    <Insets left="10" right="10" />
-                                 </padding>
-                              </VBox>
-                           </right>
                            <top>
                               <VBox minWidth="-Infinity" prefHeight="50.0" prefWidth="600.0" BorderPane.alignment="CENTER">
                                  <children>
@@ -147,6 +137,16 @@
                                  </children>
                               </VBox>
                            </top>
+                           <right>
+                              <VBox fx:id="vboxRight" alignment="CENTER" spacing="10" BorderPane.alignment="CENTER">
+                                 <children>
+                                    <ImageView fx:id="calibrationFrame" />
+                                 </children>
+                                 <padding>
+                                    <Insets left="10" right="10" />
+                                 </padding>
+                              </VBox>
+                           </right>
                         </BorderPane>
                      </children>
                   </AnchorPane>
