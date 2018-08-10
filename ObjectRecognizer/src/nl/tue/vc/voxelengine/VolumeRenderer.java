@@ -132,6 +132,23 @@ public class VolumeRenderer {
 		//setListeners(true);
 	}
 	
+	public void generateSimpleVolumeScene(Group root3D) {
+		RotateTransition rotation = new RotateTransition(Duration.seconds(20), root3D);
+		rotation.setCycleCount(Animation.INDEFINITE);
+		rotation.setFromAngle(0);
+		rotation.setToAngle(360);
+		rotation.setAutoReverse(false);
+		rotation.setAxis(Rotate.Y_AXIS);
+		rotation.play();
+		
+		
+		subScene = new SubScene(root3D, sceneWidth, sceneHeight, true, SceneAntialiasing.BALANCED);
+		//subScene.setCamera(camera);
+		//subScene.setFill(Color.CADETBLUE);
+		subScene.setFill(Color.WHITE);
+		//setListeners(true);
+	}
+	
 	public SubScene getSubScene() {
 		return subScene;
 	}

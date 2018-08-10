@@ -253,6 +253,9 @@ public class ObjectRecognizerController {
 	private BorderPane displayBorderPane;
 	private Tab mainTab;
 	private AnchorPane mainTabAnchor;
+	private BorderPane renderingDisplayBorderPane;
+	private Tab renderingTab;
+	private AnchorPane renderingTabAnchor;
 
 	private VolumeRenderer volumeRenderer;
 	private VolumeGenerator volumeGenerator;
@@ -1186,9 +1189,9 @@ public class ObjectRecognizerController {
 		volumeGenerator.setTransformMatrices(this.transformMatrices);
 		volumeGenerator.setProjectionGenerator(projectionGenerator);		
 		volumeRenderer.generateVolumeScene(volumeGenerator.generateVolume());
-		//rootGroup.setCenter(volumeRenderer.getSubScene());
 		setSubScene(volumeRenderer.getSubScene());
-		
+		volumeRenderer.generateSimpleVolumeScene(volumeGenerator.generateProjectionsVolume());
+		setRenderingSubScene(volumeRenderer.getSubScene());
 		// The octree is update with the modified version in volume generator
 		octree = volumeGenerator.getOctree();
 	}
@@ -1338,6 +1341,14 @@ public class ObjectRecognizerController {
 		mainTabAnchor = (AnchorPane) mainTab.getContent();
 		displayBorderPane = (BorderPane) mainTabAnchor.getChildren().get(0);
 		displayBorderPane.setCenter(volumeSubScene);
+	}
+	
+	public void setRenderingSubScene(SubScene volumeSubScene) {
+		tabPane = (TabPane) rootGroup.getChildren().get(0);
+		renderingTab = tabPane.getTabs().get(2);
+		renderingTabAnchor = (AnchorPane) renderingTab.getContent();
+		renderingDisplayBorderPane = (BorderPane) renderingTabAnchor.getChildren().get(0);
+		renderingDisplayBorderPane.setCenter(volumeSubScene);
 	}
 	
 	public void setImageOperationFrameImage(Image image) {

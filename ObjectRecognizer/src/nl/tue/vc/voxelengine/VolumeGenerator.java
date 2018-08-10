@@ -138,7 +138,7 @@ public class VolumeGenerator {
 		// List<Box> voxels = generateVolumeAux(root, boxParameters, deltas);
 		// volume.getChildren().addAll(voxels);
 
-		Group imageProjection = getImageProjections(0);
+		/*Group imageProjection = getImageProjections(0);
 		volume.getChildren().addAll(imageProjection);
 
 		long lStartTime = System.nanoTime();
@@ -150,20 +150,21 @@ public class VolumeGenerator {
 
 		long lEndTime = System.nanoTime();
 		long output = lEndTime - lStartTime;
+		*/
 		//System.out.println("Elapsed time for projectCubes in milliseconds: " + output / 1000000);
 
 		// start
-		lStartTime = System.nanoTime();
+		long lStartTime = System.nanoTime();
 
 		// here we are supposed to use the multiple images
 		root = getTestedNodeAux(root);
 		octree.setRoot(root);
 
 		// end
-		lEndTime = System.nanoTime();
+		long lEndTime = System.nanoTime();
 
 		// time elapsed
-		output = lEndTime - lStartTime;
+		long output = lEndTime - lStartTime;
 		//System.out.println("Elapsed time for getTestedNodeAux in milliseconds: " + output / 1000000);
 
 		ApplicationConfiguration appConfig = ApplicationConfiguration.getInstance();
@@ -191,6 +192,21 @@ public class VolumeGenerator {
 		// List<Box> testedVoxels = generateTestedVolume(root, volumeBoxParameters,
 		// deltas);
 		// volume.getChildren().addAll(testedVoxels);
+
+		return volume;
+	}
+	
+	public Group generateProjectionsVolume() {
+		if (projectionGenerator == null) {
+			buildProjectionGenerator();
+		}
+
+		Group volume = new Group();
+		Group imageProjection = getImageProjections(0);
+		volume.getChildren().addAll(imageProjection);
+		
+		projectCubesForVisualization();
+		volume.getChildren().addAll(getProjectedVolume());
 
 		return volume;
 	}

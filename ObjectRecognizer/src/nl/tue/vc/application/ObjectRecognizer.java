@@ -33,6 +33,9 @@ public class ObjectRecognizer extends Application {
 	private BorderPane displayBorderPane;
 	private Tab mainTab;
 	private AnchorPane mainTabAnchor;
+	private BorderPane renderingDisplayBorderPane;
+	private Tab renderingTab;
+	private AnchorPane renderingTabAnchor;
 	
 	
 	@Override
@@ -76,6 +79,14 @@ public class ObjectRecognizer extends Application {
 		mainTabAnchor = (AnchorPane) mainTab.getContent();
 		displayBorderPane = (BorderPane) mainTabAnchor.getChildren().get(0);
 		displayBorderPane.setCenter(volumeSubScene);
+	}
+	
+	public void setRenderingSubScene(SubScene volumeSubScene) {
+		tabPane = (TabPane) rootGroup.getChildren().get(0);
+		renderingTab = tabPane.getTabs().get(0);
+		renderingTabAnchor = (AnchorPane) renderingTab.getContent();
+		renderingDisplayBorderPane = (BorderPane) renderingTabAnchor.getChildren().get(0);
+		renderingDisplayBorderPane.setCenter(volumeSubScene);
 	}
 
 	public static void main(String[] args) {

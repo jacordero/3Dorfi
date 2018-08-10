@@ -179,7 +179,7 @@
                      <children>
                         <BorderPane minHeight="-Infinity" minWidth="-Infinity" prefHeight="600.0" prefWidth="1000.0">
                            <top>
-                              <VBox minHeight="-Infinity" minWidth="-Infinity" prefHeight="600.0" prefWidth="1000.0" spacing="10.0" BorderPane.alignment="CENTER">
+                              <VBox minHeight="-Infinity" minWidth="-Infinity" prefHeight="150.0" prefWidth="1000.0" spacing="10.0" BorderPane.alignment="CENTER">
                                  <children>
                                     <HBox prefWidth="900.0">
                                        <children>
@@ -292,10 +292,20 @@
                                     <Insets bottom="10.0" top="10.0" />
                                  </padding>
                                  <BorderPane.margin>
-                                    <Insets />
+                                    <Insets bottom="10.0" />
                                  </BorderPane.margin>
                               </VBox>
                            </top>
+                           <center>
+                              <VBox alignment="CENTER" BorderPane.alignment="CENTER">
+                                 <children>
+                                    <ImageView fx:id="originalFrame1" />
+                                 </children>
+                                 <padding>
+                                    <Insets left="10" right="10" />
+                                 </padding>
+                              </VBox>
+                           </center>
                         </BorderPane>
                      </children>
                   </AnchorPane>
