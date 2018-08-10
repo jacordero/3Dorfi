@@ -27,7 +27,7 @@ import javafx.scene.shape.Rectangle;
 import nl.tue.vc.application.ApplicationConfiguration;
 import nl.tue.vc.application.utils.Utils;
 import nl.tue.vc.imgproc.CameraCalibrator;
-import nl.tue.vc.model.BoxParametersTest;
+import nl.tue.vc.model.BoxParameters;
 import nl.tue.vc.model.ProjectedPoint;
 import nl.tue.vc.projection.BoundingBox;
 import nl.tue.vc.projection.IntersectionStatus;
@@ -54,7 +54,7 @@ public class VolumeGeneratorTest {
 	private int fieldOfView;
 	private int octreeHeight;
 
-	public VolumeGeneratorTest(OctreeTest octree, BoxParametersTest boxParameters) {
+	public VolumeGeneratorTest(OctreeTest octree, BoxParameters boxParameters) {
 		this.octree = octree;
 		this.imagesForDistanceComputation = new HashMap<String, BufferedImage>();
 		this.fieldOfView = 32;
@@ -68,7 +68,7 @@ public class VolumeGeneratorTest {
 		projectionGenerator = null;
 	}
 
-	public VolumeGeneratorTest(OctreeTest octree, BoxParametersTest boxParameters, Map<String, int[][]> distanceArrays,
+	public VolumeGeneratorTest(OctreeTest octree, BoxParameters boxParameters, Map<String, int[][]> distanceArrays,
 			Map<String, int[][]> invertedDistanceArrays, int octreeHeight) {
 		// this(octree, boxParameters);
 		this.distanceArrays = distanceArrays;
@@ -184,7 +184,7 @@ public class VolumeGeneratorTest {
 		int sceneWidth = appConfig.getVolumeSceneWidth() / 2;
 		int sceneHeight = appConfig.getVolumeSceneHeight() / 2;
 		int sceneDepth = appConfig.getVolumeSceneDepth() / 2;
-		BoxParametersTest volumeBoxParameters = new BoxParametersTest();
+		BoxParameters volumeBoxParameters = new BoxParameters();
 		volumeBoxParameters.setSizeX(110);
 		volumeBoxParameters.setSizeY(80);
 		volumeBoxParameters.setSizeZ(110);
@@ -208,7 +208,7 @@ public class VolumeGeneratorTest {
 		Group volume = new Group();
 
 		NodeTest root = octree.getRoot();
-		BoxParametersTest boxParameters = octree.getBoxParametersTest();
+		BoxParameters boxParameters = octree.getBoxParametersTest();
 		DeltaStruct deltas = new DeltaStruct();
 		System.out.println("Octree height: "  + octree.getOctreeHeight());
 		if (octree.getInternalNode().isLeaf()) {
@@ -253,7 +253,7 @@ public class VolumeGeneratorTest {
 		int sceneWidth = 3 * appConfig.getVolumeSceneWidth() / 4;
 		int sceneHeight = 3 * appConfig.getVolumeSceneHeight() / 4;
 		int sceneDepth = appConfig.getVolumeSceneDepth() / 2;
-		BoxParametersTest volumeBoxParameters = new BoxParametersTest();
+		BoxParameters volumeBoxParameters = new BoxParameters();
 		volumeBoxParameters.setSizeX(160);
 		volumeBoxParameters.setSizeY(80);
 		volumeBoxParameters.setSizeZ(120);
@@ -280,7 +280,7 @@ public class VolumeGeneratorTest {
 		return volume;
 	}
 
-	private List<Box> generateVolumeAux(NodeTest currentNode, BoxParametersTest currentParameters, DeltaStruct currentDeltas) {
+	private List<Box> generateVolumeAux(NodeTest currentNode, BoxParameters currentParameters, DeltaStruct currentDeltas) {
 
 		List<Box> voxels = new ArrayList<Box>();
 		// System.out.println("========================== generateVolumeAux: " +
@@ -299,7 +299,7 @@ public class VolumeGeneratorTest {
 			double newSizeY = currentParameters.getSizeY() / 2;
 			double newSizeZ = currentParameters.getSizeZ() / 2;			
 			
-			BoxParametersTest newParameters = new BoxParametersTest();
+			BoxParameters newParameters = new BoxParameters();
 			newParameters.setSizeX(newSizeX);
 			newParameters.setSizeY(newSizeY);
 			newParameters.setSizeZ(newSizeZ);
@@ -446,7 +446,7 @@ public class VolumeGeneratorTest {
 	 * if (currentNode.getColor() == Color.BLACK){ break; } } return currentNode; }
 	 **/
 
-	private List<Box> generateTestedVolume(NodeTest currentNode, BoxParametersTest currentParameters,
+	private List<Box> generateTestedVolume(NodeTest currentNode, BoxParameters currentParameters,
 			DeltaStruct currentDeltas) {
 		List<Box> voxels = new ArrayList<Box>();
 
@@ -492,7 +492,7 @@ public class VolumeGeneratorTest {
 			double newSizeX = currentParameters.getSizeX() / 2;
 			double newSizeY = currentParameters.getSizeY() / 2;
 			double newSizeZ = currentParameters.getSizeZ() / 2;
-			BoxParametersTest newParameters = new BoxParametersTest();
+			BoxParameters newParameters = new BoxParameters();
 			//newParameters.setBoxSize(newBoxSize);
 			newParameters.setSizeX(newSizeX);
 			newParameters.setSizeY(newSizeY);
@@ -566,7 +566,7 @@ public class VolumeGeneratorTest {
 		return root2D;
 	}
 
-	public Group getProjections(BoxParametersTest boxParameters) {
+	public Group getProjections(BoxParameters boxParameters) {
 		// start
 		long lStartTime = System.nanoTime();
 
@@ -917,7 +917,7 @@ public class VolumeGeneratorTest {
 		return deltas;
 	}
 
-	private Box generateVoxel(BoxParametersTest boxParameters, DeltaStruct deltas, Color nodeColor) {
+	private Box generateVoxel(BoxParameters boxParameters, DeltaStruct deltas, Color nodeColor) {
 
 		double sceneWidth = boxParameters.getCenterX();
 		double sceneHeight = boxParameters.getCenterY();
@@ -1309,7 +1309,7 @@ public class VolumeGeneratorTest {
 		return octreeVolume;
 	}
 
-	public Group getDefaultVolume(BoxParametersTest boxParameters) {
+	public Group getDefaultVolume(BoxParameters boxParameters) {
 		DeltaStruct deltas = new DeltaStruct();
 		deltas.deltaX = 0;
 		deltas.deltaY = 0;

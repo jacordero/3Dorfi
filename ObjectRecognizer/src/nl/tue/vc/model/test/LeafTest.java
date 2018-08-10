@@ -2,7 +2,7 @@ package nl.tue.vc.model.test;
 
 import javafx.scene.paint.Color;
 import nl.tue.vc.application.utils.Utils;
-import nl.tue.vc.model.BoxParametersTest;
+import nl.tue.vc.model.BoxParameters;
 
 public class LeafTest extends NodeTest{
 
@@ -16,7 +16,7 @@ public class LeafTest extends NodeTest{
 		this.positionCenterY = centerY;
 		this.positionCenterZ = centerZ;
 		this.color = color;
-		this.boxParameters = new BoxParametersTest();		
+		this.boxParameters = new BoxParameters();		
 		this.boxParameters.setSizeX((int)sizeX);
 		this.boxParameters.setSizeY((int)sizeY);
 		this.boxParameters.setSizeZ((int)sizeZ);		
@@ -33,7 +33,7 @@ public class LeafTest extends NodeTest{
 		this.positionCenterY = 0;
 		this.positionCenterZ = 0;
 		this.color = color;
-		this.boxParameters = new BoxParametersTest();		
+		this.boxParameters = new BoxParameters();		
 		this.boxParameters.setSizeX((int)sizeX);
 		this.boxParameters.setSizeY((int)sizeY);
 		this.boxParameters.setSizeZ((int)sizeZ);		

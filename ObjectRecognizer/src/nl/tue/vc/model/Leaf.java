@@ -1,33 +1,42 @@
-package nl.tue.vc.voxelengine;
+package nl.tue.vc.model;
 
 import javafx.scene.paint.Color;
 import nl.tue.vc.application.utils.Utils;
+import nl.tue.vc.model.BoxParameters;
 
 public class Leaf extends Node{
 
 	
 	
-	public Leaf(Color color, double boxSize, double centerX, double centerY, double centerZ) {
-		this.boxSize = boxSize;
+	public Leaf(Color color, double sizeX, double sizeY, double sizeZ, double centerX, double centerY, double centerZ) {
+		this.sizeX = sizeX;
+		this.sizeY = sizeY;
+		this.sizeZ = sizeZ;
 		this.positionCenterX = centerX;
 		this.positionCenterY = centerY;
 		this.positionCenterZ = centerZ;
 		this.color = color;
 		this.boxParameters = new BoxParameters();		
-		this.boxParameters.setBoxSize((int)boxSize);
+		this.boxParameters.setSizeX((int)sizeX);
+		this.boxParameters.setSizeY((int)sizeY);
+		this.boxParameters.setSizeZ((int)sizeZ);		
 		this.boxParameters.setCenterX((int)centerX);
 		this.boxParameters.setCenterY((int)centerY);
 		this.boxParameters.setCenterZ((int)centerZ);
 	}
 	
-	public Leaf(Color color, double boxSize) {
-		this.boxSize = boxSize;
+	public Leaf(Color color, double sizeX, double sizeY, double sizeZ) {
+		this.sizeX = sizeX;
+		this.sizeY = sizeY;
+		this.sizeZ = sizeZ;
 		this.positionCenterX = 0;
 		this.positionCenterY = 0;
 		this.positionCenterZ = 0;
 		this.color = color;
 		this.boxParameters = new BoxParameters();		
-		this.boxParameters.setBoxSize((int)boxSize);
+		this.boxParameters.setSizeX((int)sizeX);
+		this.boxParameters.setSizeY((int)sizeY);
+		this.boxParameters.setSizeZ((int)sizeZ);		
 		this.boxParameters.setCenterX((int)positionCenterX);
 		this.boxParameters.setCenterY((int)positionCenterY);
 		this.boxParameters.setCenterZ((int)positionCenterZ);
@@ -52,7 +61,7 @@ public class Leaf extends Node{
 	public Node splitNode(int deltaHeight){
 		if (deltaHeight > 0 && color == Color.GRAY){
 			Utils.debugNewLine("@@@@@@@@@@@@@ Leaf splitted up to " + deltaHeight + " levels", false);
-			return new InternalNode(color, boxSize, positionCenterX, positionCenterY, positionCenterZ, deltaHeight);
+			return new InternalNode(color, sizeX, sizeY, sizeZ, positionCenterX, positionCenterY, positionCenterZ, deltaHeight);
 		}
 		return this;
 	}

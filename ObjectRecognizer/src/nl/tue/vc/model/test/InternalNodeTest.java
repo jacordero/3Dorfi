@@ -5,7 +5,7 @@ import java.util.List;
 
 import javafx.scene.paint.Color;
 import nl.tue.vc.application.utils.Utils;
-import nl.tue.vc.model.BoxParametersTest;
+import nl.tue.vc.model.BoxParameters;
 import nl.tue.vc.voxelengine.DeltaStruct;
 
 public class InternalNodeTest extends NodeTest{
@@ -29,7 +29,7 @@ public class InternalNodeTest extends NodeTest{
 		positionCenterY = parentCenterY;
 		positionCenterZ = parentCenterZ;
 		
-		this.boxParameters = new BoxParametersTest();		
+		this.boxParameters = new BoxParameters();		
 		this.boxParameters.setSizeX((int) sizeX);
 		this.boxParameters.setSizeY((int) sizeY);
 		this.boxParameters.setSizeZ((int) sizeZ);
@@ -92,7 +92,7 @@ public class InternalNodeTest extends NodeTest{
 		positionCenterY = 0;
 		positionCenterZ = 0;
 		
-		this.boxParameters = new BoxParametersTest();		
+		this.boxParameters = new BoxParameters();		
 		this.boxParameters.setSizeX((int) sizeX);
 		this.boxParameters.setSizeY((int) sizeY);
 		this.boxParameters.setSizeZ((int) sizeZ);

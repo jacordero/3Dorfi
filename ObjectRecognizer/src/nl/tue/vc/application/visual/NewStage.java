@@ -20,9 +20,9 @@ import javafx.scene.layout.FlowPane;
 import javafx.scene.transform.Rotate;
 import javafx.stage.Stage;
 import javafx.util.Duration;
-import nl.tue.vc.voxelengine.BoxParameters;
-import nl.tue.vc.voxelengine.Octree;
-import nl.tue.vc.voxelengine.VolumeGenerator;
+import nl.tue.vc.model.BoxParameters;
+import nl.tue.vc.model.Octree;
+import nl.tue.vc.model.VolumeGenerator;
 
 public class NewStage {
 	private static final int SCENE_WIDTH = 800;
@@ -55,7 +55,10 @@ public class NewStage {
 
 		// configure values for the volume to render
 		BoxParameters boxParameters = new BoxParameters();
-		boxParameters.setBoxSize(boxSize);
+		boxParameters.setSizeX(boxSize);
+		boxParameters.setSizeY(boxSize);
+		boxParameters.setSizeZ(boxSize);
+		
 		boxParameters.setCenterX(SCENE_WIDTH / 2);
 		boxParameters.setCenterY(SCENE_HEIGHT / 2);
 		boxParameters.setCenterZ(SCENE_DEPTH / 2);

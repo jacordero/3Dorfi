@@ -4,8 +4,7 @@ import org.opencv.core.MatOfPoint3f;
 import org.opencv.core.Point3;
 
 import javafx.scene.paint.Color;
-import nl.tue.vc.model.BoxParametersTest;
-import nl.tue.vc.voxelengine.BoxParameters;
+import nl.tue.vc.model.BoxParameters;
 import nl.tue.vc.voxelengine.DeltaStruct;
 
 public abstract class NodeTest {
@@ -24,7 +23,7 @@ public abstract class NodeTest {
 	
 	protected double positionCenterZ;
 	
-	protected BoxParametersTest boxParameters;
+	protected BoxParameters boxParameters;
 	
 	DeltaStruct displacementDirection;
 	
@@ -36,11 +35,11 @@ public abstract class NodeTest {
 		this.displacementDirection = displacementDirection;
 	}
 
-	public BoxParametersTest getBoxParameters() {
+	public BoxParameters getBoxParameters() {
 		return boxParameters;
 	}
 
-	public void setBoxParameters(BoxParametersTest boxParameters) {
+	public void setBoxParameters(BoxParameters boxParameters) {
 		this.boxParameters = boxParameters;
 	}
 

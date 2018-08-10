@@ -1,22 +1,15 @@
-package nl.tue.vc.voxelengine;
+package nl.tue.vc.model;
 
 import java.awt.image.BufferedImage;
-import java.io.File;
-import java.io.FileNotFoundException;
-import java.io.IOException;
-import java.text.DecimalFormat;
-import java.text.NumberFormat;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-
-import javax.imageio.ImageIO;
 
 import org.opencv.core.Mat;
 import org.opencv.core.MatOfPoint2f;
 import org.opencv.core.MatOfPoint3f;
 import org.opencv.core.Point;
-import org.opencv.core.Point3;
 
 import javafx.embed.swing.SwingFXUtils;
 import javafx.scene.Group;
@@ -34,6 +27,7 @@ import javafx.scene.shape.Rectangle;
 import nl.tue.vc.application.ApplicationConfiguration;
 import nl.tue.vc.application.utils.Utils;
 import nl.tue.vc.imgproc.CameraCalibrator;
+import nl.tue.vc.model.BoxParameters;
 import nl.tue.vc.model.ProjectedPoint;
 import nl.tue.vc.projection.BoundingBox;
 import nl.tue.vc.projection.IntersectionStatus;
@@ -41,51 +35,51 @@ import nl.tue.vc.projection.ProjectionGenerator;
 import nl.tue.vc.projection.TransformMatrices;
 import nl.tue.vc.projection.Vector3D;
 import nl.tue.vc.projection.VolumeModel;
+import nl.tue.vc.voxelengine.DeltaStruct;
+import nl.tue.vc.voxelengine.SimpleRectangle;
 
 public class VolumeGenerator {
 
 	private CameraCalibrator cameraCalibrator;
 	private ProjectionGenerator projectionGenerator;
 
-	private List<String> projectionMatricesForImages;
 	private Map<String, Mat> calibrationImages;
 	private List<ProjectedPoint> projectedPoints;
 	private List<BoundingBox> boundingBoxes;
+	private List<Box> voxels;
 	private Octree octree;
 	private Group octreeVolume;
-	private List<int[][]> transformedInvertedArrays;
-	private List<int[][]> transformedArrays;
-	private List<BufferedImage> bufferedImagesForTest;
+	private Map<String, int[][]> invertedDistanceArrays;
+	private Map<String, int[][]> distanceArrays;
+	private Map<String, BufferedImage> imagesForDistanceComputation;
 	private TransformMatrices transformMatrices;
 	private int fieldOfView;
 	private int octreeHeight;
 
+	
 	public VolumeGenerator(Octree octree, BoxParameters boxParameters) {
 		this.octree = octree;
-		this.bufferedImagesForTest = new ArrayList<BufferedImage>();
-		System.out.println("BufferedImagesForTest: " + this.bufferedImagesForTest.size());
+		this.imagesForDistanceComputation = new HashMap<String, BufferedImage>();
 		this.fieldOfView = 32;
 		this.transformMatrices = new TransformMatrices(400, 290, fieldOfView);
-		transformedInvertedArrays = new ArrayList<int[][]>();
-		transformedArrays = new ArrayList<int[][]>();
+		distanceArrays = new HashMap<String, int[][]>();
+		invertedDistanceArrays = new HashMap<String, int[][]>();
 		System.out.println(octree);
 		projectedPoints = new ArrayList<ProjectedPoint>();
 		boundingBoxes = new ArrayList<BoundingBox>();
 		octreeHeight = -1;
 		projectionGenerator = null;
-		projectionMatricesForImages = new ArrayList<String>();
+		voxels = new ArrayList<Box>();
 	}
 
-	public VolumeGenerator(Octree octree, BoxParameters boxParameters, List<int[][]> transformedInvertedBinArrays,
-			List<int[][]> transformedBinaryArrays, int octreeHeight) {
+	public VolumeGenerator(Octree octree, BoxParameters boxParameters, Map<String, int[][]> distanceArrays,
+			Map<String, int[][]> invertedDistanceArrays, int octreeHeight) {
 		// this(octree, boxParameters);
-		this.transformedArrays = transformedBinaryArrays;
+		this.distanceArrays = distanceArrays;
+		this.invertedDistanceArrays = invertedDistanceArrays;
 
 		this.octree = octree;
-		this.bufferedImagesForTest = new ArrayList<BufferedImage>();
-		System.out.println("BufferedImagesForTest: " + this.bufferedImagesForTest.size());
-		this.transformedInvertedArrays = transformedInvertedBinArrays;
-		this.transformedArrays = transformedBinaryArrays;
+		this.imagesForDistanceComputation = new HashMap<String, BufferedImage>();
 		this.fieldOfView = 32;
 		this.transformMatrices = new TransformMatrices(400, 290, fieldOfView);
 		System.out.println(octree);
@@ -94,7 +88,7 @@ public class VolumeGenerator {
 		boundingBoxes = new ArrayList<BoundingBox>();
 		this.octreeHeight = octreeHeight;
 		projectionGenerator = null;
-		projectionMatricesForImages = new ArrayList<String>();
+		voxels = new ArrayList<Box>();
 	}
 
 	public void setProjectionGenerator(ProjectionGenerator projectionGenerator) {
@@ -102,98 +96,110 @@ public class VolumeGenerator {
 	}
 
 	// TODO: make the calibration matrices id values be automatically detected
-	private void buildProjectionGenerator() {
-		calibrationImages = Utils.loadCalibrationImages();
-		cameraCalibrator = new CameraCalibrator();
-		// Map<String, Mat> calibrationImages = Utils.loadCalibrationImages();
-		projectionGenerator = cameraCalibrator.calibrateMatrices(calibrationImages, true);
 
-		int index = 0;
-		//Utils.debugNewLine("transformed arrays size: " + transformedArrays.size(), true);
-		for (int i = 0; i < transformedArrays.size(); i++) {
-			projectionMatricesForImages.add(Utils.PROJECTION_MATRICES_IDS.get(index));
-			index++;
-			if (index >= calibrationImages.keySet().size()) {
-				index = 0;
-			}
-		}
+	public List<Box> generateTestVoxels(){
+		float cubeLength = 50;
+		
+		Box testBox0 = new Box(cubeLength, cubeLength, cubeLength);        
+		PhongMaterial textureMaterial0 = new PhongMaterial();
+		textureMaterial0.setDiffuseColor(Color.BLACK);
+		testBox0.setMaterial(textureMaterial0);
+        //testBox1.getTransforms().addAll(rotateZ1, rotateY1, rotateX1);
+        testBox0.setTranslateX(2.5*cubeLength);
+        testBox0.setTranslateY(2.5*cubeLength);
+        testBox0.setTranslateZ(0.5*cubeLength);
+        
+        Box testBox1 = new Box(cubeLength, cubeLength, cubeLength);
+		PhongMaterial textureMaterial1 = new PhongMaterial();
+		textureMaterial1.setDiffuseColor(Color.DARKGREEN);
+		testBox1.setMaterial(textureMaterial1);
+		//testBox2.getTransforms().addAll(rotateZ2, rotateY2, rotateX2);
+        testBox1.setTranslateX(3.5*cubeLength);
+        testBox1.setTranslateY(2.5*cubeLength);
+        testBox1.setTranslateZ(0.5*cubeLength);
+		
+        Box testBox2 = new Box(cubeLength, cubeLength, cubeLength);
+		PhongMaterial textureMaterial2 = new PhongMaterial();
+		textureMaterial2.setDiffuseColor(Color.RED);
+		testBox2.setMaterial(textureMaterial2);
+		//testBox3.getTransforms().addAll(rotateZ3, rotateY3, rotateX3);
+        testBox2.setTranslateX(2.5*cubeLength);
+        testBox2.setTranslateY(3.5*cubeLength);
+        testBox2.setTranslateZ(0.5*cubeLength);
+
+        
+        Box testBox3 = new Box(cubeLength, cubeLength, cubeLength);
+		PhongMaterial textureMaterial3 = new PhongMaterial();
+		textureMaterial3.setDiffuseColor(Color.MAGENTA);
+		testBox3.setMaterial(textureMaterial3);
+		//testBox4.getTransforms().addAll(rotateZ4, rotateY4, rotateX4);
+        testBox3.setTranslateX(3.5*cubeLength);
+        testBox3.setTranslateY(3.5*cubeLength);
+        testBox3.setTranslateZ(0.5*cubeLength);
+
+        
+        Box testBox4 = new Box(cubeLength, cubeLength, cubeLength);
+		PhongMaterial textureMaterial4 = new PhongMaterial();
+		textureMaterial4.setDiffuseColor(Color.YELLOW);
+		testBox4.setMaterial(textureMaterial4);
+		//testBox4.getTransforms().addAll(rotateZ4, rotateY4, rotateX4);
+        testBox4.setTranslateX(2.5*cubeLength);
+        testBox4.setTranslateY(2.5*cubeLength);
+        testBox4.setTranslateZ(1.5*cubeLength);
+        
+        
+        Box testBox5 = new Box(cubeLength, cubeLength, cubeLength);
+		PhongMaterial textureMaterial5 = new PhongMaterial();
+		textureMaterial5.setDiffuseColor(Color.BLUE);
+		testBox5.setMaterial(textureMaterial5);
+		//testBox4.getTransforms().addAll(rotateZ4, rotateY4, rotateX4);
+        testBox5.setTranslateX(3.5*cubeLength);
+        testBox5.setTranslateY(2.5*cubeLength);
+        testBox5.setTranslateZ(1.5*cubeLength);
+        
+        List<Box> voxels = new ArrayList<Box>();
+        voxels.add(testBox0);
+        voxels.add(testBox1);
+        voxels.add(testBox2);
+        voxels.add(testBox3);
+        voxels.add(testBox4);
+        voxels.add(testBox5);
+        return voxels;
+
 	}
-
-	public Group generateVolume() {
-		if (projectionGenerator == null) {
-			buildProjectionGenerator();
-		}
-
-		Group volume = new Group();
-
+	
+	public void generateOctreeVoxels(){
+		Utils.debugNewLine("[VolumeGenerator] generateVolume", true);
+		Utils.debugNewLine("ImagesForDistanceComputation: " + imagesForDistanceComputation.size(), true);
+		//return generateTestVoxels();
+		voxels = new ArrayList<Box>();
+		
 		Node root = octree.getRoot();
-		BoxParameters boxParameters = octree.getBoxParameters();
 		DeltaStruct deltas = new DeltaStruct();
+		System.out.println("Octree height: "  + octree.getOctreeHeight());
 		if (octree.getInternalNode().isLeaf()) {
 			System.out.println("Octree children: 1");
 		} else {
 			System.out.println("Octree children: " + root.getChildren().length);
 		}
-
-		// List<Box> voxels = generateVolumeAux(root, boxParameters, deltas);
-		// volume.getChildren().addAll(voxels);
-
-		Group imageProjection = getImageProjections(0);
-		volume.getChildren().addAll(imageProjection);
-
-		long lStartTime = System.nanoTime();
-
-		projectCubesForVisualization();
-		if (octreeHeight <= 3) {
-			volume.getChildren().addAll(getProjectedVolume());
-		}
-
-		long lEndTime = System.nanoTime();
-		long output = lEndTime - lStartTime;
-		//System.out.println("Elapsed time for projectCubes in milliseconds: " + output / 1000000);
-
-		// start
-		lStartTime = System.nanoTime();
-
-		// here we are supposed to use the multiple images
 		root = getTestedNodeAux(root);
 		octree.setRoot(root);
-
-		// end
-		lEndTime = System.nanoTime();
-
-		// time elapsed
-		output = lEndTime - lStartTime;
-		//System.out.println("Elapsed time for getTestedNodeAux in milliseconds: " + output / 1000000);
-
+		
 		ApplicationConfiguration appConfig = ApplicationConfiguration.getInstance();
-		int sceneWidth = 3 * appConfig.getVolumeSceneWidth() / 4;
-		int sceneHeight = 3 * appConfig.getVolumeSceneHeight() / 4;
+		int sceneWidth = appConfig.getVolumeSceneWidth() / 2;
+		int sceneHeight = appConfig.getVolumeSceneHeight() / 2;
 		int sceneDepth = appConfig.getVolumeSceneDepth() / 2;
 		BoxParameters volumeBoxParameters = new BoxParameters();
-		volumeBoxParameters.setBoxSize(100);
-		volumeBoxParameters.setCenterX(sceneWidth);
-		volumeBoxParameters.setCenterY(sceneHeight);
-		volumeBoxParameters.setCenterZ(sceneDepth);
+		volumeBoxParameters.setSizeX(110);
+		volumeBoxParameters.setSizeY(80);
+		volumeBoxParameters.setSizeZ(110);
+		volumeBoxParameters.setCenterX(0);
+		volumeBoxParameters.setCenterY(0);
+		volumeBoxParameters.setCenterZ(0);
 
-		// start
-		lStartTime = System.nanoTime();
-		List<Box> voxels = generateVolumeAux(root, volumeBoxParameters, deltas);
-		volume.getChildren().addAll(voxels);
-		// end
-		lEndTime = System.nanoTime();
-
-		// time elapsed
-		output = lEndTime - lStartTime;
-
-		//System.out.println("Elapsed time for generateVolumeAux in milliseconds: " + output / 1000000);
-
-		// List<Box> testedVoxels = generateTestedVolume(root, volumeBoxParameters,
-		// deltas);
-		// volume.getChildren().addAll(testedVoxels);
-
-		return volume;
+		voxels = generateVolumeAux(root, volumeBoxParameters, deltas);
 	}
+	
 
 	private List<Box> generateVolumeAux(Node currentNode, BoxParameters currentParameters, DeltaStruct currentDeltas) {
 
@@ -210,13 +216,17 @@ public class VolumeGenerator {
 			voxels.add(box);
 		} else {
 			Node[] children = currentNode.getChildren();
-			double newBoxSize = currentParameters.getBoxSize() / 2;
-
+			double newSizeX = currentParameters.getSizeX() / 2;
+			double newSizeY = currentParameters.getSizeY() / 2;
+			double newSizeZ = currentParameters.getSizeZ() / 2;			
+			
 			BoxParameters newParameters = new BoxParameters();
-			newParameters.setBoxSize(newBoxSize);
-			newParameters.setCenterX(currentParameters.getCenterX() + (currentDeltas.deltaX * newBoxSize));
-			newParameters.setCenterY(currentParameters.getCenterY() + (currentDeltas.deltaY * newBoxSize));
-			newParameters.setCenterZ(currentParameters.getCenterZ() + (currentDeltas.deltaZ * newBoxSize));
+			newParameters.setSizeX(newSizeX);
+			newParameters.setSizeY(newSizeY);
+			newParameters.setSizeZ(newSizeZ);
+			newParameters.setCenterX(currentParameters.getCenterX() + (currentDeltas.deltaX * newSizeX));
+			newParameters.setCenterY(currentParameters.getCenterY() + (currentDeltas.deltaY * newSizeY));
+			newParameters.setCenterZ(currentParameters.getCenterZ() + (currentDeltas.deltaZ * newSizeZ));
 
 			for (int i = 0; i < children.length; i++) {
 				// compute deltaX, deltaY, and deltaZ for new voxels
@@ -237,10 +247,12 @@ public class VolumeGenerator {
 		//Utils.debugNewLine("#################### Intersection test for node: " + currentNode, false);
 
 		if (currentNode.isLeaf()) {
-			for (int j = 0; j < this.bufferedImagesForTest.size(); j++) {
+			
+			for (String imageKey: imagesForDistanceComputation.keySet()){
+				
 				//Utils.debugNewLine("########## Testing against image " + (j + 1) + " ##########", false);
 				Color boxColor = Color.GRAY;
-				IntersectionStatus status = testIntersection(currentNode, j);
+				IntersectionStatus status = testIntersection(currentNode, imageKey);
 				if (status == IntersectionStatus.INSIDE) {
 					boxColor = getPaintColor(currentNode.getColor(), Color.BLACK);
 				} else if (status == IntersectionStatus.PARTIAL) {
@@ -369,8 +381,11 @@ public class VolumeGenerator {
 			Box box = new Box();
 			Color boxColor = Color.GRAY;
 			Color finalColor = Color.WHITE;
-			for (int i = 0; i < this.transformedArrays.size(); i++) {
-				IntersectionStatus status = testIntersection(currentNode, i);
+			for (String key: distanceArrays.keySet()){
+			//for (int i = 0; i < this.transformedArrays.size(); i++) {
+				
+				
+				IntersectionStatus status = testIntersection(currentNode, key);
 				if (status == IntersectionStatus.INSIDE) {
 					boxColor = Color.BLACK;// getPaintColor(currentNode.getColor(), Color.BLACK);
 					finalColor = boxColor;
@@ -394,12 +409,18 @@ public class VolumeGenerator {
 		} else {
 			//Utils.debugNewLine("Root is Node", false);
 			Node[] children = currentNode.getChildren();
-			double newBoxSize = currentParameters.getBoxSize() / 2;
+			//double newBoxSize = currentParameters.getBoxSize() / 2;
+			double newSizeX = currentParameters.getSizeX() / 2;
+			double newSizeY = currentParameters.getSizeY() / 2;
+			double newSizeZ = currentParameters.getSizeZ() / 2;
 			BoxParameters newParameters = new BoxParameters();
-			newParameters.setBoxSize(newBoxSize);
-			newParameters.setCenterX(currentParameters.getCenterX() + (currentDeltas.deltaX * newBoxSize));
-			newParameters.setCenterY(currentParameters.getCenterY() + (currentDeltas.deltaY * newBoxSize));
-			newParameters.setCenterZ(currentParameters.getCenterZ() + (currentDeltas.deltaZ * newBoxSize));
+			//newParameters.setBoxSize(newBoxSize);
+			newParameters.setSizeX(newSizeX);
+			newParameters.setSizeY(newSizeY);
+			newParameters.setSizeZ(newSizeZ);
+			newParameters.setCenterX(currentParameters.getCenterX() + (currentDeltas.deltaX * newSizeX));
+			newParameters.setCenterY(currentParameters.getCenterY() + (currentDeltas.deltaY * newSizeY));
+			newParameters.setCenterZ(currentParameters.getCenterZ() + (currentDeltas.deltaZ * newSizeZ));
 
 			for (int i = 0; i < children.length; i++) {
 				// compute deltaX, deltaY, and deltaZ for new voxels
@@ -411,8 +432,8 @@ public class VolumeGenerator {
 					// Box box = new Box();
 					Color boxColor = Color.GRAY;
 					Color finalColor = Color.WHITE;
-					for (int i1 = 0; i1 < this.transformedArrays.size(); i1++) {
-						IntersectionStatus status = testIntersection(currentNode, i1);
+					for (String imageKey: imagesForDistanceComputation.keySet()) {
+						IntersectionStatus status = testIntersection(currentNode, imageKey);
 						if (status == IntersectionStatus.INSIDE) {
 							boxColor = Color.BLACK;// getPaintColor(currentNode.getColor(), Color.BLACK);
 							finalColor = boxColor;
@@ -440,12 +461,12 @@ public class VolumeGenerator {
 		return voxels;
 	}
 
-	public Group getImageProjections(int index) {
+	public Group getImageProjections(String index) {
 		// start
 		long lStartTime = System.nanoTime();
 
 		Group root2D = new Group();
-		Image img = SwingFXUtils.toFXImage(this.bufferedImagesForTest.get(index), null);
+		Image img = SwingFXUtils.toFXImage(this.imagesForDistanceComputation.get(index), null);
 		Rectangle imageRect = new Rectangle();
 		imageRect.setX(0);
 		imageRect.setY(0);
@@ -509,7 +530,7 @@ public class VolumeGenerator {
 
 		Group root2D = new Group();
 
-		Image img = SwingFXUtils.toFXImage(this.bufferedImagesForTest.get(0), null);
+		Image img = SwingFXUtils.toFXImage(this.imagesForDistanceComputation.get("cal0"), null);
 		Rectangle imageRect = new Rectangle();
 		imageRect.setX(0);// imageBoxParameters.getCenterX() - (img.getWidth() / 2));
 		imageRect.setY(0);// imageBoxParameters.getCenterY() - (img.getHeight() / 2));
@@ -646,18 +667,18 @@ public class VolumeGenerator {
 		return root2D;
 	}
 
-	public IntersectionStatus testIntersection(Node node, int imgIndex) {
+	public IntersectionStatus testIntersection(Node node, String imgIndex) {
 
 		// Utils.debugNewLine(">> testIntersection: imgIndex = " + imgIndex, false);
 		BoundingBox boundingBox = getBoundingBox(node, imgIndex, 0);
 		SimpleRectangle boundingRectangle = boundingBox.getUnScaledRectangle();
 		IntersectionStatus status = IntersectionStatus.INSIDE;
-		int[][] transformedArray = transformedArrays.get(imgIndex);
-		int[][] transformedInvertedArray = transformedInvertedArrays.get(imgIndex);
+		int[][] distanceArray = distanceArrays.get(imgIndex);
+		int[][] invertedDistanceArray = invertedDistanceArrays.get(imgIndex);
 		int xVal = (int) boundingRectangle.getX();
 		int yVal = (int) (boundingRectangle.getY() + boundingRectangle.getHeight());
-		int arrayRows = Utils.IMAGES_HEIGHT;// transformedArray.length;
-		int arrayCols = Utils.IMAGES_WIDTH;// transformedArray[0].length;
+		int arrayRows = distanceArray.length;
+		int arrayCols = distanceArray[0].length;
 
 		// TODO: check this values
 		if (xVal < 0) {
@@ -677,8 +698,8 @@ public class VolumeGenerator {
 
 		// Utils.debugNewLine("xVal = " + xVal + ", yVal = " + yVal, false);
 
-		int transformedValue = transformedArray[yVal][xVal];
-		int transformedInvertedValue = transformedInvertedArray[yVal][xVal];
+		int transformedValue = distanceArray[yVal][xVal];
+		int transformedInvertedValue = invertedDistanceArray[yVal][xVal];
 
 		int determiningValue = (int) boundingRectangle.getWidth();
 		if (determiningValue < boundingRectangle.getHeight()) {
@@ -690,15 +711,16 @@ public class VolumeGenerator {
 //				"transformedInvertedValue: " + transformedInvertedValue + ", projected box size: " + determiningValue,
 //				true);
 
-		if (determiningValue <= transformedValue) {
-
+		if (determiningValue <= transformedValue && transformedInvertedValue == 0) {
+			//Utils.debugNewLine( "++++ INSIDE +++++", true);
 //			Utils.debugNewLine(
 //					"Projection is totally inside iiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiii",
 //					true);
 
 			status = IntersectionStatus.INSIDE;
-		} else if (determiningValue <= transformedInvertedValue) {
-
+		} else if (determiningValue <= transformedInvertedValue && transformedValue == 0) {
+			//Utils.debugNewLine( "++++ OUTSIDE +++++", true);
+			
 //			Utils.debugNewLine(
 //					"Projection is totally outside oooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooo",
 //					true);
@@ -706,19 +728,18 @@ public class VolumeGenerator {
 			status = IntersectionStatus.OUTSIDE;
 		} else if (checkForPartial(determiningValue, transformedInvertedValue, xVal, yVal, arrayCols, arrayRows,
 				(int) boundingRectangle.getWidth(), (int) boundingRectangle.getHeight())) {
-
-//			Utils.debugNewLine(
-//					"Projection is partially inside ====================================================================================",
-//					true);
+			//Utils.debugNewLine( "++++ C-PARTIALLY INSIDE +++++", true);
 
 			status = IntersectionStatus.PARTIAL;
 		} else if (checkForOutsideInCorners(determiningValue, transformedValue, transformedInvertedValue, xVal, yVal,
 				arrayCols)) {
 
+			//Utils.debugNewLine( "++++ C-OUTSIDE +++++", true);
 //			Utils.debugNewLine("Projection out of bounds but totally outside oooooooooooooooooooooooooooooooooo", true);
 
 			status = IntersectionStatus.OUTSIDE;
 		} else {
+			//Utils.debugNewLine( "++++ PARTIALLY INSIDE +++++", true);
 //			Utils.debugNewLine(
 //					"Projection is partially inside ====================================================================================",
 //					true);
@@ -733,11 +754,19 @@ public class VolumeGenerator {
 		boolean result = false;
 
 		// check for the top boundary
-		if ((boundingSize > yPos) && (invertedSquareSize > 0) && (boundingSize > invertedSquareSize)) {
-			result = true;
-		} else if ((boundingSize > (width - xPos)) && (invertedSquareSize > 0) && (boundingSize > invertedSquareSize)) {
-			// check for the right boundary
-			result = true;
+		/**
+		System.out.println("[boundingSize: " + boundingSize + ", transformedSquareSize: " + transformedSquareSize);
+		System.out.println(", invertedSquareSize: " + invertedSquareSize + ", xPos: " + xPos + ", yPos: " + yPos + ", width: " + width);
+		**/
+		
+		// If the bounding size is too big we may be getting errors by using octrees with too few subdivisions
+		if (boundingSize < 100){
+			if ((boundingSize > yPos) && (invertedSquareSize > 0) && (boundingSize > invertedSquareSize)) {
+				result = true;
+			} else if ((boundingSize > (width - xPos)) && (invertedSquareSize > 0) && (boundingSize > invertedSquareSize)) {
+				// check for the right boundary
+				result = true;
+			}			
 		}
 		return result;
 	}
@@ -814,35 +843,50 @@ public class VolumeGenerator {
 		double sceneWidth = boxParameters.getCenterX();
 		double sceneHeight = boxParameters.getCenterY();
 		double sceneDepth = boxParameters.getCenterZ();
-		double boxSize = boxParameters.getBoxSize();
-
-		Box box = new Box(boxSize, boxSize, boxSize);
-		double posx = sceneWidth + (deltas.deltaX * boxSize / 2);
-		double posy = sceneHeight + (deltas.deltaY * boxSize / 2);
-		double posz = sceneDepth + (deltas.deltaZ * boxSize / 2);
-
+		double sizeX = boxParameters.getSizeX();
+		
+		// invert the axis
+		double sizeY = boxParameters.getSizeY();
+		double sizeZ = boxParameters.getSizeZ();
+		
+		
+		Box box = new Box(sizeX, sizeY, sizeZ);
+		double posx = sceneWidth + (deltas.deltaX * (sizeX / 2));
+		
+		// invert the axis
+		double posy = sceneHeight + (deltas.deltaY * (sizeY / 2));
+		double posz = sceneDepth + (deltas.deltaZ * (sizeZ / 2));
+		
+		//Mirror the position in the y axis. So far only works for a maximum value of 80		
 		box.setTranslateX(posx);
+		
+		
 		box.setTranslateY(posy);
 		box.setTranslateZ(posz);
 
 		PhongMaterial textureMaterial = new PhongMaterial();
 
 		Color diffuseColor = nodeColor;
-		
 		/**
 		if (nodeColor == Color.WHITE){
 			 diffuseColor = Color.TRANSPARENT;
 		}
-		**/
-		// if (nodeColor == Color.WHITE || nodeColor == Color.GRAY){
-		// diffuseColor = Color.TRANSPARENT;
-		// } else if (nodeColor == Color.BLACK){
-		// diffuseColor = Color.BLACK;
-		// } else {
-		// diffuseColor = Color.GRAY;
-		// }
-		diffuseColor = nodeColor == Color.BLACK ? nodeColor : Color.TRANSPARENT;
-		textureMaterial.setDiffuseColor(diffuseColor);
+		
+		
+		 if (nodeColor == Color.WHITE){
+			 diffuseColor = Color.TRANSPARENT;
+		} else if (nodeColor == Color.BLACK){
+			diffuseColor = Color.BLACK;
+		} else {
+			diffuseColor = Color.GRAY;
+		 }
+		 **/
+		 
+		 
+		 //diffuseColor = nodeColor == Color.BLACK ? nodeColor : Color.TRANSPARENT;
+		 diffuseColor = nodeColor == Color.WHITE ? Color.TRANSPARENT: nodeColor;
+		
+		 textureMaterial.setDiffuseColor(diffuseColor);
 		box.setMaterial(textureMaterial);
 		return box;
 	}
@@ -916,12 +960,15 @@ public class VolumeGenerator {
 		Node root = octree.getRoot();
 		boundingBoxes.clear();
 
-		if (bufferedImagesForTest.size() == 1) {
+		System.out.println("Calibration matrices keyset: " + projectionGenerator.keysStr());
+		if (imagesForDistanceComputation.size() == 1) {
 			iterateCubesForVisualizationAux(root, octree.getOctreeHeight());
 		} else {
-			for (int i = 0; i < bufferedImagesForTest.size(); i++) {
-				BoundingBox boundingBox = getBoundingBox(root, i, i);
+			int counter = 0;
+			for (String imageKey: imagesForDistanceComputation.keySet()){
+				BoundingBox boundingBox = getBoundingBox(root, imageKey, counter);
 				boundingBoxes.add(boundingBox);
+				counter++;
 			}
 		}
 
@@ -1118,7 +1165,7 @@ public class VolumeGenerator {
 
 	}
 
-	public BoundingBox getBoundingBox(Node node, int imageToProcessId, int level) {
+	public BoundingBox getBoundingBox(Node node, String projectionMatrixId, int level) {
 
 		// Utils.debugNewLine("Computing bounding box for image: " + imageToProcessId +
 		// ", projection matrix id: " +
@@ -1127,8 +1174,7 @@ public class VolumeGenerator {
 		MatOfPoint3f encodedCorners = node.getCorners();
 
 		// long lStartTime = System.nanoTime();
-		MatOfPoint2f encodedProjections = projectionGenerator.projectPoints(encodedCorners,
-				projectionMatricesForImages.get(imageToProcessId));
+		MatOfPoint2f encodedProjections = projectionGenerator.projectPoints(encodedCorners, projectionMatrixId);
 		// long lEndTime = System.nanoTime();
 		// long output = lEndTime - lStartTime;
 		// System.out.println("Elapsed time for projectPoints in milliseconds: " +
@@ -1137,7 +1183,9 @@ public class VolumeGenerator {
 		List<ProjectedPoint> projections = projectionsAsList(encodedProjections);
 
 		// lStartTime = System.nanoTime();
-		BoundingBox boundingBox = computeBoundingBox(projections, Utils.IMAGES_WIDTH, Utils.IMAGES_HEIGHT, level);
+		int rows = distanceArrays.get(projectionMatrixId).length;
+		int columns = distanceArrays.get(projectionMatrixId)[0].length;
+		BoundingBox boundingBox = computeBoundingBox(projections, rows, columns, level);
 		// lEndTime = System.nanoTime();
 		// output = lEndTime - lStartTime;
 		// System.out.println("Elapsed time for computeBoundingBox in milliseconds: " +
@@ -1193,28 +1241,28 @@ public class VolumeGenerator {
 		return volume;
 	}
 
-	public List<int[][]> getTransformedInvertedArrays() {
-		return transformedInvertedArrays;
+	public Map<String, int[][]> getInvertedDistanceArrays() {
+		return invertedDistanceArrays;
 	}
 
-	public void setTransformedInvertedArrays(List<int[][]> transformedInvertedBinArrays) {
-		this.transformedInvertedArrays = transformedInvertedBinArrays;
+	public void setInvertedDistanceArrays(Map<String, int[][]> invertedDistanceArrays) {
+		this.invertedDistanceArrays = invertedDistanceArrays;
 	}
 
-	public List<int[][]> getTransformedArrays() {
-		return transformedArrays;
+	public Map<String, int[][]> getDistanceArrays() {
+		return distanceArrays;
 	}
 
-	public void setTransformedArrays(List<int[][]> transformedBinaryArray) {
-		this.transformedArrays = transformedBinaryArray;
+	public void setDistanceArrays(Map<String, int[][]> distanceArrays) {
+		this.distanceArrays = distanceArrays;
 	}
 
-	public List<BufferedImage> getBufferedImagesForTest() {
-		return bufferedImagesForTest;
+	public Map<String, BufferedImage> getImagesForDistanceComputation() {
+		return imagesForDistanceComputation;
 	}
 
-	public void setBufferedImagesForTest(List<BufferedImage> bufferedImagesForTest) {
-		this.bufferedImagesForTest = bufferedImagesForTest;
+	public void setImagesForDistanceComputation(Map<String, BufferedImage> imagesForDistanceComputation) {
+		this.imagesForDistanceComputation = imagesForDistanceComputation;
 	}
 
 	public int getFieldOfView() {
@@ -1237,4 +1285,8 @@ public class VolumeGenerator {
 		return octree;
 	}
 
+	public List<Box> getVoxels(){
+		return voxels;
+	}
+	
 }

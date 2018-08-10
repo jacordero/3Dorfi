@@ -1,16 +1,21 @@
-package nl.tue.vc.voxelengine;
+package nl.tue.vc.model;
 
 import org.opencv.core.MatOfPoint3f;
 import org.opencv.core.Point3;
 
 import javafx.scene.paint.Color;
+import nl.tue.vc.model.BoxParameters;
 import nl.tue.vc.voxelengine.DeltaStruct;
 
 public abstract class Node {
 
 	protected Color color;
 	
-	protected double boxSize;
+	protected double sizeX;
+	
+	protected double sizeY;
+	
+	protected double sizeZ;
 	
 	protected double positionCenterX;
 	
@@ -46,12 +51,28 @@ public abstract class Node {
 		color = newColor;
 	}
 	
-	public double getBoxSize() {
-		return boxSize;
+	public double getSizeX() {
+		return sizeX;
 	}
 	
-	public void setBoxSize(int boxSize) {
-		this.boxSize = boxSize;
+	public void setSizeX(int sizeX) {
+		this.sizeX = sizeX;
+	}
+
+	public double getSizeY() {
+		return sizeY;
+	}
+	
+	public void setSizeY(int sizeY) {
+		this.sizeY = sizeY;
+	}
+
+	public double getSizeZ() {
+		return sizeZ;
+	}
+	
+	public void setSizeZ(int sizeZ) {
+		this.sizeZ = sizeZ;
 	}
 	
 	public double getPositionCenterX(){
@@ -81,13 +102,15 @@ public abstract class Node {
 	
 	public MatOfPoint3f getCorners(){
 		
-		double displacementSize = boxSize / 2;
+		double displacementX = sizeX / 2;
+		double displacementY = sizeY / 2;
+		double displacementZ = sizeZ / 2;
 		Point3[] corners = new Point3[8];
 		for (int i = 0; i < 8; i++){
 			displacementDirection = computeDisplacementDirections(i);
-			double xPosition = positionCenterX + (displacementDirection.deltaX * displacementSize);
-			double yPosition = positionCenterY + (displacementDirection.deltaY * displacementSize);
-			double zPosition = positionCenterZ + (displacementDirection.deltaZ * displacementSize);
+			double xPosition = positionCenterX + (displacementDirection.deltaX * displacementX);
+			double yPosition = positionCenterY + (displacementDirection.deltaY * displacementY);
+			double zPosition = positionCenterZ + (displacementDirection.deltaZ * displacementZ);
 			Point3 corner = new Point3(xPosition, yPosition, zPosition);
 			corners[i] = corner;
 		}
@@ -156,7 +179,7 @@ public abstract class Node {
 	
 	@Override
 	public String toString() {
-		String str = "{BoxSize: " + boxSize + ", centerX: " + positionCenterX + ", centerY: " + positionCenterY + ", centerZ: " + positionCenterZ + ", Color: ";
+		String str = "{sizeX: " + sizeX + ", sizeY: " + sizeY + ", sizeZ: " + sizeZ + ", centerX: " + positionCenterX + ", centerY: " + positionCenterY + ", centerZ: " + positionCenterZ + ", Color: ";
 		if (color == Color.BLACK){
 			str += " black}";
 		} else if (color == Color.GRAY){

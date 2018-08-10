@@ -1,6 +1,6 @@
 package nl.tue.vc.model;
 
-public class BoxParametersTest {
+public class BoxParameters {
 
 	private double sizeX;
 	private double sizeY;

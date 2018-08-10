@@ -25,14 +25,12 @@ import javafx.util.Duration;
 import nl.tue.vc.application.ApplicationConfiguration;
 import nl.tue.vc.application.utils.Utils;
 import nl.tue.vc.application.utils.Xform;
-import nl.tue.vc.model.BoxParametersTest;
-import nl.tue.vc.voxelengine.BoxParameters;
+import nl.tue.vc.model.BoxParameters;
 import nl.tue.vc.voxelengine.CameraPosition;
-import nl.tue.vc.voxelengine.Octree;
 
 public class VolumeRendererTest {
 
-	private BoxParametersTest volumeBoxParameters;
+	private BoxParameters volumeBoxParameters;
 	private int sceneWidth;
 	private int sceneHeight;
 	private int sceneDepth;
@@ -102,7 +100,7 @@ public class VolumeRendererTest {
 		boxSizeY = boxSizeFactor * 6;
 		boxSizeZ = boxSizeFactor * 12;
 		
-		volumeBoxParameters = new BoxParametersTest();		
+		volumeBoxParameters = new BoxParameters();		
 		volumeBoxParameters.setSizeX(boxSizeX);
 		volumeBoxParameters.setSizeY(boxSizeY);
 		volumeBoxParameters.setSizeZ(boxSizeZ);		
@@ -382,11 +380,11 @@ public class VolumeRendererTest {
 		return subScene;
 	}
 
-	public BoxParametersTest getVolumeBoxParameters() {
+	public BoxParameters getVolumeBoxParameters() {
 		return volumeBoxParameters;
 	}
 
-	public void setVolumeBoxParametersTest(BoxParametersTest volumeBoxParameters) {
+	public void setVolumeBoxParametersTest(BoxParameters volumeBoxParameters) {
 		this.volumeBoxParameters = volumeBoxParameters;
 	}
 		

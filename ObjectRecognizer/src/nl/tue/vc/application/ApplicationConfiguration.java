@@ -3,7 +3,7 @@ package nl.tue.vc.application;
 import java.util.HashMap;
 import java.util.Map;
 
-import nl.tue.vc.voxelengine.BoxParameters;
+import nl.tue.vc.model.BoxParameters;
 import nl.tue.vc.voxelengine.CameraPosition;
 
 public class ApplicationConfiguration {
@@ -61,7 +61,9 @@ public class ApplicationConfiguration {
 		silhouetteConfiguration.put("binaryThreshold", 105);
 		
 		volumeBoxParameters = new BoxParameters();		
-		volumeBoxParameters.setBoxSize(volumeBoxSize);
+		volumeBoxParameters.setSizeX(volumeBoxSize);
+		volumeBoxParameters.setSizeY(volumeBoxSize);
+		volumeBoxParameters.setSizeZ(volumeBoxSize);
 		volumeBoxParameters.setCenterX(volumeSceneWidth/2);
 		volumeBoxParameters.setCenterY(volumeSceneHeight/2);
 		volumeBoxParameters.setCenterZ(volumeSceneDepth/2);

@@ -57,12 +57,11 @@ import nl.tue.vc.imgproc.HistogramGenerator;
 import nl.tue.vc.imgproc.SilhouetteExtractor;
 import nl.tue.vc.projection.ProjectionGenerator;
 import nl.tue.vc.projection.TransformMatrices;
-import nl.tue.vc.voxelengine.BoxParameters;
 import nl.tue.vc.voxelengine.CameraPosition;
-import nl.tue.vc.voxelengine.Octree;
-import nl.tue.vc.voxelengine.VolumeGenerator;
 import nl.tue.vc.voxelengine.VolumeRenderer;
-import nl.tue.vc.model.BoxParametersTest;
+import nl.tue.vc.model.BoxParameters;
+import nl.tue.vc.model.Octree;
+import nl.tue.vc.model.VolumeGenerator;
 import nl.tue.vc.model.test.OctreeTest;
 import nl.tue.vc.model.test.VolumeGeneratorTest;
 import nl.tue.vc.model.test.VolumeRendererTest;
@@ -157,9 +156,11 @@ public class ObjectRecognizerController {
 	@FXML
 	private ImageView cameraFrameView;
 
+	//TODO: REMOVE 
 	@FXML
 	private Slider fieldOfViewSlider;
 
+	//TODO: REMOVE 
 	@FXML
 	private Slider worldRotationYAngleSlider;
 
@@ -185,7 +186,6 @@ public class ObjectRecognizerController {
 	private Button testButton;
 	
 	private int fieldOfView;
-	private TransformMatrices transformMatrices;
 
 	// old timer
 	private Timer calibrationTimer;
@@ -204,7 +204,6 @@ public class ObjectRecognizerController {
 
 	// Image used for calibration of extrinsic parameters
 	private Map<String, Mat> calibrationImagesMap = new HashMap<String, Mat>();
-	private List<Mat> calibrationImages = new ArrayList<Mat>();
 	private int calibrationImageCounter;
 	private List<String> calibrationIndices;
 	
@@ -221,24 +220,21 @@ public class ObjectRecognizerController {
 	private Mat intrinsic;
 	private Mat distCoeffs;
 	private boolean isCalibrated;
-	List<int[][]> transformedArrays = new ArrayList<int[][]>();
-	List<int[][]> transformedInvertedArrays = new ArrayList<int[][]>();
 
-	// List<ImageView> imageViews = new ArrayList<>();
+	Map<String, Mat> objectImagesMap = new HashMap<String, Mat>();
+	List<Mat> objectImagesToDisplay = new ArrayList<Mat>();
+	ObservableList<String> objectImagesNames = FXCollections.observableArrayList();
+	ListView<String> objectImagesView = new ListView<>();
+	Map<String, Integer> objectImagesDescription = new HashMap<>();
+	
+	
+	Map<String, Mat> binarizedImagesMap = new HashMap<String, Mat>();
+	List<Mat> binaryImagesToDisplay = new ArrayList<Mat>();
+	ObservableList<String> binaryImagesNames = FXCollections.observableArrayList();
+	ListView<String> binaryImagesView = new ListView<>();
+	Map<String, Integer> binaryImagesDescription = new HashMap<>();
 
-	List<Mat> loadedImages = new ArrayList<>();
-	Map<String, Integer> loadedImagesDescription = new HashMap<>();
-	ListView<String> loadedImagesView = new ListView<>();
-	ObservableList<String> loadedImagesNames = FXCollections.observableArrayList();
-
-	List<Mat> segmentedImages = new ArrayList<>();
-	List<Mat> complementSegmentedImages = new ArrayList<>();
-	Map<String, Integer> processedImagesDescription = new HashMap<>();
-	ListView<String> processedImagesView = new ListView<>();
-	ObservableList<String> processedImagesNames = FXCollections.observableArrayList();
-
-	List<BufferedImage> bufferedImagesForTest = new ArrayList<>();
-
+	
 	private Map<String, BufferedImage> imagesForDistanceComputation = new HashMap<String, BufferedImage>();
 	private Map<String, int[][]> distanceArrays = new HashMap<String, int[][]>();
 	private Map<String, int[][]> invertedDistanceArrays = new HashMap<String, int[][]>();
@@ -290,12 +286,18 @@ public class ObjectRecognizerController {
 	private int boxSize;
 	private int centerX, centerY, centerZ;
 
+	private float DISPLACEMENT_X;
+	private float DISPLACEMENT_Y;
+	private float DISPLACEMENT_Z;
+	
+	private float CUBE_LENGTH_X;
+	private float CUBE_LENGTH_Y;
+	private float CUBE_LENGTH_Z;
+
+	
 	private Octree octree;
-	private OctreeTest octreeTest;
 	
-	private VolumeGeneratorTest volumeGeneratorTest;
-	
-	private VolumeRendererTest volumeRendererTest;
+	private String DEFAULT_IMAGES_DIR = "images/multiOctreesTest/";
 	
 	public ObjectRecognizerController() {
 
@@ -309,24 +311,41 @@ public class ObjectRecognizerController {
 		videoTimerActive = false;
 		calibrationTimer = new Timer();
 		calibrationTimerActive = false;
-		transformMatrices = new TransformMatrices(sceneWidth, sceneHeight, 32.3);
 		cameraCalibrator = new CameraCalibrator();
-		this.boxSize = 12;
+		
+		DISPLACEMENT_X = -3;
+		DISPLACEMENT_Y = (float) -0.05;
+		DISPLACEMENT_Z = -3;
+		
+		CUBE_LENGTH_X = 11;
+		CUBE_LENGTH_Y = 8;
+		CUBE_LENGTH_Z = 11;
+		
 		this.levels = 0;// Integer.parseInt(this.levelsField.getText());
-		this.centerX = 4;
-		this.centerY = 1;
-		this.centerZ = 0;
 		
 		calibrationImageCounter = 0;
-		calibrationIndices = new ArrayList<String>();
-		calibrationIndices.add("deg-0");
-		calibrationIndices.add("deg-90");
-		calibrationIndices.add("deg-180");
-		calibrationIndices.add("deg-270");
+		initCalibrationIndices();
 		projectionGenerator = null;
 		octree = null;
 	}
 
+	// TODO: generate this indices automatically
+	private void initCalibrationIndices(){
+		calibrationIndices = new ArrayList<String>();
+		calibrationIndices.add("deg-0");
+		calibrationIndices.add("deg-30");
+		calibrationIndices.add("deg-60");
+		calibrationIndices.add("deg-90");
+		calibrationIndices.add("deg-120");
+		calibrationIndices.add("deg-150");
+		calibrationIndices.add("deg-180");
+		calibrationIndices.add("deg-210");
+		calibrationIndices.add("deg-240");
+		calibrationIndices.add("deg-270");
+		calibrationIndices.add("deg-300");
+		calibrationIndices.add("deg-330");
+	}
+	
 	@FXML
 	private void initialize() {
 		cameraAxisX.valueProperty().addListener((observable, oldValue, newValue) -> {
@@ -417,10 +436,10 @@ public class ObjectRecognizerController {
 		 */
 
 		// this.vboxLeft.getChildren().add(cameraFrameView);
-		this.vboxLeft.getChildren().add(loadedImagesView);
-		loadedImagesView.setMaxWidth(140);
-		this.vboxRight.getChildren().add(processedImagesView);
-		processedImagesView.setMaxWidth(140);
+		this.vboxLeft.getChildren().add(objectImagesView);
+		objectImagesView.setMaxWidth(140);
+		this.vboxRight.getChildren().add(binaryImagesView);
+		binaryImagesView.setMaxWidth(140);
 
 		fieldOfViewSlider.valueProperty().addListener((observable, oldValue, newValue) -> {
 			System.out.println("Field of view changed (newValue: " + newValue.intValue() + ")");
@@ -432,7 +451,6 @@ public class ObjectRecognizerController {
 			public void changed(ObservableValue<? extends Boolean> obs, Boolean wasChanging, Boolean isNowChanging) {
 				if (!isNowChanging) {
 					System.out.println("It stopped changing");
-					transformMatrices.updateFieldOfView(fieldOfViewSlider.getValue());
 					renderModel();
 				}
 			}
@@ -443,9 +461,6 @@ public class ObjectRecognizerController {
 			public void changed(ObservableValue<? extends Boolean> obs, Boolean wasChanging, Boolean isNowChanging) {
 				if (!isNowChanging) {
 					System.out.println("Rotation around Y angle was stopped");
-
-					transformMatrices.updateWorldRotationYAngle(worldRotationYAngleSlider.getValue());
-					// transformMatrices.updateFieldOfView(fieldOfViewSlider.getValue());
 					renderModel();
 				}
 			}
@@ -544,9 +559,9 @@ public class ObjectRecognizerController {
 					} else {
 						// load the images into the listview
 						String imgName = file.getName().split("\\.")[0];
-						loadedImagesNames.add(imgName);
-						loadedImages.add(this.image);
-						loadedImagesDescription.put(imgName, loadedImages.size() - 1);
+						objectImagesNames.add(imgName);
+						objectImagesToDisplay.add(this.image);
+						objectImagesDescription.put(imgName, objectImagesToDisplay.size() - 1);
 
 						// System.out.println(imgName);
 
@@ -566,8 +581,8 @@ public class ObjectRecognizerController {
 
 	public void showImages() {
 
-		loadedImagesView.setItems(loadedImagesNames);
-		loadedImagesView.setCellFactory(param -> new ListCell<String>() {
+		objectImagesView.setItems(objectImagesNames);
+		objectImagesView.setCellFactory(param -> new ListCell<String>() {
 			private ImageView imageView = new ImageView();
 
 			@Override
@@ -579,9 +594,9 @@ public class ObjectRecognizerController {
 					setGraphic(null);
 				} else {
 					System.out.println(name);
-					int imagePosition = loadedImagesDescription.get(name);
+					int imagePosition = objectImagesDescription.get(name);
 					// System.out.println("Name: " + name +", Position: " + imagePosition);
-					imageView.setImage(Utils.mat2Image(loadedImages.get(imagePosition)));
+					imageView.setImage(Utils.mat2Image(objectImagesToDisplay.get(imagePosition)));
 					imageView.setFitWidth(100);
 					imageView.setPreserveRatio(true);
 					setText("");
@@ -590,8 +605,8 @@ public class ObjectRecognizerController {
 			}
 		});
 
-		loadedImagesView.setMaxWidth(140);
-		loadedImagesView.refresh();
+		objectImagesView.setMaxWidth(140);
+		objectImagesView.refresh();
 	}
 
 	/**
@@ -602,87 +617,48 @@ public class ObjectRecognizerController {
 	 */
 	@FXML
 	protected void extractSilhouettes() {
-
+		// We load test images from a directory
+		if (objectImagesMap.isEmpty()){
+			loadDefaultImages();
+		}
+		
+		
 		// TODO: remove this hardcoded value
 		// int binaryThreshold = 50;
 		System.out.println("Extract silhouettes method was called...");
 
 		// First, clear the previous content. Then, load the new content
-		segmentedImages = new ArrayList<Mat>();
-		complementSegmentedImages = new ArrayList<Mat>();
+		binarizedImagesMap = new HashMap<String, Mat>();
 
-		processedImagesView = new ListView<String>();
+		binaryImagesView = new ListView<String>();
 		List<Mat> processedImages = new ArrayList<Mat>();
-		processedImagesNames = FXCollections.observableArrayList();
-		processedImagesDescription = new HashMap<String, Integer>();
+		binaryImagesNames = FXCollections.observableArrayList();
+		binaryImagesDescription = new HashMap<String, Integer>();
 
-		int imgId = 1;
-		for (Mat image : loadedImages) {
-			silhouetteExtractor.extract(image, segmentationAlgorithm.getValue());
-			segmentedImages.add(silhouetteExtractor.getSegmentedImage());
+		for (String imageKey : objectImagesMap.keySet()) {
+			Mat imageToBinarize = objectImagesMap.get(imageKey);
+			
+			silhouetteExtractor.extract(imageToBinarize, segmentationAlgorithm.getValue());
+			binarizedImagesMap.put(imageKey, silhouetteExtractor.getSegmentedImage());
 
 			try {
 				// bufferedImagesForTest.add(IntersectionTest.Mat2BufferedImage(silhouetteExtractor.getBinaryImage()));
-				bufferedImagesForTest.add(IntersectionTest.Mat2BufferedImage(silhouetteExtractor.getSegmentedImage()));
+				BufferedImage bufImage = IntersectionTest.Mat2BufferedImage(silhouetteExtractor.getSegmentedImage());
+				imagesForDistanceComputation.put(imageKey, bufImage);
 			} catch (Exception e) {
 				// TODO Auto-generated catch block
 				System.out.println("Something went really wrong!!!");
 				e.printStackTrace();
 			}
 
-			processedImages.add(silhouetteExtractor.getSegmentedImage());
-			processedImagesNames.add("sg_" + imgId);
-			processedImagesDescription.put("sg_" + imgId, processedImages.size() - 1);
-
-			// show the processed images during the segmentation process
-			if (debugSegmentation.isSelected()) {
-
-				processedImages.add(silhouetteExtractor.getSegmentedImage());
-				processedImagesNames.add("comp_" + imgId);
-				processedImagesDescription.put("comp_" + imgId, processedImages.size() - 1);
-
-				processedImages.add(silhouetteExtractor.getEqualizedImage());
-				processedImagesNames.add("eq_" + imgId);
-				processedImagesDescription.put("eq_" + imgId, processedImages.size() - 1);
-
-				processedImages.add(silhouetteExtractor.getBinaryImage());
-				processedImagesNames.add("bi_" + imgId);
-				processedImagesDescription.put("bi_" + imgId, processedImages.size() - 1);
-
-				processedImages.add(silhouetteExtractor.getCleanedBinaryImage());
-				processedImagesNames.add("cb_" + imgId);
-				processedImagesDescription.put("cb_" + imgId, processedImages.size() - 1);
-
-				Mat histImage = HistogramGenerator.histogram(image);
-				processedImages.add(histImage);
-				processedImagesNames.add("hi_" + imgId);
-				processedImagesDescription.put("hi_" + imgId, processedImages.size() - 1);
-
-				processedImages.add(silhouetteExtractor.getNoiseFreeImage());
-				processedImagesNames.add("nf_" + imgId);
-				processedImagesDescription.put("nf_" + imgId, processedImages.size() - 1);
-
-				processedImages.add(silhouetteExtractor.getSureBackgroundImage());
-				processedImagesNames.add("sb_" + imgId);
-				processedImagesDescription.put("sb_" + imgId, processedImages.size() - 1);
-
-				processedImages.add(silhouetteExtractor.getSureBackgroundImage());
-				processedImagesNames.add("sf_" + imgId);
-				processedImagesDescription.put("sf_" + imgId, processedImages.size() - 1);
-
-				processedImages.add(silhouetteExtractor.getUnknownImage());
-				processedImagesNames.add("u_" + imgId);
-				processedImagesDescription.put("u_" + imgId, processedImages.size() - 1);
-			}
-
-			imgId++;
+			binaryImagesNames.add(imageKey);
+			binaryImagesDescription.put(imageKey, processedImages.size() - 1);
 		}
 
-		processedImagesView.setItems(processedImagesNames);
-		System.out.println(processedImagesDescription.keySet());
-		// System.out.println(x);
+		binaryImagesView.setItems(binaryImagesNames);
+		System.out.println(binaryImagesDescription.keySet());
 
-		processedImagesView.setCellFactory(param -> new ListCell<String>() {
+		binaryImagesView.setCellFactory(param -> new ListCell<String>() {
 			private ImageView imageView = new ImageView();
 
 			@Override
@@ -693,9 +669,10 @@ public class ObjectRecognizerController {
 					setText(null);
 					setGraphic(null);
 				} else {
+					// Add thumpnails here?
 					// System.out.println("Name: " + name);
 					// System.out.println(processedImagesDescription.keySet());
-					int imagePosition = processedImagesDescription.get(name);
+					int imagePosition = binaryImagesDescription.get(name);
 					// System.out.println("Name: " + name +", Position: " + imagePosition);
 					imageView.setImage(Utils.mat2Image(processedImages.get(imagePosition)));
 					imageView.setFitWidth(100);
@@ -708,8 +685,11 @@ public class ObjectRecognizerController {
 
 		// to allow updating new elements for the list view
 		this.vboxRight.getChildren().clear();
-		this.vboxRight.getChildren().add(processedImagesView);
+		this.vboxRight.getChildren().add(binaryImagesView);
 	}
+	
+	
+	
 	
 	/**
 	 * Store all the chessboard properties, update the UI and prepare other needed
@@ -927,9 +907,11 @@ public class ObjectRecognizerController {
 				@Override
 				public void run() {
 					cameraController.startCamera();
-					loadedImages.add(cameraController.grabFrame());
-					loadedImagesNames.add("sc_" + loadedImages.size());
-					loadedImagesDescription.put("sc_" + loadedImages.size(), loadedImages.size() - 1);
+					int imagePosition = objectImagesMap.size();
+					String imageKey = calibrationIndices.get(imagePosition);
+					objectImagesMap.put(imageKey, cameraController.grabFrame());
+					objectImagesNames.add(imageKey);
+					objectImagesDescription.put(imageKey, objectImagesMap.size() - 1);
 					showImages();
 				}
 			};
@@ -1021,11 +1003,69 @@ public class ObjectRecognizerController {
 
 	@FXML
 	protected void clearLoadedImages() {
-		loadedImagesNames.clear();
-		loadedImages.clear();
-		loadedImagesDescription.clear();
+		objectImagesNames.clear();
+		objectImagesMap.clear();
+		objectImagesDescription.clear();
 	}
 
+	
+	public void constructModelAux(int octreeLevels) {
+		Utils.debugNewLine("generateModelTest", true);
+
+		CameraPosition cameraPosition = new CameraPosition();
+		cameraPosition.positionAxisX = 0;
+		cameraPosition.positionAxisY = 0;
+		cameraPosition.positionAxisZ = 0;
+
+		
+		float centerX = (CUBE_LENGTH_X + DISPLACEMENT_X) / 2;
+		float centerY = (CUBE_LENGTH_Y + DISPLACEMENT_Y) / 2;
+		float centerZ = (CUBE_LENGTH_Z + DISPLACEMENT_Z) / 2;
+		
+		BoxParameters volumeBoxParameters = new BoxParameters();
+		volumeBoxParameters.setSizeX(CUBE_LENGTH_X);
+		volumeBoxParameters.setSizeY(CUBE_LENGTH_Y);
+		volumeBoxParameters.setSizeZ(CUBE_LENGTH_Z);
+		
+		volumeBoxParameters.setCenterX(centerX);
+		volumeBoxParameters.setCenterY(centerY);
+		volumeBoxParameters.setCenterZ(centerZ);
+		
+		
+		// If there is no octree, create one. Otherwise, update the current one
+		if (octree == null ){
+			Utils.debugNewLine("++++++++++++++++++++++++ Creating octree", true);
+			octree = new Octree(volumeBoxParameters, octreeLevels);
+			Utils.debugNewLine(octree.toString(), true);
+		} else {
+			Utils.debugNewLine("++++++++++++++++++++++++ Updating octree", true);
+			octree.setBoxParameters(volumeBoxParameters);
+			octree.splitNodes(octreeLevels);
+		}
+
+		// try not create another volume renderer object to recompute the octree
+		// visualization
+		
+
+		if (octree == null){
+			Utils.debugNewLine("***************** something weird happened here", true);
+		}
+
+		volumeRenderer = new VolumeRenderer();
+		// instantiate the volume generator object
+		// TODO: Maybe this generator could be a builder 
+		volumeGenerator = new VolumeGenerator(octree, volumeBoxParameters, distanceArrays,
+				invertedDistanceArrays, octreeLevels);
+		volumeGenerator.setImagesForDistanceComputation(this.imagesForDistanceComputation);
+		volumeGenerator.setDistanceArrays(distanceArrays);
+		volumeGenerator.setInvertedDistanceArrays(invertedDistanceArrays);
+		volumeGenerator.setFieldOfView(this.fieldOfView);
+		volumeGenerator.setProjectionGenerator(projectionGenerator);		
+		volumeGenerator.generateOctreeVoxels();
+		octree = volumeGenerator.getOctree();
+	}
+
+	
 	/**
 	 * The action triggered by pushing the button for constructing the model from
 	 * the loaded images
@@ -1035,77 +1075,22 @@ public class ObjectRecognizerController {
 		// System.out.println("height = " + this.processedExtractedImage.size().height +
 		// ", width = " + this.processedExtractedImage.size().width);
 
-		// Original rectangle: [(545., 432.), (684., 432.), (545., 609.), (684., 609.)]
-
-		int xMinRange = 545;
-		int xMaxRange = 684;
-		int yMinRange = 432;
-		int yMaxRange = 609;
-
-		for (BufferedImage convertedMat : this.bufferedImagesForTest) {
-			// System.out.println("Converted mat width = " + convertedMat.getWidth() + ",
-			// height = " + convertedMat.getHeight());
-			int[][] sourceArray = IntersectionTest.getBinaryArray(convertedMat);
-			System.out.println("binary array rows = " + sourceArray.length + ", cols = " + sourceArray[0].length);
-			for (int y = 0; y < sourceArray.length; y++) {
-				for (int x = 0; x < sourceArray[y].length; x++) {
-					if (x >= xMinRange && x <= xMaxRange && y >= yMinRange && y <= yMaxRange) {
-						// System.out.print(sourceArray[y][x] + " ");
-					}
-				}
-				if (y >= yMinRange && y <= yMaxRange) {
-					// System.out.println("");
-				}
-			}
-
-			int[][] invertedArray = IntersectionTest.getInvertedArray(sourceArray);
-			Utils.debugNewLine("Inverted array rows = " + invertedArray.length + ", cols = " + invertedArray[0].length, false);
-			for (int y = 0; y < invertedArray.length; y++) {
-				for (int x = 0; x < invertedArray[y].length; x++) {
-					if (x >= xMinRange && x <= xMaxRange && y >= yMinRange && y <= yMaxRange) {
-						// System.out.print(invertedArray[y][x] + " ");
-					}
-				}
-				if (y >= yMinRange && y <= yMaxRange) {
-					// System.out.println("");
-				}
-			}
-
+		for (String imageKey: imagesForDistanceComputation.keySet()){
+			BufferedImage image = imagesForDistanceComputation.get(imageKey);
+			int[][] sourceArray = IntersectionTest.getBinaryArray(image);
 			int[][] transformedArray = IntersectionTest.computeDistanceTransform(sourceArray);
-			Utils.debugNewLine("transformedArray array rows = " + transformedArray.length + ", cols = "
-					+ transformedArray[0].length, false);
-			// print the contents of transformedArray
-			for (int y = 0; y < transformedArray.length; y++) {
-				for (int x = 0; x < transformedArray[y].length; x++) {
-					if (x >= xMinRange && x <= xMaxRange && y >= yMinRange && y <= yMaxRange) {
-						// System.out.print(transformedArray[y][x] + " ");
-					}
-					// System.out.print(transformedArray[x][y] + " ");
-				}
-				if (y >= yMinRange && y <= yMaxRange) {
-					// System.out.println("");
-				}
-			}
-
+			distanceArrays.put(imageKey, transformedArray);
+			
+			int[][] invertedArray = IntersectionTest.getInvertedArray(sourceArray);
 			int[][] transformedInvertedArray = IntersectionTest.computeDistanceTransform(invertedArray);
-			Utils.debugNewLine("transformedInvertedArray array rows = " + transformedInvertedArray.length + ", cols = "
-					+ transformedInvertedArray[0].length, false);
-			// print the contents of transformedComplementArray
-			for (int y = 0; y < transformedInvertedArray.length; y++) {
-				for (int x = 0; x < transformedInvertedArray[y].length; x++) {
-					if (x >= xMinRange && x <= xMaxRange && y >= yMinRange && y <= yMaxRange) {
-						// System.out.print(transformedInvertedArray[y][x] + " ");
-					}
-				}
-				if (y >= yMinRange && y <= yMaxRange) {
-					// System.out.println("");
-				}
-			}
-
-			transformedArrays.add(transformedArray);
-			transformedInvertedArrays.add(transformedInvertedArray);
+			invertedDistanceArrays.put(imageKey, transformedInvertedArray);			
 		}
 
+		
+		int maxLevels = 8;
+		for (int i = 0; i < maxLevels; i++){
+			constructModelAux(i);			
+		}
 	}
 
 	/**
@@ -1119,70 +1104,22 @@ public class ObjectRecognizerController {
 	}
 
 	public void renderModel() {
-
-		CameraPosition cameraPosition = new CameraPosition();
-		cameraPosition.positionAxisX = 0;
-		cameraPosition.positionAxisY = 0;
-		cameraPosition.positionAxisZ = 0;
-
-		BoxParameters volumeBoxParameters = new BoxParameters();
-		volumeBoxParameters.setBoxSize(this.boxSize);
-		volumeBoxParameters.setCenterX(this.centerX);
-		volumeBoxParameters.setCenterY(this.centerY);
-		volumeBoxParameters.setCenterZ(this.centerZ);
-		
-		
-		// If there is no octree, create one. Otherwise, update the current one
-		if (octree == null || boxSize != octree.getBoxParameters().getBoxSize()){
-			octree = new Octree(volumeBoxParameters, this.levels);
-			Utils.debugNewLine("++++++++++++++++++++++++ Creating octree", true);
-		} else {
-			Utils.debugNewLine("++++++++++++++++++++++++ Updating octree", true);
-			octree.setBoxParameters(volumeBoxParameters);
-			octree.splitNodes(this.levels);
-		}
-
-		// try not create another volume renderer object to recompute the octree
-		// visualization
-		
-
-		if (octree == null){
-			Utils.debugNewLine("***************** something weird happened here", true);
-		}
-		volumeRenderer = new VolumeRenderer(octree);
-		// instantiate the volume generator object
-		volumeGenerator = new VolumeGenerator(octree, volumeBoxParameters, this.transformedInvertedArrays,
-				this.transformedArrays, this.levels);
-		volumeGenerator.setBufferedImagesForTest(this.bufferedImagesForTest);
-		volumeGenerator.setTransformedInvertedArrays(this.transformedInvertedArrays);
-		volumeGenerator.setTransformedArrays(this.transformedArrays);
-		volumeGenerator.setFieldOfView(this.fieldOfView);
-		volumeGenerator.setTransformMatrices(this.transformMatrices);
-		volumeGenerator.setProjectionGenerator(projectionGenerator);		
-		volumeRenderer.generateVolumeScene(volumeGenerator.generateVolume());
-		//rootGroup.setCenter(volumeRenderer.getSubScene());
-		setSubScene(volumeRenderer.getSubScene());
-	
+		volumeRenderer = new VolumeRenderer();
+		volumeRenderer.generateVolumeScene(volumeGenerator.getVoxels());
+		setSubScene(volumeRenderer.getSubScene());	
 		// The octree is update with the modified version in volume generator
-		octree = volumeGenerator.getOctree();
 	}
 
 	private void updateCameraPositionAxisX(int positionX) {
-		CameraPosition cameraPosition = volumeRenderer.getCameraPosition();
-		cameraPosition.positionAxisX = positionX;
-		updateCameraPosition(cameraPosition);
+		System.out.println("Do nothing!");
 	}
 
 	private void updateCameraPositionAxisY(int positionY) {
-		CameraPosition cameraPosition = volumeRenderer.getCameraPosition();
-		cameraPosition.positionAxisY = positionY;
-		updateCameraPosition(cameraPosition);
+		System.out.println("Do nothing!");
 	}
 
 	private void updateCameraPositionAxisZ(int positionZ) {
-		CameraPosition cameraPosition = volumeRenderer.getCameraPosition();
-		cameraPosition.positionAxisZ = positionZ;
-		updateCameraPosition(cameraPosition);
+		System.out.println("Do nothing!");
 	}
 
 	private void updateBinaryThreshold(int binaryThreshold) {
@@ -1190,9 +1127,65 @@ public class ObjectRecognizerController {
 	}
 
 	public void updateCameraPosition(CameraPosition cameraPosition) {
-		volumeRenderer.updateCameraPosition(cameraPosition);
+		System.out.println("Do nothing!");
 	}
 
+	private void loadDefaultImages(){
+		List<String> calibrationImageFilenames = new ArrayList<String>();
+		calibrationImageFilenames.add(DEFAULT_IMAGES_DIR + "chessboard-0.jpg");
+		calibrationImageFilenames.add(DEFAULT_IMAGES_DIR + "chessboard-30.jpg");
+		calibrationImageFilenames.add(DEFAULT_IMAGES_DIR + "chessboard-60.jpg");
+		calibrationImageFilenames.add(DEFAULT_IMAGES_DIR + "chessboard-90.jpg");
+		calibrationImageFilenames.add(DEFAULT_IMAGES_DIR + "chessboard-120.jpg");
+		calibrationImageFilenames.add(DEFAULT_IMAGES_DIR + "chessboard-150.jpg");
+		calibrationImageFilenames.add(DEFAULT_IMAGES_DIR + "chessboard-180.jpg");
+		calibrationImageFilenames.add(DEFAULT_IMAGES_DIR + "chessboard-210.jpg");
+		calibrationImageFilenames.add(DEFAULT_IMAGES_DIR + "chessboard-240.jpg");
+		calibrationImageFilenames.add(DEFAULT_IMAGES_DIR + "chessboard-270.jpg");
+		calibrationImageFilenames.add(DEFAULT_IMAGES_DIR + "chessboard-300.jpg");
+		calibrationImageFilenames.add(DEFAULT_IMAGES_DIR + "chessboard-330.jpg");
+
+		calibrationImagesMap = new HashMap<String, Mat>();
+		int calIndex = 0;
+		for (String filename: calibrationImageFilenames){
+			Mat image = Utils.loadImage(filename);
+			if (image != null){
+				calibrationImagesMap.put(calibrationIndices.get(calIndex), image);							
+				calIndex++;
+			}
+		}
+
+		// compute calibration matrices
+		projectionGenerator = cameraCalibrator.calibrateMatrices(calibrationImagesMap, true);
+		System.out.println("Calibration map size: " + projectionGenerator.effectiveSize());
+		
+		// Load object images
+		List<String> objectImageFilenames = new ArrayList<String>();
+		objectImageFilenames.add(DEFAULT_IMAGES_DIR + "object-0.jpg");
+		objectImageFilenames.add(DEFAULT_IMAGES_DIR + "object-30.jpg");
+		objectImageFilenames.add(DEFAULT_IMAGES_DIR + "object-60.jpg");
+		objectImageFilenames.add(DEFAULT_IMAGES_DIR + "object-90.jpg");
+		objectImageFilenames.add(DEFAULT_IMAGES_DIR + "object-120.jpg");
+		objectImageFilenames.add(DEFAULT_IMAGES_DIR + "object-150.jpg");
+		objectImageFilenames.add(DEFAULT_IMAGES_DIR + "object-180.jpg");
+		objectImageFilenames.add(DEFAULT_IMAGES_DIR + "object-210.jpg");
+		objectImageFilenames.add(DEFAULT_IMAGES_DIR + "object-240.jpg");
+		objectImageFilenames.add(DEFAULT_IMAGES_DIR + "object-270.jpg");
+		objectImageFilenames.add(DEFAULT_IMAGES_DIR + "object-300.jpg");
+		objectImageFilenames.add(DEFAULT_IMAGES_DIR + "object-330.jpg");
+		objectImagesMap = new HashMap<String, Mat>();
+		calIndex = 0;
+		for (String filename: objectImageFilenames){
+			Mat image = Utils.loadImage(filename);
+			if (image != null){
+				objectImagesMap.put(calibrationIndices.get(calIndex), image);							
+				calIndex++;
+			}
+		}
+
+		
+	}
+	
 	/**
 	 * Button used to test the generation of the model using predefined images
 	 */
@@ -1200,105 +1193,34 @@ public class ObjectRecognizerController {
 	public void modelGenerationTest(){
 		
 		Utils.debugNewLine("ModelGenerationTest", true);
+		loadDefaultImages();
+		System.out.println("ObjectImagesMap size: " + objectImagesMap.size());
+		extractSilhouettesTest(objectImagesMap);
 		
-		String[] calibrationIndices = {"cal0", "cal30", "cal60", "cal90", "cal120", 
-				"cal150", "cal180", "cal210", "cal240", "cal270", "cal300", "cal330"};
-
-		
-		// Load calibration images
-		List<String> calibrationImageFilenames = new ArrayList<String>();
-		String imgPrefix = "images/multiOctreesTest/";
-		calibrationImageFilenames.add(imgPrefix + "chessboard-0.jpg");
-		calibrationImageFilenames.add(imgPrefix + "chessboard-30.jpg");
-		calibrationImageFilenames.add(imgPrefix + "chessboard-60.jpg");
-		calibrationImageFilenames.add(imgPrefix + "chessboard-90.jpg");
-		calibrationImageFilenames.add(imgPrefix + "chessboard-120.jpg");
-		calibrationImageFilenames.add(imgPrefix + "chessboard-150.jpg");
-		calibrationImageFilenames.add(imgPrefix + "chessboard-180.jpg");
-		calibrationImageFilenames.add(imgPrefix + "chessboard-210.jpg");
-		calibrationImageFilenames.add(imgPrefix + "chessboard-240.jpg");
-		calibrationImageFilenames.add(imgPrefix + "chessboard-270.jpg");
-		calibrationImageFilenames.add(imgPrefix + "chessboard-300.jpg");
-		calibrationImageFilenames.add(imgPrefix + "chessboard-330.jpg");
-
-		Map<String, Mat> calibrationImages = new HashMap<String, Mat>();
-		int calIndex = 0;
-		for (String filename: calibrationImageFilenames){
-			Mat image = Utils.loadImage(filename);
-			if (image != null){
-				calibrationImages.put(calibrationIndices[calIndex], image);							
-				calIndex++;
-			}
-		}
-		
-		// compute calibration matrices
-		projectionGenerator = cameraCalibrator.calibrateMatrices(calibrationImages, true);
-		System.out.println("Calibration map size: " + projectionGenerator.effectiveSize());
-		
-		// Load object images
-		List<String> objectImageFilenames = new ArrayList<String>();
-		objectImageFilenames.add(imgPrefix + "object-0.jpg");
-		objectImageFilenames.add(imgPrefix + "object-30.jpg");
-		objectImageFilenames.add(imgPrefix + "object-60.jpg");
-		objectImageFilenames.add(imgPrefix + "object-90.jpg");
-		objectImageFilenames.add(imgPrefix + "object-120.jpg");
-		objectImageFilenames.add(imgPrefix + "object-150.jpg");
-		objectImageFilenames.add(imgPrefix + "object-180.jpg");
-		objectImageFilenames.add(imgPrefix + "object-210.jpg");
-		objectImageFilenames.add(imgPrefix + "object-240.jpg");
-		objectImageFilenames.add(imgPrefix + "object-270.jpg");
-		objectImageFilenames.add(imgPrefix + "object-300.jpg");
-		objectImageFilenames.add(imgPrefix + "object-330.jpg");
-		Map<String, Mat> objectImages = new HashMap<String, Mat>();
-		calIndex = 0;
-		for (String filename: objectImageFilenames){
-			Mat image = Utils.loadImage(filename);
-			if (image != null){
-				objectImages.put(calibrationIndices[calIndex], image);							
-				calIndex++;
-			}
-		}
-
-		
-		Map<String, Mat> binarizedImages = extractSilhouettesTest(objectImages);
-		for (String imageKey: binarizedImages.keySet()){
-			Mat binaryImage = binarizedImages.get(imageKey);
-			try {
-				bufferedImagesForTest.add(IntersectionTest.Mat2BufferedImage(binaryImage));
-			} catch (Exception e) {
-				e.printStackTrace();
-			}
-		}
-
 		List<String> binaryImageFilenames = new ArrayList<String>();
-		binaryImageFilenames.add(imgPrefix + "bin-object-0.png");
-		binaryImageFilenames.add(imgPrefix + "bin-object-30.png");
-		binaryImageFilenames.add(imgPrefix + "bin-object-60.png");
-		binaryImageFilenames.add(imgPrefix + "bin-object-90.png");
-		binaryImageFilenames.add(imgPrefix + "bin-object-120.png");
-		binaryImageFilenames.add(imgPrefix + "bin-object-150.png");
-		binaryImageFilenames.add(imgPrefix + "bin-object-180.png");
-		binaryImageFilenames.add(imgPrefix + "bin-object-210.png");
-		binaryImageFilenames.add(imgPrefix + "bin-object-240.png");
-		binaryImageFilenames.add(imgPrefix + "bin-object-270.png");
-		binaryImageFilenames.add(imgPrefix + "bin-object-300.png");
-		binaryImageFilenames.add(imgPrefix + "bin-object-330.png");
+		binaryImageFilenames.add(DEFAULT_IMAGES_DIR + "bin-object-0.png");
+		binaryImageFilenames.add(DEFAULT_IMAGES_DIR + "bin-object-30.png");
+		binaryImageFilenames.add(DEFAULT_IMAGES_DIR + "bin-object-60.png");
+		binaryImageFilenames.add(DEFAULT_IMAGES_DIR + "bin-object-90.png");
+		binaryImageFilenames.add(DEFAULT_IMAGES_DIR + "bin-object-120.png");
+		binaryImageFilenames.add(DEFAULT_IMAGES_DIR + "bin-object-150.png");
+		binaryImageFilenames.add(DEFAULT_IMAGES_DIR + "bin-object-180.png");
+		binaryImageFilenames.add(DEFAULT_IMAGES_DIR + "bin-object-210.png");
+		binaryImageFilenames.add(DEFAULT_IMAGES_DIR + "bin-object-240.png");
+		binaryImageFilenames.add(DEFAULT_IMAGES_DIR + "bin-object-270.png");
+		binaryImageFilenames.add(DEFAULT_IMAGES_DIR + "bin-object-300.png");
+		binaryImageFilenames.add(DEFAULT_IMAGES_DIR + "bin-object-330.png");
 
 		int imageFilenameIndex = 0;
-		for (String imageKey: binarizedImages.keySet()){
-			Mat binaryImage = binarizedImages.get(imageKey);
+		System.out.println("BinarizedImagesMap size: " + binarizedImagesMap.size());
+		for (String imageKey: binarizedImagesMap.keySet()){
+			Mat binaryImage = binarizedImagesMap.get(imageKey);
 			Utils.saveImage(binaryImage, binaryImageFilenames.get(imageFilenameIndex));
 			imageFilenameIndex++;
 		}
 		
-		computeDistanceArraysTest();
-		int maxLevels = 8;
-		
-		for (int i = 0; i < maxLevels; i++){
-			generateModelTest(i);			
-		}
-		
-		//generateModelMultipleOctrees(maxLevels - 1);
+		constructModel();
+		visualizeModel();		
 	}
 	
 	private Map<String, Mat> extractSilhouettesTest(Map<String, Mat> images){
@@ -1306,19 +1228,19 @@ public class ObjectRecognizerController {
 
 		Map<String, Mat> binarizedImages = new HashMap<String, Mat>();
 		
-		for (String imgKey : images.keySet()) {
-			Mat image = images.get(imgKey);
+		for (String imageKey : images.keySet()) {
+			Mat image = images.get(imageKey);
 			silhouetteExtractor.extract(image, segmentationAlgorithm.getValue());
-			segmentedImages.add(silhouetteExtractor.getSegmentedImage());
+			binarizedImagesMap.put(imageKey, silhouetteExtractor.getSegmentedImage());
 
 			try {
-				imagesForDistanceComputation.put(imgKey, IntersectionTest.Mat2BufferedImage(silhouetteExtractor.getSegmentedImage()));
+				imagesForDistanceComputation.put(imageKey, IntersectionTest.Mat2BufferedImage(silhouetteExtractor.getSegmentedImage()));
 			} catch (Exception e) {
 				System.out.println("Something went really wrong!!!");
 				e.printStackTrace();
 			}
 
-			binarizedImages.put(imgKey, silhouetteExtractor.getSegmentedImage());
+			binarizedImages.put(imageKey, silhouetteExtractor.getSegmentedImage());
 		}
 		
 		return binarizedImages;
@@ -1354,26 +1276,15 @@ public class ObjectRecognizerController {
 		cameraPosition.positionAxisY = 0;
 		cameraPosition.positionAxisZ = 0;
 
-		float dx = -3;
-		float dy = (float) -0.05;
-		float dz = -3;
-
-		//float clx = 10;
-		//float cly = 8;
-		//float clz = 8;
 		
-		float cubeLengthX = 11;
-		float cubeLengthY = 8;
-		float cubeLengthZ = 11;
+		float centerX = (CUBE_LENGTH_X + DISPLACEMENT_X) / 2;
+		float centerY = (CUBE_LENGTH_Y + DISPLACEMENT_Y) / 2;
+		float centerZ = (CUBE_LENGTH_Z + DISPLACEMENT_Z) / 2;
 		
-		float centerX = (cubeLengthX + dx) / 2;
-		float centerY = (cubeLengthY + dy) / 2;
-		float centerZ = (cubeLengthZ + dz) / 2;
-		
-		BoxParametersTest volumeBoxParameters = new BoxParametersTest();
-		volumeBoxParameters.setSizeX(cubeLengthX);
-		volumeBoxParameters.setSizeY(cubeLengthY);
-		volumeBoxParameters.setSizeZ(cubeLengthZ);
+		BoxParameters volumeBoxParameters = new BoxParameters();
+		volumeBoxParameters.setSizeX(CUBE_LENGTH_X);
+		volumeBoxParameters.setSizeY(CUBE_LENGTH_Y);
+		volumeBoxParameters.setSizeZ(CUBE_LENGTH_Z);
 		
 		volumeBoxParameters.setCenterX(centerX);
 		volumeBoxParameters.setCenterY(centerY);
@@ -1381,43 +1292,40 @@ public class ObjectRecognizerController {
 		
 		
 		// If there is no octree, create one. Otherwise, update the current one
-		if (octreeTest == null ){
+		if (octree == null ){
 			Utils.debugNewLine("++++++++++++++++++++++++ Creating octree", true);
-			octreeTest = new OctreeTest(volumeBoxParameters, octreeLevels);
-			Utils.debugNewLine(octreeTest.toString(), true);
+			octree = new Octree(volumeBoxParameters, octreeLevels);
+			Utils.debugNewLine(octree.toString(), true);
 		} else {
 			Utils.debugNewLine("++++++++++++++++++++++++ Updating octree", true);
-			octreeTest.setBoxParametersTest(volumeBoxParameters);
-			octreeTest.splitNodes(octreeLevels);
+			octree.setBoxParameters(volumeBoxParameters);
+			octree.splitNodes(octreeLevels);
 		}
 
 		// try not create another volume renderer object to recompute the octree
 		// visualization
 		
 
-		if (octreeTest == null){
+		if (octree == null){
 			Utils.debugNewLine("***************** something weird happened here", true);
 		}
 
-		volumeRendererTest = new VolumeRendererTest();
+		volumeRenderer = new VolumeRenderer();
 		// instantiate the volume generator object
 		// TODO: Maybe this generator could be a builder 
-		volumeGeneratorTest = new VolumeGeneratorTest(octreeTest, volumeBoxParameters, distanceArrays,
+		volumeGenerator = new VolumeGenerator(octree, volumeBoxParameters, distanceArrays,
 				invertedDistanceArrays, this.levels);
-		volumeGeneratorTest.setImagesForDistanceComputation(this.imagesForDistanceComputation);
-		volumeGeneratorTest.setDistanceArrays(distanceArrays);
-		volumeGeneratorTest.setInvertedDistanceArrays(invertedDistanceArrays);
-		volumeGeneratorTest.setFieldOfView(this.fieldOfView);
-		volumeGeneratorTest.setTransformMatrices(this.transformMatrices);
-		volumeGeneratorTest.setProjectionGenerator(projectionGenerator);		
-
-		//volumeRendererTest.generateVolumeScene(volumeGeneratorTest.generateTestVoxels());
-		volumeRendererTest.generateVolumeScene(volumeGeneratorTest.generateOctreeVoxels());
-		//rootGroup.setCenter(volumeRendererTest.getSubScene());
-		setSubScene(volumeRendererTest.getSubScene());
-	
+		volumeGenerator.setImagesForDistanceComputation(this.imagesForDistanceComputation);
+		volumeGenerator.setDistanceArrays(distanceArrays);
+		volumeGenerator.setInvertedDistanceArrays(invertedDistanceArrays);
+		volumeGenerator.setFieldOfView(this.fieldOfView);
+		volumeGenerator.setProjectionGenerator(projectionGenerator);		
+		volumeGenerator.generateOctreeVoxels();
+		octree = volumeGenerator.getOctree();
+		
+		volumeRenderer.generateVolumeScene(volumeGenerator.getVoxels());
+		setSubScene(volumeRenderer.getSubScene());	
 		// The octree is update with the modified version in volume generator
-		octreeTest = volumeGeneratorTest.getOctree();
 	}
 
 	public void generateModelMultipleOctrees(int octreeLevels) {
@@ -1455,7 +1363,7 @@ public class ObjectRecognizerController {
 		}
 
 		
-		List<BoxParametersTest> octreeParameters = new ArrayList<BoxParametersTest>();
+		List<BoxParameters> octreeParameters = new ArrayList<BoxParameters>();
 		for (int idX = 0; idX < centersX.length; idX++){
 			for (int idY = 0; idY < centersY.length; idY++){
 				for (int idZ = 0; idZ < centersZ.length; idZ++){
@@ -1463,7 +1371,7 @@ public class ObjectRecognizerController {
 					float centerY = centersY[idY];
 					float centerZ = centersZ[idZ];
 					
-					BoxParametersTest volumeBoxParameters = new BoxParametersTest();
+					BoxParameters volumeBoxParameters = new BoxParameters();
 					volumeBoxParameters.setSizeX(1.0);
 					volumeBoxParameters.setSizeY(1.0);
 					volumeBoxParameters.setSizeZ(1.0);
@@ -1479,7 +1387,7 @@ public class ObjectRecognizerController {
 		List<OctreeTest> octrees = new ArrayList<OctreeTest>();
 		// Create octree containing only the root node
 		for (int i = 0; i < octreeParameters.size(); i++){
-			BoxParametersTest boxParameters = octreeParameters.get(i);
+			BoxParameters boxParameters = octreeParameters.get(i);
 			Utils.debugNewLine("++++++++++++++++++++++++ Creating octree", true);
 			OctreeTest octree = new OctreeTest(boxParameters, 0);			
 			octrees.add(octree);
@@ -1489,7 +1397,7 @@ public class ObjectRecognizerController {
 		for (int octreeLevel = 1; octreeLevel < octreeLevels; octreeLevel++){
 			List<Box> objectVolume = new ArrayList<Box>();
 			for (int j = 0; j < octreeParameters.size(); j++){
-				BoxParametersTest boxParameters = octreeParameters.get(j);
+				BoxParameters boxParameters = octreeParameters.get(j);
 				OctreeTest octree = octrees.get(j);
 				// update octree using its corresponding box parameters
 				Utils.debugNewLine("++++++++++++++++++++++++ Updating octree", true);
@@ -1501,9 +1409,9 @@ public class ObjectRecognizerController {
 				objectVolume.addAll(octreeVolume);
 			}
 			
-			volumeRendererTest = new VolumeRendererTest();
-			volumeRendererTest.generateVolumeScene(objectVolume);
-			setSubScene(volumeRendererTest.getSubScene());
+			volumeRenderer = new VolumeRenderer();
+			volumeRenderer.generateVolumeScene(objectVolume);
+			setSubScene(volumeRenderer.getSubScene());
 			
 		}
 	}
@@ -1517,7 +1425,7 @@ public class ObjectRecognizerController {
 		//volumeSubScene.setCamera(volumeRendererTest.getCamera());
 	}
 	
-	public List<Box> generateVolumeForOctree(OctreeTest octree, BoxParametersTest volumeBoxParameters,
+	public List<Box> generateVolumeForOctree(OctreeTest octree, BoxParameters volumeBoxParameters,
 			Map<String, int[][]> distanceArrays, Map<String, int[][]> invertedDistanceArrays, int octreeHeight){
 		VolumeGeneratorTest volumeGenerator = new VolumeGeneratorTest(octree, volumeBoxParameters, distanceArrays,
 				invertedDistanceArrays, octreeHeight);
@@ -1525,7 +1433,6 @@ public class ObjectRecognizerController {
 		volumeGenerator.setDistanceArrays(distanceArrays);
 		volumeGenerator.setInvertedDistanceArrays(invertedDistanceArrays);
 		volumeGenerator.setFieldOfView(this.fieldOfView);
-		volumeGenerator.setTransformMatrices(this.transformMatrices);
 		volumeGenerator.setProjectionGenerator(projectionGenerator);		
 				
 		return volumeGenerator.generateOctreeVoxels();

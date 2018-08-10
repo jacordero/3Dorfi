@@ -1,8 +1,7 @@
 package nl.tue.vc.model.test;
 
-import nl.tue.vc.model.BoxParametersTest;
+import nl.tue.vc.model.BoxParameters;
 import nl.tue.vc.projection.Vector3D;
-import nl.tue.vc.voxelengine.BoxParameters;
 
 public class VolumeModelTest {
 
@@ -34,7 +33,7 @@ public class VolumeModelTest {
 		};
 	}
 	
-	public VolumeModelTest(BoxParametersTest boxParameters) {
+	public VolumeModelTest(BoxParameters boxParameters) {
 		double centerX = boxParameters.getCenterX();
 		double centerY = boxParameters.getCenterY();
 		double centerZ = boxParameters.getCenterZ();

@@ -3,13 +3,13 @@ package nl.tue.vc.model.test;
 import javafx.scene.Group;
 import javafx.scene.paint.Color;
 import nl.tue.vc.application.utils.Utils;
-import nl.tue.vc.model.BoxParametersTest;
+import nl.tue.vc.model.BoxParameters;
 
 public class OctreeTest {
 
 	private NodeTest root;
 	private NodeTest node;
-	private BoxParametersTest boxParameters;
+	private BoxParameters boxParameters;
 	private Group octreeVolume;
 	private double sizeX;
 	private double sizeY;
@@ -34,7 +34,7 @@ public class OctreeTest {
 	 *    
 	 */
 
-	public OctreeTest(BoxParametersTest boxParams, int octreeHeight) {
+	public OctreeTest(BoxParameters boxParams, int octreeHeight) {
 		this.sizeX = boxParams.getSizeX();
 		this.sizeY = boxParams.getSizeY();
 		this.sizeZ = boxParams.getSizeZ();
@@ -60,7 +60,7 @@ public class OctreeTest {
 		this.node = constructRootNode(Color.BLACK, sizeX, sizeY, sizeZ, centerX, centerY, centerZ, octreeHeight);
 		root = node;		
 		this.octreeVolume = new Group();
-		this.boxParameters = new BoxParametersTest();
+		this.boxParameters = new BoxParameters();
 		this.boxParameters.setSizeX(sizeX);
 		this.boxParameters.setSizeY(sizeY);
 		this.boxParameters.setSizeZ(sizeZ);		
@@ -188,11 +188,11 @@ public class OctreeTest {
 		return this.node;
 	}
 
-	public BoxParametersTest getBoxParametersTest() {
+	public BoxParameters getBoxParametersTest() {
 		return boxParameters;
 	}
 
-	public void setBoxParametersTest(BoxParametersTest boxParameters) {
+	public void setBoxParametersTest(BoxParameters boxParameters) {
 		this.boxParameters = boxParameters;
 	}
 

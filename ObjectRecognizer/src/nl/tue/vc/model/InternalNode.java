@@ -1,10 +1,12 @@
-package nl.tue.vc.voxelengine;
+package nl.tue.vc.model;
 
 import java.util.ArrayList;
 import java.util.List;
 
 import javafx.scene.paint.Color;
 import nl.tue.vc.application.utils.Utils;
+import nl.tue.vc.model.BoxParameters;
+import nl.tue.vc.voxelengine.DeltaStruct;
 
 public class InternalNode extends Node{
 
@@ -14,17 +16,23 @@ public class InternalNode extends Node{
 	//private NodeColor[] colors = {NodeColor.BLACK, NodeColor.BLACK, NodeColor.BLACK, NodeColor.WHITE,
 	//		NodeColor.BLACK, NodeColor.BLACK, NodeColor.BLACK, NodeColor.WHITE};
 	
-	public InternalNode(Color color, double boxSize, double parentCenterX, double parentCenterY, double parentCenterZ, int octreeHeight) {
+	public InternalNode(Color color, double sizeX, double sizeY, double sizeZ, double parentCenterX, double parentCenterY, double parentCenterZ, int octreeHeight) {
+		//Utils.debugNewLine("[InternalNodeTest] -> octreeHeight: " + octreeHeight, true);
+		
 		this.color = color;
 		children = new Node[8];	
-		this.boxSize = boxSize;
+		this.sizeX = sizeX;
+		this.sizeY = sizeY;
+		this.sizeZ = sizeZ;
 		
 		positionCenterX = parentCenterX;
 		positionCenterY = parentCenterY;
 		positionCenterZ = parentCenterZ;
 		
 		this.boxParameters = new BoxParameters();		
-		this.boxParameters.setBoxSize((int)boxSize);
+		this.boxParameters.setSizeX((int) sizeX);
+		this.boxParameters.setSizeY((int) sizeY);
+		this.boxParameters.setSizeZ((int) sizeZ);
 		this.boxParameters.setCenterX((int)parentCenterX);
 		this.boxParameters.setCenterY((int)parentCenterY);
 		this.boxParameters.setCenterZ((int)parentCenterZ);
@@ -32,7 +40,9 @@ public class InternalNode extends Node{
 		if (octreeHeight < 0){
 			children = null;
 		} else {
-			double childrenBoxSize = boxSize / 2;
+			double childrenSizeX = sizeX / 2;
+			double childrenSizeY = sizeY / 2;
+			double childrenSizeZ = sizeZ / 2;
 			List<Color> childrenColors = new ArrayList<Color>();
 			childrenColors.add(Color.GREEN);
 			childrenColors.add(Color.RED);
@@ -44,12 +54,14 @@ public class InternalNode extends Node{
 			childrenColors.add(Color.MAGENTA);
 			for (int i = 0; i < children.length; i++){
 				DeltaStruct displacementDirections = computeDisplacementDirections(i);
-				double displacementSize = childrenBoxSize / 2;
+				double displacementX = childrenSizeX / 2;
+				double displacementY = childrenSizeY / 2;
+				double displacementZ = childrenSizeZ / 2;
 				
 				//compute center of each children
-				double newParentCenterX = parentCenterX + (displacementDirections.deltaX * displacementSize);
-				double newParentCenterY = parentCenterY + (displacementDirections.deltaY * displacementSize);
-				double newParentCenterZ = parentCenterZ + (displacementDirections.deltaZ * displacementSize);
+				double newParentCenterX = parentCenterX + (displacementDirections.deltaX * displacementX);
+				double newParentCenterY = parentCenterY + (displacementDirections.deltaY * displacementY);
+				double newParentCenterZ = parentCenterZ + (displacementDirections.deltaZ * displacementZ);
 				
 				//positionCenterX = newParentCenter;
 				
@@ -59,9 +71,9 @@ public class InternalNode extends Node{
 				**/
 				
 				if (octreeHeight > 1){
-					children[i] = new InternalNode(Color.GRAY, childrenBoxSize, newParentCenterX, newParentCenterY, newParentCenterZ, octreeHeight - 1);
+					children[i] = new InternalNode(Color.GRAY, childrenSizeX, childrenSizeY, childrenSizeZ, newParentCenterX, newParentCenterY, newParentCenterZ, octreeHeight - 1);
 				} else {
-					children[i] = new Leaf(Color.BLACK, childrenBoxSize, newParentCenterX, newParentCenterY, newParentCenterZ);
+					children[i] = new Leaf(Color.BLACK, childrenSizeX, childrenSizeY, childrenSizeZ, newParentCenterX, newParentCenterY, newParentCenterZ);
 				} 
 			}			
 		}
@@ -69,17 +81,22 @@ public class InternalNode extends Node{
 		//initializeChildren();
 	}
 
-	public InternalNode(Color color, double boxSize) {
+	public InternalNode(Color color, double sizeX, double sizeY, double sizeZ) {
 		this.color = color;
 		children = new Node[8];	
-		this.boxSize = boxSize;
+		this.sizeX = sizeX;
+		this.sizeY = sizeY;
+		this.sizeZ = sizeZ;
 		
 		positionCenterX = 0;
 		positionCenterY = 0;
 		positionCenterZ = 0;
 		
 		this.boxParameters = new BoxParameters();		
-		this.boxParameters.setBoxSize((int)boxSize);
+		this.boxParameters.setSizeX((int) sizeX);
+		this.boxParameters.setSizeY((int) sizeY);
+		this.boxParameters.setSizeZ((int) sizeZ);
+
 		this.boxParameters.setCenterX((int)positionCenterX);
 		this.boxParameters.setCenterY((int)positionCenterY);
 		this.boxParameters.setCenterZ((int)positionCenterZ);
