@@ -1354,17 +1354,17 @@ public class ObjectRecognizerController {
 		cameraPosition.positionAxisY = 0;
 		cameraPosition.positionAxisZ = 0;
 
-		float dx =-2;
-		float dy = -1;
-		float dz = -2;
+		float dx = -3;
+		float dy = (float) -0.05;
+		float dz = -3;
 
 		//float clx = 10;
 		//float cly = 8;
 		//float clz = 8;
 		
-		float cubeLengthX = 10;
+		float cubeLengthX = 11;
 		float cubeLengthY = 8;
-		float cubeLengthZ = 8;
+		float cubeLengthZ = 11;
 		
 		float centerX = (cubeLengthX + dx) / 2;
 		float centerY = (cubeLengthY + dy) / 2;
@@ -1411,7 +1411,8 @@ public class ObjectRecognizerController {
 		volumeGeneratorTest.setTransformMatrices(this.transformMatrices);
 		volumeGeneratorTest.setProjectionGenerator(projectionGenerator);		
 
-		volumeRendererTest.generateVolumeScene(volumeGeneratorTest.generateVolume());
+		//volumeRendererTest.generateVolumeScene(volumeGeneratorTest.generateTestVoxels());
+		volumeRendererTest.generateVolumeScene(volumeGeneratorTest.generateOctreeVoxels());
 		//rootGroup.setCenter(volumeRendererTest.getSubScene());
 		setSubScene(volumeRendererTest.getSubScene());
 	
@@ -1513,6 +1514,7 @@ public class ObjectRecognizerController {
 		mainTabAnchor = (AnchorPane) mainTab.getContent();
 		displayBorderPane = (BorderPane) mainTabAnchor.getChildren().get(0);
 		displayBorderPane.setCenter(volumeSubScene);
+		//volumeSubScene.setCamera(volumeRendererTest.getCamera());
 	}
 	
 	public List<Box> generateVolumeForOctree(OctreeTest octree, BoxParametersTest volumeBoxParameters,

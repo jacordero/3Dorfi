@@ -92,9 +92,82 @@ public class VolumeGeneratorTest {
 
 	// TODO: make the calibration matrices id values be automatically detected
 
+	public List<Box> generateTestVoxels(){
+		float cubeLength = 50;
+		
+		Box testBox0 = new Box(cubeLength, cubeLength, cubeLength);        
+		PhongMaterial textureMaterial0 = new PhongMaterial();
+		textureMaterial0.setDiffuseColor(Color.BLACK);
+		testBox0.setMaterial(textureMaterial0);
+        //testBox1.getTransforms().addAll(rotateZ1, rotateY1, rotateX1);
+        testBox0.setTranslateX(2.5*cubeLength);
+        testBox0.setTranslateY(2.5*cubeLength);
+        testBox0.setTranslateZ(0.5*cubeLength);
+        
+        Box testBox1 = new Box(cubeLength, cubeLength, cubeLength);
+		PhongMaterial textureMaterial1 = new PhongMaterial();
+		textureMaterial1.setDiffuseColor(Color.DARKGREEN);
+		testBox1.setMaterial(textureMaterial1);
+		//testBox2.getTransforms().addAll(rotateZ2, rotateY2, rotateX2);
+        testBox1.setTranslateX(3.5*cubeLength);
+        testBox1.setTranslateY(2.5*cubeLength);
+        testBox1.setTranslateZ(0.5*cubeLength);
+		
+        Box testBox2 = new Box(cubeLength, cubeLength, cubeLength);
+		PhongMaterial textureMaterial2 = new PhongMaterial();
+		textureMaterial2.setDiffuseColor(Color.RED);
+		testBox2.setMaterial(textureMaterial2);
+		//testBox3.getTransforms().addAll(rotateZ3, rotateY3, rotateX3);
+        testBox2.setTranslateX(2.5*cubeLength);
+        testBox2.setTranslateY(3.5*cubeLength);
+        testBox2.setTranslateZ(0.5*cubeLength);
+
+        
+        Box testBox3 = new Box(cubeLength, cubeLength, cubeLength);
+		PhongMaterial textureMaterial3 = new PhongMaterial();
+		textureMaterial3.setDiffuseColor(Color.MAGENTA);
+		testBox3.setMaterial(textureMaterial3);
+		//testBox4.getTransforms().addAll(rotateZ4, rotateY4, rotateX4);
+        testBox3.setTranslateX(3.5*cubeLength);
+        testBox3.setTranslateY(3.5*cubeLength);
+        testBox3.setTranslateZ(0.5*cubeLength);
+
+        
+        Box testBox4 = new Box(cubeLength, cubeLength, cubeLength);
+		PhongMaterial textureMaterial4 = new PhongMaterial();
+		textureMaterial4.setDiffuseColor(Color.YELLOW);
+		testBox4.setMaterial(textureMaterial4);
+		//testBox4.getTransforms().addAll(rotateZ4, rotateY4, rotateX4);
+        testBox4.setTranslateX(2.5*cubeLength);
+        testBox4.setTranslateY(2.5*cubeLength);
+        testBox4.setTranslateZ(1.5*cubeLength);
+        
+        
+        Box testBox5 = new Box(cubeLength, cubeLength, cubeLength);
+		PhongMaterial textureMaterial5 = new PhongMaterial();
+		textureMaterial5.setDiffuseColor(Color.BLUE);
+		testBox5.setMaterial(textureMaterial5);
+		//testBox4.getTransforms().addAll(rotateZ4, rotateY4, rotateX4);
+        testBox5.setTranslateX(3.5*cubeLength);
+        testBox5.setTranslateY(2.5*cubeLength);
+        testBox5.setTranslateZ(1.5*cubeLength);
+        
+        List<Box> voxels = new ArrayList<Box>();
+        voxels.add(testBox0);
+        voxels.add(testBox1);
+        voxels.add(testBox2);
+        voxels.add(testBox3);
+        voxels.add(testBox4);
+        voxels.add(testBox5);
+        return voxels;
+
+	}
+	
 	public List<Box> generateOctreeVoxels(){
 		Utils.debugNewLine("[VolumeGenerator] generateVolume", true);
 		Utils.debugNewLine("ImagesForDistanceComputation: " + imagesForDistanceComputation.size(), true);
+		//return generateTestVoxels();
+		
 		
 		NodeTest root = octree.getRoot();
 		DeltaStruct deltas = new DeltaStruct();
@@ -108,16 +181,16 @@ public class VolumeGeneratorTest {
 		octree.setRoot(root);
 		
 		ApplicationConfiguration appConfig = ApplicationConfiguration.getInstance();
-		int sceneWidth = 3 * appConfig.getVolumeSceneWidth() / 4;
-		int sceneHeight = 3 * appConfig.getVolumeSceneHeight() / 4;
+		int sceneWidth = appConfig.getVolumeSceneWidth() / 2;
+		int sceneHeight = appConfig.getVolumeSceneHeight() / 2;
 		int sceneDepth = appConfig.getVolumeSceneDepth() / 2;
 		BoxParametersTest volumeBoxParameters = new BoxParametersTest();
-		volumeBoxParameters.setSizeX(160);
+		volumeBoxParameters.setSizeX(110);
 		volumeBoxParameters.setSizeY(80);
-		volumeBoxParameters.setSizeZ(120);
-		volumeBoxParameters.setCenterX(sceneWidth);
-		volumeBoxParameters.setCenterY(sceneHeight);
-		volumeBoxParameters.setCenterZ(sceneDepth);
+		volumeBoxParameters.setSizeZ(110);
+		volumeBoxParameters.setCenterX(0);
+		volumeBoxParameters.setCenterY(0);
+		volumeBoxParameters.setCenterZ(0);
 
 		return generateVolumeAux(root, volumeBoxParameters, deltas);
 	}
@@ -147,15 +220,17 @@ public class VolumeGeneratorTest {
 		// List<Box> voxels = generateVolumeAux(root, boxParameters, deltas);
 		// volume.getChildren().addAll(voxels);
 
-		Group imageProjection = getImageProjections("cal0");
-		volume.getChildren().addAll(imageProjection);
+		//Group imageProjection = getImageProjections("cal0");
+		//volume.getChildren().addAll(imageProjection);
 
 		long lStartTime = System.nanoTime();
 
+		/**
 		projectCubesForVisualization();
 		if (octreeHeight <= 3) {
 			volume.getChildren().addAll(getProjectedVolume());
 		}
+		**/
 
 		long lEndTime = System.nanoTime();
 		long output = lEndTime - lStartTime;
@@ -854,7 +929,7 @@ public class VolumeGeneratorTest {
 		double sizeZ = boxParameters.getSizeZ();
 		
 		
-		Box box = new Box(sizeX, sizeZ, sizeY);
+		Box box = new Box(sizeX, sizeY, sizeZ);
 		double posx = sceneWidth + (deltas.deltaX * (sizeX / 2));
 		
 		// invert the axis
@@ -865,8 +940,8 @@ public class VolumeGeneratorTest {
 		box.setTranslateX(posx);
 		
 		
-		box.setTranslateY(posz);
-		box.setTranslateZ(posy);
+		box.setTranslateY(posy);
+		box.setTranslateZ(posz);
 
 		PhongMaterial textureMaterial = new PhongMaterial();
 
@@ -887,8 +962,8 @@ public class VolumeGeneratorTest {
 		 **/
 		 
 		 
-		 diffuseColor = nodeColor == Color.BLACK ? nodeColor : Color.TRANSPARENT;
-		 //diffuseColor = nodeColor == Color.WHITE ? Color.TRANSPARENT: nodeColor;
+		 //diffuseColor = nodeColor == Color.BLACK ? nodeColor : Color.TRANSPARENT;
+		 diffuseColor = nodeColor == Color.WHITE ? Color.TRANSPARENT: nodeColor;
 		
 		 textureMaterial.setDiffuseColor(diffuseColor);
 		box.setMaterial(textureMaterial);
