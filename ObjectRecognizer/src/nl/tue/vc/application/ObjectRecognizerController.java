@@ -110,9 +110,11 @@ public class ObjectRecognizerController {
 	@FXML
 	private ImageView originalFrame;
 
+	@FXML
+	private ImageView imageOperationsFrame;
+	
 	// the FXML area for showing the current frame (after calibration)
 	@FXML
-
 	private ImageView calibrationFrame;
 	// info related to the calibration process
 	@FXML
@@ -230,6 +232,9 @@ public class ObjectRecognizerController {
 	ObservableList<String> processedImagesNames = FXCollections.observableArrayList();
 
 	List<BufferedImage> bufferedImagesForTest = new ArrayList<>();
+	
+	private Map<Integer, Integer> imageThresholds = new HashMap<Integer, Integer>();
+	private int selectedImageIndex = 1;
 
 	// the main stage
 	private Stage stage;
@@ -542,6 +547,8 @@ public class ObjectRecognizerController {
 						}						
 					}
 				}
+				imageThresholds.put(i+1, (int)binaryThreshold.getValue());
+				System.out.println("set image threshold value for image id " + (i+1) + " as " + imageThresholds.get(i+1));
 			}
 			showImages();
 		}
@@ -550,7 +557,8 @@ public class ObjectRecognizerController {
 	public void showImages() {
 
 		loadedImagesView.setItems(loadedImagesNames);
-		loadedImagesView.setCellFactory(param -> new ListCell<String>() {
+		loadedImagesView.setCellFactory(param -> {
+			ListCell<String> cell = new ListCell<String>() {
 			private ImageView imageView = new ImageView();
 
 			@Override
@@ -569,8 +577,22 @@ public class ObjectRecognizerController {
 					imageView.setPreserveRatio(true);
 					setText("");
 					setGraphic(imageView);
+					if(imageOperationsFrame.getImage()==null) {
+						setImageOperationFrameImage(imageView.getImage());
+					}
 				}
 			}
+			};
+			
+			cell.setOnMouseClicked(e -> {
+                if (cell.getItem() != null) {
+                	ImageView imageView = (ImageView)cell.getGraphic();
+                	setImageOperationFrameImage(imageView.getImage());
+                	this.selectedImageIndex = cell.getIndex()+1;
+                }
+            });
+			
+			return cell;
 		});
 
 		loadedImagesView.setMaxWidth(140);
@@ -601,6 +623,8 @@ public class ObjectRecognizerController {
 
 		int imgId = 1;
 		for (Mat image : loadedImages) {
+			silhouetteExtractor.setBinaryThreshold(this.imageThresholds.get(imgId));
+			System.out.println("Extracting Image " + imgId + " with binary threshold " + this.imageThresholds.get(imgId));
 			silhouetteExtractor.extract(image, segmentationAlgorithm.getValue());
 			segmentedImages.add(silhouetteExtractor.getSegmentedImage());
 
@@ -665,7 +689,8 @@ public class ObjectRecognizerController {
 		System.out.println(processedImagesDescription.keySet());
 		// System.out.println(x);
 
-		processedImagesView.setCellFactory(param -> new ListCell<String>() {
+		processedImagesView.setCellFactory(param -> {
+			ListCell<String> cell = new ListCell<String>() {
 			private ImageView imageView = new ImageView();
 
 			@Override
@@ -685,8 +710,24 @@ public class ObjectRecognizerController {
 					imageView.setPreserveRatio(true);
 					setText(name);
 					setGraphic(imageView);
+					if(imageOperationsFrame.getImage()==null) {
+						//System.out.println("================ setting main image ");
+						setImageOperationFrameImage(imageView.getImage());
+					}
 				}
 			}
+			
+			};
+			
+			cell.setOnMouseClicked(e -> {
+                if (cell.getItem() != null) {
+                	//System.out.println("================ cell [" + cell.getIndex() + "] clicked ");
+                	ImageView imageView = (ImageView)cell.getGraphic();
+                	setImageOperationFrameImage(imageView.getImage());
+                }
+            });
+			
+			return cell;			
 		});
 
 		// to allow updating new elements for the list view
@@ -1007,6 +1048,8 @@ public class ObjectRecognizerController {
 		loadedImagesNames.clear();
 		loadedImages.clear();
 		loadedImagesDescription.clear();
+		this.imageOperationsFrame.setImage(null);
+		this.imageThresholds.clear();
 	}
 
 	/**
@@ -1169,7 +1212,8 @@ public class ObjectRecognizerController {
 	}
 
 	private void updateBinaryThreshold(int binaryThreshold) {
-		silhouetteExtractor.setBinaryThreshold(binaryThreshold);
+		//silhouetteExtractor.setBinaryThreshold(binaryThreshold);
+		this.imageThresholds.put(this.selectedImageIndex, binaryThreshold);
 	}
 
 	public void updateCameraPosition(CameraPosition cameraPosition) {
@@ -1294,6 +1338,12 @@ public class ObjectRecognizerController {
 		mainTabAnchor = (AnchorPane) mainTab.getContent();
 		displayBorderPane = (BorderPane) mainTabAnchor.getChildren().get(0);
 		displayBorderPane.setCenter(volumeSubScene);
+	}
+	
+	public void setImageOperationFrameImage(Image image) {
+		imageOperationsFrame.setImage(image);
+		imageOperationsFrame.setFitWidth(500);
+		imageOperationsFrame.setPreserveRatio(true);
 	}
 
 }
