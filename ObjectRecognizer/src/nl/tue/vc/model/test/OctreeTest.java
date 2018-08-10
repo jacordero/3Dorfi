@@ -71,9 +71,9 @@ public class OctreeTest {
 	
 	public void splitNodes(int newOctreeHeight){
 		int deltaHeight = newOctreeHeight - octreeHeight;
-		Utils.debugNewLine("octree height: " + octreeHeight, true);
-		Utils.debugNewLine("new octree height: " + newOctreeHeight, true);
-		Utils.debugNewLine("split root with " + deltaHeight + " levels", true);
+		Utils.debugNewLine("octree height: " + octreeHeight, false);
+		Utils.debugNewLine("new octree height: " + newOctreeHeight, false);
+		Utils.debugNewLine("split root with " + deltaHeight + " levels", false);
 		if (deltaHeight > 0){
 			root = root.splitNode(deltaHeight);
 			octreeHeight = newOctreeHeight;

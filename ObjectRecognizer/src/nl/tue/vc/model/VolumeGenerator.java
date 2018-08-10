@@ -64,7 +64,7 @@ public class VolumeGenerator {
 		this.transformMatrices = new TransformMatrices(400, 290, fieldOfView);
 		distanceArrays = new HashMap<String, int[][]>();
 		invertedDistanceArrays = new HashMap<String, int[][]>();
-		System.out.println(octree);
+		//System.out.println(octree);
 		projectedPoints = new ArrayList<ProjectedPoint>();
 		boundingBoxes = new ArrayList<BoundingBox>();
 		octreeHeight = -1;
@@ -82,7 +82,7 @@ public class VolumeGenerator {
 		this.imagesForDistanceComputation = new HashMap<String, BufferedImage>();
 		this.fieldOfView = 32;
 		this.transformMatrices = new TransformMatrices(400, 290, fieldOfView);
-		System.out.println(octree);
+		//System.out.println(octree);
 		projectionGenerator = null;// cameraCalibrator.calibrateMultipleMatrices(calibrationImages, true);
 		projectedPoints = new ArrayList<ProjectedPoint>();
 		boundingBoxes = new ArrayList<BoundingBox>();
@@ -176,11 +176,11 @@ public class VolumeGenerator {
 		
 		Node root = octree.getRoot();
 		DeltaStruct deltas = new DeltaStruct();
-		System.out.println("Octree height: "  + octree.getOctreeHeight());
+		Utils.debugNewLine("Octree height: "  + octree.getOctreeHeight(), false);
 		if (octree.getInternalNode().isLeaf()) {
-			System.out.println("Octree children: 1");
+			Utils.debugNewLine("Octree children: 1", false);
 		} else {
-			System.out.println("Octree children: " + root.getChildren().length);
+			Utils.debugNewLine("Octree children: " + root.getChildren().length, false);
 		}
 		root = getTestedNodeAux(root);
 		octree.setRoot(root);
@@ -900,7 +900,7 @@ public class VolumeGenerator {
 		Group root2D = new Group();
 
 		for (ProjectedPoint projection : projectedPoints) {
-			System.out.println(projection);
+			//System.out.println(projection);
 			Ellipse circle = new Ellipse(projection.getScaledX(), projection.getScaledY(), 5, 5);
 			circle.setFill(Color.RED);
 			root2D.getChildren().add(circle);

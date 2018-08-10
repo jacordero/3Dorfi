@@ -246,8 +246,6 @@ public class ObjectRecognizerController {
 	// support variables
 	private Mat image;
 	private List<Mat> planes;
-	// the final complex image
-	private Mat complexImage;
 	private double calibrationResult = 0;
 
 	// The rootGroup
@@ -268,8 +266,6 @@ public class ObjectRecognizerController {
 
 	private ProjectionGenerator projectionGenerator;
 	
-	private List<String> projectorPerSilhouette;
-	
 	private Mat cameraFrame;
 
 	private Timer videoTimer;
@@ -280,11 +276,8 @@ public class ObjectRecognizerController {
 
 	public static int SNAPSHOT_DELAY = 250;
 	public static final boolean TEST_PROJECTIONS = true;
-	private double sceneWidth;
-	private double sceneHeight;
 	private int levels;
 	private int boxSize;
-	private int centerX, centerY, centerZ;
 
 	private float DISPLACEMENT_X;
 	private float DISPLACEMENT_Y;
@@ -301,8 +294,6 @@ public class ObjectRecognizerController {
 	
 	public ObjectRecognizerController() {
 
-		this.sceneWidth = 400;// 650.5;//440;
-		this.sceneHeight = 290;// 328.0;//320;
 		silhouetteExtractor = new SilhouetteExtractor();
 		cameraController = new CameraController();
 		cameraFrame = new Mat();
@@ -397,6 +388,10 @@ public class ObjectRecognizerController {
 		});
 
 		// Camera calibration is selected
+		enableCameraCalibration.setOnAction((event) ->{
+			calibrationImageCounter = 0;
+		});
+		
 		/**
 		 * enableCameraCalibration.setOnAction((event) -> {
 		 * 
@@ -468,19 +463,19 @@ public class ObjectRecognizerController {
 
 		centerAxisX.valueProperty().addListener((observable, oldValue, newValue) -> {
 			System.out.println("Center axis X changed (newValue: " + newValue.intValue() + ")");
-			this.centerX = newValue.intValue();
+			//this.centerX = newValue.intValue();
 			this.renderModel();
 		});
 
 		centerAxisY.valueProperty().addListener((observable, oldValue, newValue) -> {
 			System.out.println("Center axis Y changed (newValue: " + newValue.intValue() + ")");
-			this.centerY = newValue.intValue();
+			//this.centerY = newValue.intValue();
 			this.renderModel();
 		});
 
 		centerAxisZ.valueProperty().addListener((observable, oldValue, newValue) -> {
 			System.out.println("Center axis Z changed (newValue: " + newValue.intValue() + ")");
-			this.centerZ = newValue.intValue();
+			//this.centerZ = newValue.intValue();
 			this.renderModel();
 		});
 
@@ -499,7 +494,6 @@ public class ObjectRecognizerController {
 		this.fileChooser = new FileChooser();
 		this.image = new Mat();
 		this.planes = new ArrayList<>();
-		this.complexImage = new Mat();
 		this.calibrationCapture = new VideoCapture();
 		this.cameraActive = false;
 		this.obj = new MatOfPoint3f();
@@ -546,12 +540,18 @@ public class ObjectRecognizerController {
 
 					if (enableCameraCalibration.isSelected()){
 						Utils.debugNewLine("Loading calibration image: " + file.getName(), false);
-						
 						calibrationImage = this.image;
 						calibrationFrame.setImage(Utils.mat2Image(calibrationImage));
 						calibrationFrame.setFitWidth(100);
 						calibrationFrame.setPreserveRatio(true);
 						calibrationImagesMap.put(calibrationIndices.get(calibrationImageCounter), calibrationImage);
+						String calibrationIndex = calibrationIndices.get(calibrationImageCounter);
+						Utils.debugNewLine("Calibration index: " + calibrationIndex, true);
+						/**
+						objectImagesNames.add(imageName);
+						objectImagesToDisplay.add(calibrationImage);
+						objectImagesDescription.put(imageName, objectImagesToDisplay.size() - 1);
+						**/
 						calibrationImageCounter += 1;
 						if (calibrationImageCounter > calibrationIndices.size() - 1){
 							calibrationImageCounter = 0;
@@ -562,7 +562,13 @@ public class ObjectRecognizerController {
 						objectImagesNames.add(imgName);
 						objectImagesToDisplay.add(this.image);
 						objectImagesDescription.put(imgName, objectImagesToDisplay.size() - 1);
-
+						
+						objectImagesMap.put(calibrationIndices.get(calibrationImageCounter), this.image);
+						calibrationImageCounter += 1;
+						if (calibrationImageCounter > calibrationIndices.size() - 1){
+							calibrationImageCounter = 0;
+						}
+						
 						// System.out.println(imgName);
 
 						// empty the image planes and the image views if it is not the first
@@ -631,7 +637,6 @@ public class ObjectRecognizerController {
 		binarizedImagesMap = new HashMap<String, Mat>();
 
 		binaryImagesView = new ListView<String>();
-		List<Mat> processedImages = new ArrayList<Mat>();
 		binaryImagesNames = FXCollections.observableArrayList();
 		binaryImagesDescription = new HashMap<String, Integer>();
 
@@ -652,7 +657,7 @@ public class ObjectRecognizerController {
 			}
 
 			binaryImagesNames.add(imageKey);
-			binaryImagesDescription.put(imageKey, processedImages.size() - 1);
+			binaryImagesDescription.put(imageKey, binarizedImagesMap.size() - 1);
 		}
 
 		binaryImagesView.setItems(binaryImagesNames);
@@ -670,11 +675,11 @@ public class ObjectRecognizerController {
 					setGraphic(null);
 				} else {
 					// Add thumpnails here?
-					// System.out.println("Name: " + name);
+					System.out.println("Binary image name: " + name);
 					// System.out.println(processedImagesDescription.keySet());
-					int imagePosition = binaryImagesDescription.get(name);
+					//int imagePosition = binaryImagesDescription.get(name);
 					// System.out.println("Name: " + name +", Position: " + imagePosition);
-					imageView.setImage(Utils.mat2Image(processedImages.get(imagePosition)));
+					imageView.setImage(Utils.mat2Image(binarizedImagesMap.get(name)));
 					imageView.setFitWidth(100);
 					imageView.setPreserveRatio(true);
 					setText(name);
@@ -1034,11 +1039,11 @@ public class ObjectRecognizerController {
 		
 		// If there is no octree, create one. Otherwise, update the current one
 		if (octree == null ){
-			Utils.debugNewLine("++++++++++++++++++++++++ Creating octree", true);
+			Utils.debugNewLine("++++++++++++++++++++++++ Creating octree", false);
 			octree = new Octree(volumeBoxParameters, octreeLevels);
-			Utils.debugNewLine(octree.toString(), true);
+			Utils.debugNewLine(octree.toString(), false);
 		} else {
-			Utils.debugNewLine("++++++++++++++++++++++++ Updating octree", true);
+			Utils.debugNewLine("++++++++++++++++++++++++ Updating octree", false);
 			octree.setBoxParameters(volumeBoxParameters);
 			octree.splitNodes(octreeLevels);
 		}
@@ -1091,6 +1096,7 @@ public class ObjectRecognizerController {
 		for (int i = 0; i < maxLevels; i++){
 			constructModelAux(i);			
 		}
+		System.out.println("+++++++ Model is ready ++++++++++");
 	}
 
 	/**
@@ -1400,7 +1406,7 @@ public class ObjectRecognizerController {
 				BoxParameters boxParameters = octreeParameters.get(j);
 				OctreeTest octree = octrees.get(j);
 				// update octree using its corresponding box parameters
-				Utils.debugNewLine("++++++++++++++++++++++++ Updating octree", true);
+				Utils.debugNewLine("++++++++++++++++++++++++ Updating octree", false);
 				octree.setBoxParametersTest(boxParameters);
 				octree.splitNodes(octreeLevel);
 

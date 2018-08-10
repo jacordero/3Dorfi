@@ -979,7 +979,7 @@ public class VolumeGeneratorTest {
 		Group root2D = new Group();
 
 		for (ProjectedPoint projection : projectedPoints) {
-			System.out.println(projection);
+			//System.out.println(projection);
 			Ellipse circle = new Ellipse(projection.getScaledX(), projection.getScaledY(), 5, 5);
 			circle.setFill(Color.RED);
 			root2D.getChildren().add(circle);
