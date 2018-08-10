@@ -21,14 +21,7 @@
                            <bottom>
                               <HBox alignment="CENTER" spacing="10" BorderPane.alignment="CENTER">
                                  <children>
-                                    <Button alignment="center" onAction="#loadImage" text="Load Images" />
                                     <Button fx:id="snapshotButton" alignment="center" onAction="#takeSnapshot" text="Take snapshot" />
-                                    <Button fx:id="extractButton" alignment="center" onAction="#extractSilhouettes" text="Extract Silhouettes" />
-                                    <Button fx:id="refreshButton" mnemonicParsing="false" onAction="#clearLoadedImages" text="Refresh">
-                                       <HBox.margin>
-                                          <Insets />
-                                       </HBox.margin>
-                                    </Button>
                                     <Button fx:id="constructButton" mnemonicParsing="false" onAction="#constructModel" text="Construct 3D Model" />
                                     <Button fx:id="visualizeButton" mnemonicParsing="false" onAction="#visualizeModel" text="Visualize Model" />
                                     <Button fx:id="modelGenerationTest" mnemonicParsing="false" onAction="#modelGenerationTest" text="Test" />
@@ -48,20 +41,6 @@
                                  </padding>
                               </VBox>
                            </center>
-                           <left>
-                              <VBox fx:id="vboxLeft" alignment="CENTER" BorderPane.alignment="CENTER">
-                                 <children>
-                                    <ImageView fx:id="cameraFrameView" fitHeight="140.0" fitWidth="120.0" pickOnBounds="true" preserveRatio="true">
-                                       <VBox.margin>
-                                          <Insets bottom="10.0" top="10.0" />
-                                       </VBox.margin>
-                                    </ImageView>
-                                 </children>
-                                 <padding>
-                                    <Insets left="10" right="10" />
-                                 </padding>
-                              </VBox>
-                           </left>
                            <top>
                               <VBox minWidth="-Infinity" prefHeight="50.0" prefWidth="600.0" BorderPane.alignment="CENTER">
                                  <children>
@@ -86,6 +65,7 @@
                                           <Insets bottom="10" top="10" />
                                        </padding>
                                     </HBox>
+                                    <Separator prefWidth="200.0" />
                                  </children>
                               </VBox>
                            </top>
@@ -98,11 +78,14 @@
                <content>
                   <AnchorPane minHeight="0.0" minWidth="0.0" prefHeight="180.0" prefWidth="200.0">
                      <children>
-                        <BorderPane prefHeight="600.0" prefWidth="1000.0">
+                        <BorderPane prefHeight="600.0" prefWidth="950.0">
                            <top>
-                              <VBox minHeight="-Infinity" minWidth="-Infinity" prefWidth="717.0" BorderPane.alignment="CENTER">
+                              <VBox minWidth="-Infinity" prefWidth="600.0" BorderPane.alignment="CENTER">
                                  <children>
-                                    <HBox spacing="10.0">
+                                    <HBox alignment="CENTER" spacing="10">
+                                       <padding>
+                                          <Insets bottom="10" top="10" />
+                                       </padding>
                                        <children>
                                           <CheckBox fx:id="debugSegmentation" mnemonicParsing="false" text="Debug segmentation algorithm">
                                              <HBox.margin>
@@ -130,10 +113,8 @@
                                              </HBox.margin>
                                           </Slider>
                                        </children>
-                                       <padding>
-                                          <Insets bottom="10.0" top="10.0" />
-                                       </padding>
                                     </HBox>
+                                    <Separator prefWidth="200.0" />
                                  </children>
                               </VBox>
                            </top>
@@ -147,6 +128,46 @@
                                  </padding>
                               </VBox>
                            </right>
+                           <center>
+                              <VBox alignment="CENTER" minHeight="-Infinity" minWidth="-Infinity" prefHeight="400.0" prefWidth="500.0" BorderPane.alignment="CENTER">
+                                 <children>
+                                    <ImageView fx:id="imageOperationsFrame" />
+                                 </children>
+                                 <padding>
+                                    <Insets left="10" right="10" />
+                                 </padding>
+                              </VBox>
+                           </center>
+                           <bottom>
+                              <HBox alignment="CENTER" spacing="10" BorderPane.alignment="CENTER">
+                                 <children>
+                                    <Button alignment="center" onAction="#loadImage" text="Load Images" />
+                                    <Button fx:id="refreshButton" mnemonicParsing="false" onAction="#clearLoadedImages" text="Refresh">
+                                       <HBox.margin>
+                                          <Insets />
+                                       </HBox.margin>
+                                    </Button>
+                                    <Button fx:id="extractButton1" alignment="center" onAction="#extractSilhouettes" text="Extract Silhouettes" />
+                                 </children>
+                                 <padding>
+                                    <Insets bottom="25" left="25" right="25" top="25" />
+                                 </padding>
+                              </HBox>
+                           </bottom>
+                           <left>
+                              <VBox fx:id="vboxLeft" alignment="CENTER" BorderPane.alignment="TOP_CENTER">
+                                 <children>
+                                    <ImageView fx:id="cameraFrameView" fitHeight="140.0" fitWidth="120.0" pickOnBounds="true" preserveRatio="true">
+                                       <VBox.margin>
+                                          <Insets bottom="10.0" top="10.0" />
+                                       </VBox.margin>
+                                    </ImageView>
+                                 </children>
+                                 <padding>
+                                    <Insets left="10" right="10" />
+                                 </padding>
+                              </VBox>
+                           </left>
                         </BorderPane>
                      </children>
                   </AnchorPane>
@@ -214,7 +235,7 @@
                                        </children>
                                     </HBox>
                                     <Separator />
-                                    <HBox prefHeight="50.0" prefWidth="1000.0">
+                                    <HBox prefHeight="30.0" prefWidth="1000.0">
                                        <children>
                                           <Label text="World rotation Y angle:">
                                              <opaqueInsets>
@@ -265,6 +286,7 @@
                                           </Button>
                                        </children>
                                     </HBox>
+                                    <Separator prefWidth="200.0" />
                                  </children>
                                  <padding>
                                     <Insets bottom="10.0" top="10.0" />
