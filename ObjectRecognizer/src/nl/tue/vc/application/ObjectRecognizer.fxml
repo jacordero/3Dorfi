@@ -24,7 +24,7 @@
                                     <Button fx:id="snapshotButton" alignment="center" onAction="#takeSnapshot" text="Take snapshot" />
                                     <Button fx:id="constructButton" mnemonicParsing="false" onAction="#constructModel" text="Construct 3D Model" />
                                     <Button fx:id="visualizeButton" mnemonicParsing="false" onAction="#visualizeModel" text="Visualize Model" />
-                                    <Button fx:id="modelGenerationTest" mnemonicParsing="false" text="Test" />
+                                    <Button fx:id="modelGenerationTestButton" mnemonicParsing="false" onAction="#modelGenerationTest" text="Test" />
                                  </children>
                                  <padding>
                                     <Insets bottom="25" left="25" right="25" top="25" />
@@ -113,7 +113,7 @@
                               </VBox>
                            </top>
                            <right>
-                              <VBox fx:id="vboxRight" alignment="CENTER" spacing="10" BorderPane.alignment="CENTER">
+                              <VBox fx:id="imageProcessingArea" alignment="CENTER" spacing="10" BorderPane.alignment="CENTER">
                                  <children>
                                     <ImageView fx:id="calibrationFrame" />
                                  </children>
@@ -149,7 +149,7 @@
                               </HBox>
                            </bottom>
                            <left>
-                              <VBox fx:id="vboxLeft" alignment="CENTER" BorderPane.alignment="TOP_CENTER">
+                              <VBox fx:id="objectImageArea" alignment="CENTER" BorderPane.alignment="TOP_CENTER">
                                  <children>
                                     <ImageView fx:id="cameraFrameView" fitHeight="140.0" fitWidth="120.0" pickOnBounds="true" preserveRatio="true">
                                        <VBox.margin>
@@ -291,16 +291,30 @@
                               </VBox>
                            </top>
                            <center>
-                              <VBox alignment="CENTER" BorderPane.alignment="CENTER">
+                              <VBox fx:id="projectedVolumeArea" alignment="CENTER" minHeight="-Infinity" minWidth="-Infinity" prefHeight="400.0" prefWidth="500.0" BorderPane.alignment="CENTER">
                                  <children>
-                                    <ImageView fx:id="originalFrame1" />
+                                    <ImageView fx:id="projectedVolumeView" />
                                  </children>
                                  <padding>
                                     <Insets left="10" right="10" />
                                  </padding>
                               </VBox>
                            </center>
-                        </BorderPane>
+                           <left>
+                              <VBox fx:id="projectionImagesArea" alignment="CENTER" BorderPane.alignment="TOP_CENTER">
+                                 <children>
+                                    <ImageView fx:id="projectedImagesView" fitHeight="140.0" fitWidth="120.0" pickOnBounds="true" preserveRatio="true">
+                                       <VBox.margin>
+                                          <Insets bottom="10.0" top="10.0" />
+                                       </VBox.margin>
+                                    </ImageView>
+                                 </children>
+                                 <padding>
+                                    <Insets left="10" right="10" />
+                                 </padding>
+                              </VBox>
+                           </left>
+                       </BorderPane>
                      </children>
                   </AnchorPane>
                </content>

@@ -51,7 +51,7 @@ public class ObjectRecognizer extends Application {
 			// set a whitesmoke background
 			rootGroup.setStyle("-fx-background-color: whitesmoke;");
 			//rootGroup.setCenter(volumeScene);
-			setSubScene(volumeScene);
+			setVolumeSubScene(volumeScene);
 			
 			Scene scene = new Scene(rootGroup, appConfig.getWindowWidth(), appConfig.getWindowHeight());
 			scene.getStylesheets().add(getClass().getResource("application.css").toExternalForm());
@@ -72,7 +72,7 @@ public class ObjectRecognizer extends Application {
 		}
 	}
 	
-	public void setSubScene(SubScene volumeSubScene) {
+	public void setVolumeSubScene(SubScene volumeSubScene) {
 		tabPane = (TabPane) rootGroup.getChildren().get(0);
 		mainTab = tabPane.getTabs().get(0);
 		mainTabAnchor = (AnchorPane) mainTab.getContent();
@@ -80,12 +80,12 @@ public class ObjectRecognizer extends Application {
 		displayBorderPane.setCenter(volumeSubScene);
 	}
 	
-	public void setRenderingSubScene(SubScene volumeSubScene) {
+	public void setProjectionSubScene(SubScene projectionSubScene) {
 		tabPane = (TabPane) rootGroup.getChildren().get(0);
 		renderingTab = tabPane.getTabs().get(0);
 		renderingTabAnchor = (AnchorPane) renderingTab.getContent();
 		renderingDisplayBorderPane = (BorderPane) renderingTabAnchor.getChildren().get(0);
-		renderingDisplayBorderPane.setCenter(volumeSubScene);
+		renderingDisplayBorderPane.setCenter(projectionSubScene);
 	}
 
 	public static void main(String[] args) {

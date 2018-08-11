@@ -15,7 +15,6 @@ import org.opencv.core.CvType;
 import org.opencv.core.Mat;
 import org.opencv.core.MatOfPoint2f;
 import org.opencv.core.MatOfPoint3f;
-import org.opencv.core.Point3;
 import org.opencv.core.Rect;
 import org.opencv.core.Scalar;
 import org.opencv.core.Size;
@@ -59,6 +58,7 @@ import nl.tue.vc.voxelengine.CameraPosition;
 import nl.tue.vc.voxelengine.VolumeRenderer;
 import nl.tue.vc.model.BoxParameters;
 import nl.tue.vc.model.Octree;
+import nl.tue.vc.model.OctreeCubeProjector;
 import nl.tue.vc.model.VolumeGenerator;
 import nl.tue.vc.model.test.OctreeTest;
 import nl.tue.vc.model.test.VolumeGeneratorTest;
@@ -79,11 +79,11 @@ public class ObjectRecognizerController {
 	private ImageView originalImage2;
 	// a FXML button for performing the antitransformation
 	@FXML
-	private VBox vboxLeft;
+	private VBox objectImageArea;
 
 	@FXML
-	private VBox vboxRight;
-
+	private VBox imageProcessingArea;
+	
 	@FXML
 	private ImageView transformedImage;
 	@FXML
@@ -116,6 +116,15 @@ public class ObjectRecognizerController {
 	@FXML
 	private ImageView calibrationFrame;
 
+	@FXML
+	private VBox projectedVolumeArea;
+	
+	@FXML
+	private VBox projectionImagesArea;
+	
+	@FXML
+	private ImageView projectedVolumeView;
+		
 	@FXML
 	private Slider cameraAxisX;
 
@@ -173,7 +182,7 @@ public class ObjectRecognizerController {
 	private Button generateButton;
 
 	@FXML
-	private Button testButton;
+	private Button modelGenerationTestButton;
 	
 	private int fieldOfView;
 
@@ -226,6 +235,10 @@ public class ObjectRecognizerController {
 	private ListView<String> binaryImagesView = new ListView<>();
 	private Map<String, Integer> binaryImagesDescription = new HashMap<>();
 
+	private Map<String, Mat> projectionImagesMap = new HashMap<String, Mat>();
+	private ObservableList<String> projectionImagesNames = FXCollections.observableArrayList();
+	private ListView<String> projectionImagesView = new ListView<>();
+	private Map<String, Integer> projectionImagesDescription = new HashMap<>();
 	
 	private Map<String, BufferedImage> imagesForDistanceComputation = new HashMap<String, BufferedImage>();
 	private Map<String, int[][]> distanceArrays = new HashMap<String, int[][]>();
@@ -426,11 +439,17 @@ public class ObjectRecognizerController {
 		 */
 
 		// this.vboxLeft.getChildren().add(cameraFrameView);
-		this.vboxLeft.getChildren().add(objectImagesView);
+		this.objectImageArea.getChildren().add(objectImagesView);
 		objectImagesView.setMaxWidth(140);
-		this.vboxRight.getChildren().add(binaryImagesView);
+		
+		this.imageProcessingArea.getChildren().add(binaryImagesView);
 		binaryImagesView.setMaxWidth(140);
-
+		
+		
+		projectionImagesArea.getChildren().add(projectionImagesView);
+		projectionImagesView.setMaxWidth(140);
+		
+		
 		fieldOfViewSlider.valueProperty().addListener((observable, oldValue, newValue) -> {
 			System.out.println("Field of view changed (newValue: " + newValue.intValue() + ")");
 			fieldOfView = newValue.intValue();
@@ -747,8 +766,8 @@ public class ObjectRecognizerController {
 		});
 
 		// to allow updating new elements for the list view
-		this.vboxRight.getChildren().clear();
-		this.vboxRight.getChildren().add(binaryImagesView);
+		this.imageProcessingArea.getChildren().clear();
+		this.imageProcessingArea.getChildren().add(binaryImagesView);
 	}
 	
 	
@@ -1073,7 +1092,6 @@ public class ObjectRecognizerController {
 		cameraPosition.positionAxisX = 0;
 		cameraPosition.positionAxisY = 0;
 		cameraPosition.positionAxisZ = 0;
-
 		
 		float centerX = (CUBE_LENGTH_X + DISPLACEMENT_X) / 2;
 		float centerY = (CUBE_LENGTH_Y + DISPLACEMENT_Y) / 2;
@@ -1099,10 +1117,6 @@ public class ObjectRecognizerController {
 			octree.setBoxParameters(volumeBoxParameters);
 			octree.splitNodes(octreeLevels);
 		}
-
-		// try not create another volume renderer object to recompute the octree
-		// visualization
-		
 
 		if (octree == null){
 			Utils.debugNewLine("***************** something weird happened here", true);
@@ -1142,13 +1156,93 @@ public class ObjectRecognizerController {
 			int[][] transformedInvertedArray = IntersectionTest.computeDistanceTransform(invertedArray);
 			invertedDistanceArrays.put(imageKey, transformedInvertedArray);			
 		}
-
+		
+		// Create the projected octree images
+		createOctreeProjections();
 		
 		int maxLevels = 8;
 		for (int i = 0; i < maxLevels; i++){
 			constructModelAux(i);			
 		}
 		System.out.println("+++++++ Model is ready ++++++++++");
+	}
+	
+	
+	
+	private void createOctreeProjections(){				
+		System.out.println("[createOctreeProjections] is called!");
+		
+		projectionImagesView = new ListView<String>();
+		projectionImagesNames = FXCollections.observableArrayList();
+		projectionImagesDescription = new HashMap<String, Integer>();
+
+		OctreeCubeProjector octreeCubeProjector = new OctreeCubeProjector(CUBE_LENGTH_X, CUBE_LENGTH_Y, CUBE_LENGTH_Z,
+				DISPLACEMENT_X, DISPLACEMENT_Y, DISPLACEMENT_Z);
+		
+		Utils.debugNewLine("Silhouette extraction for " + thresholdImageIndex, true);
+		if (thresholdImageIndex.equals("ALL_IMAGES")){
+			projectionImagesMap = new HashMap<String, Mat>();
+
+			for (String imageKey : objectImagesMap.keySet()) {
+				Mat binaryImage = binarizedImagesMap.get(imageKey);
+				Utils.debugNewLine("Projecting octree for " + imageKey, true);
+
+				Mat projectedImage = octreeCubeProjector.drawProjection(binaryImage, imageKey, projectionGenerator);
+				projectionImagesMap.put(imageKey, projectedImage);
+				projectionImagesNames.add(imageKey);
+				projectionImagesDescription.put(imageKey, projectionImagesMap.size() - 1);
+			}			
+		}
+
+		
+		projectionImagesView.setItems(projectionImagesNames);
+		System.out.println(projectionImagesDescription.keySet());
+
+		projectionImagesView.setCellFactory(param -> {
+			ListCell<String> cell = new ListCell<String>() {
+			private ImageView imageView = new ImageView();
+
+			@Override
+			public void updateItem(String name, boolean empty) {
+				super.updateItem(name, empty);
+				if (empty) {
+					// System.out.println("Null information");
+					setText(null);
+					setGraphic(null);
+				} else {
+					// Add thumpnails here?
+					System.out.println("Projected octree image name: " + name);
+					imageView.setImage(Utils.mat2Image(projectionImagesMap.get(name)));
+					imageView.setFitWidth(100);
+					imageView.setPreserveRatio(true);
+					setText(name);
+					setGraphic(imageView);
+					if(projectedVolumeView.getImage()==null) {
+						setProjectedOctreeViewImage(imageView.getImage());
+					}
+				}
+			}
+			
+			};
+			
+			cell.setOnMouseClicked(e -> {
+                if (cell.getItem() != null) {
+                	ImageView imageView = (ImageView)cell.getGraphic();
+                	setProjectedOctreeViewImage(imageView.getImage());
+                	//thresholdImageIndex = cell.getText();
+                	//int binaryThreshold = imageThresholdMap.get(thresholdImageIndex);
+                	//binaryThresholdSlider.setValue(binaryThreshold);
+                	//Utils.debugNewLine("Binary image name " + cell.getText(), true);
+                }
+            });
+			
+			return cell;			
+		});
+
+		// to allow updating new elements for the list view
+		projectionImagesArea.getChildren().clear();
+		projectionImagesArea.getChildren().add(projectionImagesView);
+
 	}
 
 	/**
@@ -1164,7 +1258,7 @@ public class ObjectRecognizerController {
 	public void renderModel() {
 		volumeRenderer = new VolumeRenderer();
 		volumeRenderer.generateVolumeScene(volumeGenerator.getVoxels());
-		setSubScene(volumeRenderer.getSubScene());	
+		setVolumeSubScene(volumeRenderer.getSubScene());	
 		// The octree is update with the modified version in volume generator
 	}
 
@@ -1254,7 +1348,7 @@ public class ObjectRecognizerController {
 		
 		Utils.debugNewLine("ModelGenerationTest", true);
 		loadDefaultImages();
-		System.out.println("ObjectImagesMap size: " + objectImagesMap.size());
+		Utils.debugNewLine("ObjectImagesMap size: " + objectImagesMap.size(), true);
 		extractSilhouettesTest(objectImagesMap);
 		
 		List<String> binaryImageFilenames = new ArrayList<String>();
@@ -1384,7 +1478,7 @@ public class ObjectRecognizerController {
 		octree = volumeGenerator.getOctree();
 		
 		volumeRenderer.generateVolumeScene(volumeGenerator.getVoxels());
-		setSubScene(volumeRenderer.getSubScene());	
+		setVolumeSubScene(volumeRenderer.getSubScene());	
 		// The octree is update with the modified version in volume generator
 	}
 
@@ -1471,7 +1565,7 @@ public class ObjectRecognizerController {
 			
 			volumeRenderer = new VolumeRenderer();
 			volumeRenderer.generateVolumeScene(objectVolume);
-			setSubScene(volumeRenderer.getSubScene());
+			setVolumeSubScene(volumeRenderer.getSubScene());
 			
 		}
 	}
@@ -1604,7 +1698,7 @@ public class ObjectRecognizerController {
 		Utils.onFXThread(view.imageProperty(), image);
 	}
 	
-	public void setSubScene(SubScene volumeSubScene) {
+	public void setVolumeSubScene(SubScene volumeSubScene) {
 		tabPane = (TabPane) rootGroup.getChildren().get(0);
 		mainTab = tabPane.getTabs().get(0);
 		mainTabAnchor = (AnchorPane) mainTab.getContent();
@@ -1612,18 +1706,24 @@ public class ObjectRecognizerController {
 		displayBorderPane.setCenter(volumeSubScene);
 	}
 	
-	public void setRenderingSubScene(SubScene volumeSubScene) {
+	public void setProjectionsSubScene(SubScene projectionsSubScene) {
 		tabPane = (TabPane) rootGroup.getChildren().get(0);
 		renderingTab = tabPane.getTabs().get(2);
 		renderingTabAnchor = (AnchorPane) renderingTab.getContent();
 		renderingDisplayBorderPane = (BorderPane) renderingTabAnchor.getChildren().get(0);
-		renderingDisplayBorderPane.setCenter(volumeSubScene);
+		renderingDisplayBorderPane.setCenter(projectionsSubScene);
 	}
 	
 	public void setImageOperationFrameImage(Image image) {
 		imageOperationsFrame.setImage(image);
 		imageOperationsFrame.setFitWidth(500);
 		imageOperationsFrame.setPreserveRatio(true);
+	}
+	
+	public void setProjectedOctreeViewImage(Image image){
+		projectedVolumeView.setImage(image);
+		projectedVolumeView.setFitWidth(500);
+		projectedVolumeView.setPreserveRatio(true);
 	}
 
 }
