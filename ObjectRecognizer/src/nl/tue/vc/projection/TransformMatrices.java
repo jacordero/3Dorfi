@@ -173,8 +173,8 @@ public class TransformMatrices {
 		double height = near * tangent;
 		double width = height * aspectRatio;
 		
-		System.out.println(near/width);
-		System.out.println(near/height);
+		//System.out.println(near/width);
+		//System.out.println(near/height);
 		
 		projectionMatrix = new double[][] {
 			//{1.74, 0.00, 0.00, 0.00},

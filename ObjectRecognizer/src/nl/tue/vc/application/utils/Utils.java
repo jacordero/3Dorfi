@@ -212,7 +212,7 @@ public final class Utils
 	
 	public static Mat loadImage(String imageFilename){
 		BufferedImage bufferedImage = null;
-		Utils.debugNewLine("Loading  image: " + imageFilename, false);
+		Utils.debugNewLine("Loading  image: " + imageFilename, true);
 		try {
 			bufferedImage = ImageIO.read(new File(imageFilename));
 		} catch (FileNotFoundException e) {

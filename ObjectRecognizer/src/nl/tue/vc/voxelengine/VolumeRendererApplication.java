@@ -10,6 +10,9 @@ import javafx.scene.Scene;
 import javafx.scene.transform.Rotate;
 import javafx.stage.Stage;
 import javafx.util.Duration;
+import nl.tue.vc.model.BoxParameters;
+import nl.tue.vc.model.Octree;
+import nl.tue.vc.model.VolumeGenerator;
 
 
 public class VolumeRendererApplication extends Application {
@@ -25,7 +28,9 @@ public class VolumeRendererApplication extends Application {
 		BoxParameters boxParameters = new BoxParameters();
 		
 		int boxSize = 256;
-		boxParameters.setBoxSize(boxSize);
+		boxParameters.setSizeX(boxSize);
+		boxParameters.setSizeY(boxSize);
+		boxParameters.setSizeZ(boxSize);
 		boxParameters.setCenterX(SCENE_WIDTH/2);
 		boxParameters.setCenterY(SCENE_HEIGHT/2);
 		boxParameters.setCenterZ(SCENE_DEPTH/2);

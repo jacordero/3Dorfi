@@ -37,7 +37,6 @@ public class ObjectRecognizer extends Application {
 	private Tab renderingTab;
 	private AnchorPane renderingTabAnchor;
 	
-	
 	@Override
 	public void start(Stage primaryStage) {
 		try {

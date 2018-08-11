@@ -29,6 +29,7 @@ import javafx.scene.transform.Rotate;
 import javafx.stage.Stage;
 import javafx.util.Duration;
 import nl.tue.vc.application.ApplicationConfiguration;
+import nl.tue.vc.model.BoxParameters;
 
 
 public class Visualizer extends Application {
@@ -44,7 +45,9 @@ public class Visualizer extends Application {
 		BoxParameters boxParameters = new BoxParameters();
 		
 		int boxSize = 100;
-		boxParameters.setBoxSize(boxSize);
+		boxParameters.setSizeX(boxSize);
+		boxParameters.setSizeY(boxSize);
+		boxParameters.setSizeZ(boxSize);
 		boxParameters.setCenterX(SCENE_WIDTH/2);
 		boxParameters.setCenterY(SCENE_HEIGHT/2);
 		boxParameters.setCenterZ(SCENE_DEPTH/2);
@@ -112,16 +115,16 @@ public class Visualizer extends Application {
 		double centerX = boxParameters.getCenterX();
 		double centerY = boxParameters.getCenterY();
 		double centerZ = boxParameters.getCenterZ();
-		double halfSize = boxParameters.getBoxSize()/2;
+		double halfSizeY = boxParameters.getSizeY()/2;
 		
-		Point3D boxCorner1 = new Point3D(centerX - 40, centerY + halfSize, centerZ + 30);
-		Point3D boxCorner2 = new Point3D(centerX + 40, centerY + halfSize, centerZ + 30);
-		Point3D boxCorner3 = new Point3D(centerX - 40, centerY - halfSize, centerZ + 30);
-		Point3D boxCorner4 = new Point3D(centerX + 40, centerY - halfSize, centerZ + 30);
-		Point3D boxCorner5 = new Point3D(centerX - 40, centerY + halfSize, centerZ - 30);
-		Point3D boxCorner6 = new Point3D(centerX + 40, centerY + halfSize, centerZ - 30);
-		Point3D boxCorner7 = new Point3D(centerX - 40, centerY - halfSize, centerZ - 30);
-		Point3D boxCorner8 = new Point3D(centerX + 40, centerY - halfSize, centerZ - 30);
+		Point3D boxCorner1 = new Point3D(centerX - 40, centerY + halfSizeY, centerZ + 30);
+		Point3D boxCorner2 = new Point3D(centerX + 40, centerY + halfSizeY, centerZ + 30);
+		Point3D boxCorner3 = new Point3D(centerX - 40, centerY - halfSizeY, centerZ + 30);
+		Point3D boxCorner4 = new Point3D(centerX + 40, centerY - halfSizeY, centerZ + 30);
+		Point3D boxCorner5 = new Point3D(centerX - 40, centerY + halfSizeY, centerZ - 30);
+		Point3D boxCorner6 = new Point3D(centerX + 40, centerY + halfSizeY, centerZ - 30);
+		Point3D boxCorner7 = new Point3D(centerX - 40, centerY - halfSizeY, centerZ - 30);
+		Point3D boxCorner8 = new Point3D(centerX + 40, centerY - halfSizeY, centerZ - 30);
 		
 //		Point3D boxCorner1 = new Point3D(8,10,6);
 //		Point3D boxCorner2 = new Point3D(0,10,6);

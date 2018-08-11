@@ -1,6 +1,6 @@
 package nl.tue.vc.projection;
 
-import nl.tue.vc.voxelengine.BoxParameters;
+import nl.tue.vc.model.BoxParameters;
 
 public class VolumeModel {
 
@@ -36,17 +36,20 @@ public class VolumeModel {
 		double centerX = boxParameters.getCenterX();
 		double centerY = boxParameters.getCenterY();
 		double centerZ = boxParameters.getCenterZ();
-		double halfSize = boxParameters.getBoxSize()/2;
+		double halfSizeX = boxParameters.getSizeX()/2;
+		double halfSizeY = boxParameters.getSizeY()/2;
+		double halfSizeZ = boxParameters.getSizeZ()/2;
+		
 		
 		modelVertices = new Vector3D[] {
-			new Vector3D(centerX - halfSize, centerY + halfSize, centerZ + halfSize, 1),
-			new Vector3D(centerX + halfSize, centerY + halfSize, centerZ + halfSize, 1),
-			new Vector3D(centerX - halfSize, centerY - halfSize, centerZ + halfSize, 1),
-			new Vector3D(centerX + halfSize, centerY - halfSize, centerZ + halfSize, 1),
-			new Vector3D(centerX - halfSize, centerY + halfSize, centerZ - halfSize, 1),
-			new Vector3D(centerX + halfSize, centerY + halfSize, centerZ - halfSize, 1),
-			new Vector3D(centerX - halfSize, centerY - halfSize, centerZ - halfSize, 1),
-			new Vector3D(centerX + halfSize, centerY - halfSize, centerZ - halfSize, 1)
+			new Vector3D(centerX - halfSizeX, centerY + halfSizeY, centerZ + halfSizeZ, 1),
+			new Vector3D(centerX + halfSizeX, centerY + halfSizeY, centerZ + halfSizeZ, 1),
+			new Vector3D(centerX - halfSizeX, centerY - halfSizeY, centerZ + halfSizeZ, 1),
+			new Vector3D(centerX + halfSizeX, centerY - halfSizeY, centerZ + halfSizeZ, 1),
+			new Vector3D(centerX - halfSizeX, centerY + halfSizeY, centerZ - halfSizeZ, 1),
+			new Vector3D(centerX + halfSizeX, centerY + halfSizeY, centerZ - halfSizeZ, 1),
+			new Vector3D(centerX - halfSizeX, centerY - halfSizeY, centerZ - halfSizeZ, 1),
+			new Vector3D(centerX + halfSizeX, centerY - halfSizeY, centerZ - halfSizeZ, 1)
 		};
 	}
 	

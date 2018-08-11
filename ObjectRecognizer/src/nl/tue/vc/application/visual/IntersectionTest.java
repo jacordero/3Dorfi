@@ -13,12 +13,7 @@ import org.opencv.core.Mat;
 import org.opencv.core.MatOfByte;
 import org.opencv.imgcodecs.Imgcodecs;
 
-import javafx.scene.paint.Color;
 import nl.tue.vc.application.utils.Utils;
-import nl.tue.vc.voxelengine.InternalNode;
-import nl.tue.vc.voxelengine.Node;
-import nl.tue.vc.voxelengine.NodeColor;
-import nl.tue.vc.voxelengine.Octree;
 
 public class IntersectionTest {
 

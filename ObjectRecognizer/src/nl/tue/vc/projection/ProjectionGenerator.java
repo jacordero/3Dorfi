@@ -42,6 +42,7 @@ public class ProjectionGenerator {
 		if (projectionMatricesMap.get(projectionMatricesIndex) != null){
 			projectionMatrices = projectionMatricesMap.get(projectionMatricesIndex);
 		} else {
+			System.out.println("Index " + projectionMatricesIndex + " not found!!");
 			projectionMatrices = projectionMatricesMap.get(DEFAULT_PROJECTION_INDEX);
 		}
 		
@@ -51,5 +52,19 @@ public class ProjectionGenerator {
 				projectionMatrices.getDistorsionCoefficients(), projectedPoints);
 		return projectedPoints;
 	}
-		
+	
+	public int effectiveSize(){
+		int size = 0;
+		for (String key: projectionMatricesMap.keySet()){
+			if (projectionMatricesMap.get(key) != null){
+				size++;
+			}
+		}
+		return size;
+	}
+	
+	public String keysStr(){
+		return projectionMatricesMap.keySet().toString();
+	}
+	
 }

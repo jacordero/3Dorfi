@@ -33,13 +33,13 @@ public class CubeProjectorTest {
 	}
 	
 	private MatOfPoint3f createPointsToProject(){
-		float dx = -1	;
-		float dy = 0;
+		float dx =-2;
+		float dy = -1;
 		float dz = -2;
-		float cube_length = 12;
-		float clx = 16;
+
+		float clx = 10;
 		float cly = 8;
-		float clz = 12;
+		float clz = 8;
 		Point3[] corners = new Point3[8];
 		corners[0] = new Point3(dx + 0, dy + 0, dz + 0);
 		corners[1] = new Point3(dx + clx, dy + 0 , dz + 0);
@@ -132,13 +132,23 @@ public class CubeProjectorTest {
 		
 		System.loadLibrary(Core.NATIVE_LIBRARY_NAME);
 		List<String> calibrationImageFilenames = new ArrayList<String>();
-		String imgPrefix = "images/projectionTest/calibration";
-		calibrationImageFilenames.add(imgPrefix + "/calibration0.jpg");
-		calibrationImageFilenames.add(imgPrefix + "/calibration90.jpg");
-		calibrationImageFilenames.add(imgPrefix + "/calibration180.jpg");
-		calibrationImageFilenames.add(imgPrefix + "/calibration270.jpg");
+		String imgPrefix = "images/multiOctreesTest/";
+		calibrationImageFilenames.add(imgPrefix + "chessboard-0.jpg");
+		calibrationImageFilenames.add(imgPrefix + "chessboard-30.jpg");
+		calibrationImageFilenames.add(imgPrefix + "chessboard-60.jpg");
+		calibrationImageFilenames.add(imgPrefix + "chessboard-90.jpg");
+		calibrationImageFilenames.add(imgPrefix + "chessboard-120.jpg");
+		calibrationImageFilenames.add(imgPrefix + "chessboard-150.jpg");
+		calibrationImageFilenames.add(imgPrefix + "chessboard-180.jpg");
+		calibrationImageFilenames.add(imgPrefix + "chessboard-210.jpg");
+		calibrationImageFilenames.add(imgPrefix + "chessboard-240.jpg");
+		calibrationImageFilenames.add(imgPrefix + "chessboard-270.jpg");
+		calibrationImageFilenames.add(imgPrefix + "chessboard-300.jpg");
+		calibrationImageFilenames.add(imgPrefix + "chessboard-330.jpg");
+
 		Map<String, Mat> calibrationImages = new HashMap<String, Mat>();
-		String[] calibrationIndices = {"cal0", "cal90", "cal180", "cal270"};
+		String[] calibrationIndices = {"cal0", "cal30", "cal60", "cal90", "cal120", 
+				"cal150", "cal180", "cal210", "cal240", "cal270", "cal300", "cal330"};
 		int index = 0;
 		for (String filename: calibrationImageFilenames){
 			Mat image = Utils.loadImage(filename);
@@ -150,10 +160,18 @@ public class CubeProjectorTest {
 		
 		
 		List<String> objectImageFilenames = new ArrayList<String>();
-		objectImageFilenames.add(imgPrefix + "/cube-mod0.jpg");
-		objectImageFilenames.add(imgPrefix + "/cube-mod90.jpg");
-		objectImageFilenames.add(imgPrefix + "/cube-mod180.jpg");
-		objectImageFilenames.add(imgPrefix + "/cube-mod270.jpg");
+		objectImageFilenames.add(imgPrefix + "object-0.jpg");
+		objectImageFilenames.add(imgPrefix + "object-30.jpg");
+		objectImageFilenames.add(imgPrefix + "object-60.jpg");
+		objectImageFilenames.add(imgPrefix + "object-90.jpg");
+		objectImageFilenames.add(imgPrefix + "object-120.jpg");
+		objectImageFilenames.add(imgPrefix + "object-150.jpg");
+		objectImageFilenames.add(imgPrefix + "object-180.jpg");
+		objectImageFilenames.add(imgPrefix + "object-210.jpg");
+		objectImageFilenames.add(imgPrefix + "object-240.jpg");
+		objectImageFilenames.add(imgPrefix + "object-270.jpg");
+		objectImageFilenames.add(imgPrefix + "object-300.jpg");
+		objectImageFilenames.add(imgPrefix + "object-330.jpg");
 		List<Mat> objectImages = new ArrayList<Mat>();
 		for (String filename: objectImageFilenames){
 			Mat image = Utils.loadImage(filename);
@@ -166,30 +184,77 @@ public class CubeProjectorTest {
 		CubeProjectorTest cubeProjector = new CubeProjectorTest();
 		cubeProjector.computeProjectionMatrices(calibrationImages);
 		
-		String outputFilename = imgPrefix + "/cal0-projected.png";
+		String outputFilename = imgPrefix + "cal0-projected.png";
 		cubeProjector.projectIntoImage(calibrationImages.get("cal0"), "cal0", outputFilename);
 
-		outputFilename = imgPrefix + "/cal90-projected.png";
+		outputFilename = imgPrefix + "cal30-projected.png";
+		cubeProjector.projectIntoImage(calibrationImages.get("cal30"), "cal30", outputFilename);
+
+		outputFilename = imgPrefix + "cal60-projected.png";
+		cubeProjector.projectIntoImage(calibrationImages.get("cal60"), "cal60", outputFilename);
+
+		outputFilename = imgPrefix + "cal90-projected.png";
 		cubeProjector.projectIntoImage(calibrationImages.get("cal90"), "cal90", outputFilename);
 
-		outputFilename = imgPrefix + "/cal180-projected.png";
+		outputFilename = imgPrefix + "cal120-projected.png";
+		cubeProjector.projectIntoImage(calibrationImages.get("cal120"), "cal120", outputFilename);		
+		
+		outputFilename = imgPrefix + "cal150-projected.png";
+		cubeProjector.projectIntoImage(calibrationImages.get("cal150"), "cal150", outputFilename);
+
+		outputFilename = imgPrefix + "cal180-projected.png";
 		cubeProjector.projectIntoImage(calibrationImages.get("cal180"), "cal180", outputFilename);
 
-		outputFilename = imgPrefix + "/cal270-projected.png";
+		outputFilename = imgPrefix + "cal210-projected.png";
+		cubeProjector.projectIntoImage(calibrationImages.get("cal210"), "cal210", outputFilename);
+
+		outputFilename = imgPrefix + "cal240-projected.png";
+		cubeProjector.projectIntoImage(calibrationImages.get("cal240"), "cal240", outputFilename);
+
+		outputFilename = imgPrefix + "cal270-projected.png";
 		cubeProjector.projectIntoImage(calibrationImages.get("cal270"), "cal270", outputFilename);
 		
-		outputFilename = imgPrefix + "/cube0-projected.png";
+		outputFilename = imgPrefix + "cal300-projected.png";
+		cubeProjector.projectIntoImage(calibrationImages.get("cal300"), "cal300", outputFilename);
+
+		outputFilename = imgPrefix + "cal330-projected.png";
+		cubeProjector.projectIntoImage(calibrationImages.get("cal330"), "cal330", outputFilename);
+
+		outputFilename = imgPrefix + "cube0-projected.png";
 		cubeProjector.projectIntoImage(objectImages.get(0), "cal0", outputFilename);
 
-		outputFilename = imgPrefix + "/cube90-projected.png";
-		cubeProjector.projectIntoImage(objectImages.get(1), "cal90", outputFilename);
+		outputFilename = imgPrefix + "cube30-projected.png";
+		cubeProjector.projectIntoImage(objectImages.get(1), "cal30", outputFilename);
 
-		outputFilename = imgPrefix + "/cube180-projected.png";
-		cubeProjector.projectIntoImage(objectImages.get(2), "cal180", outputFilename);
+		outputFilename = imgPrefix + "cube60-projected.png";
+		cubeProjector.projectIntoImage(objectImages.get(2), "cal60", outputFilename);
 
-		outputFilename = imgPrefix + "/cube270-projected.png";
-		cubeProjector.projectIntoImage(objectImages.get(3), "cal270", outputFilename);
-		
-	
+		outputFilename = imgPrefix + "cube90-projected.png";
+		cubeProjector.projectIntoImage(objectImages.get(3), "cal90", outputFilename);
+
+		outputFilename = imgPrefix + "cube120-projected.png";
+		cubeProjector.projectIntoImage(objectImages.get(4), "cal120", outputFilename);
+
+		outputFilename = imgPrefix + "cube150-projected.png";
+		cubeProjector.projectIntoImage(objectImages.get(5), "cal150", outputFilename);
+
+		outputFilename = imgPrefix + "cube180-projected.png";
+		cubeProjector.projectIntoImage(objectImages.get(6), "cal180", outputFilename);
+
+		outputFilename = imgPrefix + "cube210-projected.png";
+		cubeProjector.projectIntoImage(objectImages.get(7), "cal210", outputFilename);
+
+		outputFilename = imgPrefix + "cube240-projected.png";
+		cubeProjector.projectIntoImage(objectImages.get(8), "cal240", outputFilename);
+
+		outputFilename = imgPrefix + "cube270-projected.png";
+		cubeProjector.projectIntoImage(objectImages.get(9), "cal270", outputFilename);
+
+		outputFilename = imgPrefix + "cube300-projected.png";
+		cubeProjector.projectIntoImage(objectImages.get(10), "cal300", outputFilename);
+
+		outputFilename = imgPrefix + "cube330-projected.png";
+		cubeProjector.projectIntoImage(objectImages.get(11), "cal330", outputFilename);
+
 	}
 }
