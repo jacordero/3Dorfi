@@ -2,4 +2,3 @@ Todo list:
 1) Save camera calibration images for new executions of the application
 2) Project octree root volume into the object images
 3) Modify turn table
-4) Assign segmentation thresholds to each binary image
