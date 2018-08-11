@@ -53,10 +53,8 @@ import nl.tue.vc.application.utils.Utils;
 import nl.tue.vc.application.visual.IntersectionTest;
 import nl.tue.vc.imgproc.CameraCalibrator;
 import nl.tue.vc.imgproc.CameraController;
-import nl.tue.vc.imgproc.HistogramGenerator;
 import nl.tue.vc.imgproc.SilhouetteExtractor;
 import nl.tue.vc.projection.ProjectionGenerator;
-import nl.tue.vc.projection.TransformMatrices;
 import nl.tue.vc.voxelengine.CameraPosition;
 import nl.tue.vc.voxelengine.VolumeRenderer;
 import nl.tue.vc.model.BoxParameters;
@@ -64,7 +62,6 @@ import nl.tue.vc.model.Octree;
 import nl.tue.vc.model.VolumeGenerator;
 import nl.tue.vc.model.test.OctreeTest;
 import nl.tue.vc.model.test.VolumeGeneratorTest;
-import nl.tue.vc.model.test.VolumeRendererTest;
 
 /**
  * The controller associated to the only view of our application. The
@@ -98,9 +95,7 @@ public class ObjectRecognizerController {
 	private Button constructButton;
 	@FXML
 	private Button visualizeButton;
-	// a FXML button for performing the antitransformation
-	// @FXML
-	// private Button cameraButton;
+	
 	@FXML
 	private Button applyButton;
 
@@ -120,13 +115,6 @@ public class ObjectRecognizerController {
 	// the FXML area for showing the current frame (after calibration)
 	@FXML
 	private ImageView calibrationFrame;
-	// info related to the calibration process
-	@FXML
-	private TextField numBoards;
-	@FXML
-	private TextField numHorCorners;
-	@FXML
-	private TextField numVertCorners;
 
 	@FXML
 	private Slider cameraAxisX;
@@ -138,7 +126,7 @@ public class ObjectRecognizerController {
 	private Slider cameraAxisZ;
 
 	@FXML
-	private Slider binaryThreshold;
+	private Slider binaryThresholdSlider;
 
 	@FXML
 	private Label thresholdLabel;
@@ -223,7 +211,7 @@ public class ObjectRecognizerController {
 	private Mat distCoeffs;
 	private boolean isCalibrated;
 
-	private String selectedImageIndex = null;
+	private String thresholdImageIndex = "ALL_IMAGES";
 	Map<String, Integer> imageThresholdMap = new HashMap<String, Integer>();
 	private Map<String, Mat> objectImagesMap = new HashMap<String, Mat>();
 	private List<Mat> objectImagesToDisplay = new ArrayList<Mat>();
@@ -361,7 +349,7 @@ public class ObjectRecognizerController {
 			updateCameraPositionAxisZ(newValue.intValue());
 		});
 
-		binaryThreshold.valueProperty().addListener((observable, oldValue, newValue) -> {
+		binaryThresholdSlider.valueProperty().addListener((observable, oldValue, newValue) -> {
 			// System.out.println("Binary treshold value changed (newValue: " +
 			// newValue.intValue() + ")");
 			thresholdLabel.setText("Threshold: " + String.format("%.2f", newValue));
@@ -554,6 +542,7 @@ public class ObjectRecognizerController {
 						calibrationImagesMap.put(calibrationIndices.get(calibrationImageCounter), calibrationImage);
 						String calibrationIndex = calibrationIndices.get(calibrationImageCounter);
 						Utils.debugNewLine("Calibration index: " + calibrationIndex, true);
+												
 						/**
 						objectImagesNames.add(imageName);
 						objectImagesToDisplay.add(calibrationImage);
@@ -566,13 +555,14 @@ public class ObjectRecognizerController {
 					} else {
 						// load the images into the listview
 						String imgName = file.getName().split("\\.")[0];
-						objectImagesNames.add(imgName);
-						objectImagesToDisplay.add(this.image);
-						objectImagesDescription.put(imgName, objectImagesToDisplay.size() - 1);
-						
 						String calibrationIndex = calibrationIndices.get(calibrationImageCounter);
+
+						objectImagesNames.add(calibrationIndex);
+						objectImagesToDisplay.add(this.image);
+
+						objectImagesDescription.put(calibrationIndex, objectImagesToDisplay.size() - 1);
 						objectImagesMap.put(calibrationIndex, this.image);
-						int threshold = (int) binaryThreshold.getValue();
+						int threshold = (int) binaryThresholdSlider.getValue();
 						imageThresholdMap.put(calibrationIndex, threshold);
 						System.out.println("set image threshold value for image " + calibrationIndex +" as " + threshold);
 						
@@ -580,9 +570,7 @@ public class ObjectRecognizerController {
 						if (calibrationImageCounter > calibrationIndices.size() - 1){
 							calibrationImageCounter = 0;
 						}
-						
-						// System.out.println(imgName);
-
+												
 						// empty the image planes and the image views if it is not the first
 						// loaded image
 						if (!this.planes.isEmpty()) {
@@ -612,13 +600,12 @@ public class ObjectRecognizerController {
 					setText(null);
 					setGraphic(null);
 				} else {
-					System.out.println(name);
+					Utils.debugNewLine("Image name: ", true);
 					int imagePosition = objectImagesDescription.get(name);
-					// System.out.println("Name: " + name +", Position: " + imagePosition);
 					imageView.setImage(Utils.mat2Image(objectImagesToDisplay.get(imagePosition)));
 					imageView.setFitWidth(100);
 					imageView.setPreserveRatio(true);
-					setText("");
+					setText(name);
 					setGraphic(imageView);
 					if(imageOperationsFrame.getImage()==null) {
 						setImageOperationFrameImage(imageView.getImage());
@@ -631,8 +618,8 @@ public class ObjectRecognizerController {
                 if (cell.getItem() != null) {
                 	ImageView imageView = (ImageView)cell.getGraphic();
                 	setImageOperationFrameImage(imageView.getImage());
-                	this.selectedImageIndex = cell.getText();
-                	Utils.debugNewLine("Click on image " + selectedImageIndex, true);
+                	thresholdImageIndex = cell.getText();
+                	Utils.debugNewLine("Click on image " + thresholdImageIndex, true);
                 }
             });
 			
@@ -662,36 +649,59 @@ public class ObjectRecognizerController {
 		System.out.println("Extract silhouettes method was called...");
 
 		// First, clear the previous content. Then, load the new content
-		binarizedImagesMap = new HashMap<String, Mat>();
-
 		binaryImagesView = new ListView<String>();
 		binaryImagesNames = FXCollections.observableArrayList();
 		binaryImagesDescription = new HashMap<String, Integer>();
 
-		for (String imageKey : objectImagesMap.keySet()) {
-			Mat imageToBinarize = objectImagesMap.get(imageKey);
+		Utils.debugNewLine("Silhouette extraction for " + thresholdImageIndex, true);
+		if (thresholdImageIndex.equals("ALL_IMAGES")){
+			binarizedImagesMap = new HashMap<String, Mat>();
 
-			int binaryThreshold = imageThresholdMap.get(imageKey);
-			Utils.debugNewLine("Extracting Image " + imageKey + " with binary threshold " + binaryThreshold, true);
+			for (String imageKey : objectImagesMap.keySet()) {
+				Mat imageToBinarize = objectImagesMap.get(imageKey);
+				int binaryThreshold = imageThresholdMap.get(imageKey);
+				Utils.debugNewLine("Extracting Image " + imageKey + " with binary threshold " + binaryThreshold, true);
+
+				silhouetteExtractor.setBinaryThreshold(binaryThreshold);
+				silhouetteExtractor.extract(imageToBinarize, segmentationAlgorithm.getValue());
+				binarizedImagesMap.put(imageKey, silhouetteExtractor.getSegmentedImage());
+
+				try {
+					BufferedImage bufImage = IntersectionTest.Mat2BufferedImage(silhouetteExtractor.getSegmentedImage());
+					imagesForDistanceComputation.put(imageKey, bufImage);
+				} catch (Exception e) {
+					System.out.println("Something went really wrong!!!");
+					e.printStackTrace();
+				}
+
+				binaryImagesNames.add(imageKey);
+				binaryImagesDescription.put(imageKey, binarizedImagesMap.size() - 1);
+			}			
+		} else {
+			Mat imageToBinarize = objectImagesMap.get(thresholdImageIndex);
+			int binaryThreshold = imageThresholdMap.get(thresholdImageIndex);
+			Utils.debugNewLine("Extracting Image " + thresholdImageIndex + " with binary threshold " + binaryThreshold, true);
 
 			silhouetteExtractor.setBinaryThreshold(binaryThreshold);
 			silhouetteExtractor.extract(imageToBinarize, segmentationAlgorithm.getValue());
-			binarizedImagesMap.put(imageKey, silhouetteExtractor.getSegmentedImage());
-
+			binarizedImagesMap.put(thresholdImageIndex, silhouetteExtractor.getSegmentedImage());
+			
 			try {
-				// bufferedImagesForTest.add(IntersectionTest.Mat2BufferedImage(silhouetteExtractor.getBinaryImage()));
 				BufferedImage bufImage = IntersectionTest.Mat2BufferedImage(silhouetteExtractor.getSegmentedImage());
-				imagesForDistanceComputation.put(imageKey, bufImage);
+				imagesForDistanceComputation.put(thresholdImageIndex, bufImage);
 			} catch (Exception e) {
-				// TODO Auto-generated catch block
 				System.out.println("Something went really wrong!!!");
 				e.printStackTrace();
 			}
 
-			binaryImagesNames.add(imageKey);
-			binaryImagesDescription.put(imageKey, binarizedImagesMap.size() - 1);
+			for (String imageKey : binarizedImagesMap.keySet()){
+				binaryImagesNames.add(imageKey);
+				binaryImagesDescription.put(imageKey, binarizedImagesMap.size() - 1);				
+			}
+
 		}
 
+		
 		binaryImagesView.setItems(binaryImagesNames);
 		System.out.println(binaryImagesDescription.keySet());
 
@@ -709,16 +719,12 @@ public class ObjectRecognizerController {
 				} else {
 					// Add thumpnails here?
 					System.out.println("Binary image name: " + name);
-					// System.out.println(processedImagesDescription.keySet());
-					//int imagePosition = binaryImagesDescription.get(name);
-					// System.out.println("Name: " + name +", Position: " + imagePosition);
 					imageView.setImage(Utils.mat2Image(binarizedImagesMap.get(name)));
 					imageView.setFitWidth(100);
 					imageView.setPreserveRatio(true);
 					setText(name);
 					setGraphic(imageView);
 					if(imageOperationsFrame.getImage()==null) {
-						//System.out.println("================ setting main image ");
 						setImageOperationFrameImage(imageView.getImage());
 					}
 				}
@@ -728,9 +734,12 @@ public class ObjectRecognizerController {
 			
 			cell.setOnMouseClicked(e -> {
                 if (cell.getItem() != null) {
-                	//System.out.println("================ cell [" + cell.getIndex() + "] clicked ");
                 	ImageView imageView = (ImageView)cell.getGraphic();
                 	setImageOperationFrameImage(imageView.getImage());
+                	thresholdImageIndex = cell.getText();
+                	int binaryThreshold = imageThresholdMap.get(thresholdImageIndex);
+                	binaryThresholdSlider.setValue(binaryThreshold);
+                	Utils.debugNewLine("Binary image name " + cell.getText(), true);
                 }
             });
 			
@@ -751,13 +760,7 @@ public class ObjectRecognizerController {
 	 */
 	@FXML
 	protected void updateSettings() {
-		this.boardsNumber = Integer.parseInt(this.numBoards.getText());
-		this.numCornersHor = Integer.parseInt(this.numHorCorners.getText());
-		this.numCornersVer = Integer.parseInt(this.numVertCorners.getText());
-		int numSquares = this.numCornersHor * this.numCornersVer;
-		for (int j = 0; j < numSquares; j++)
-			obj.push_back(new MatOfPoint3f(new Point3(j / this.numCornersHor, j % this.numCornersVer, 0.0f)));
-		// this.cameraButton.setDisable(false);
+		Utils.debugNewLine("[updateSettings] called!", true);
 	}
 
 	/**
@@ -1178,7 +1181,9 @@ public class ObjectRecognizerController {
 	}
 
 	private void updateBinaryThreshold(int binaryThreshold) {
-		imageThresholdMap.put(selectedImageIndex, binaryThreshold);
+		if (!thresholdImageIndex.equals("ALL_IMAGES")){
+			imageThresholdMap.put(thresholdImageIndex, binaryThreshold);			
+		}
 	}
 
 	public void updateCameraPosition(CameraPosition cameraPosition) {
