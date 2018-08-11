@@ -126,14 +126,10 @@ public class ObjectRecognizerController {
 	private ImageView projectedVolumeView;
 		
 	@FXML
-	private Slider cameraAxisX;
+	private Slider cameraDistanceSlider;
 
-	@FXML
-	private Slider cameraAxisY;
-
-	@FXML
-	private Slider cameraAxisZ;
-
+	private double cameraDistance;
+	
 	@FXML
 	private Slider binaryThresholdSlider;
 
@@ -155,28 +151,27 @@ public class ObjectRecognizerController {
 	@FXML
 	private ImageView cameraFrameView;
 
-	//TODO: REMOVE 
-	@FXML
-	private Slider fieldOfViewSlider;
-
-	//TODO: REMOVE 
-	@FXML
-	private Slider worldRotationYAngleSlider;
 
 	@FXML
-	private TextField boxSizeField;
+	private TextField textFieldOctreeLengthX;
+	
+	@FXML
+	private TextField textFieldOctreeLengthY;
+	
+	@FXML
+	private TextField textFieldOctreeLengthZ;
+
+	@FXML
+	private TextField textFieldOctreeDisplacementX;
+
+	@FXML
+	private TextField textFieldOctreeDisplacementY;
+	
+	@FXML
+	private TextField textFieldOctreeDisplacementZ;
 
 	@FXML
 	private TextField levelsField;
-
-	@FXML
-	private Slider centerAxisX;
-
-	@FXML
-	private Slider centerAxisY;
-
-	@FXML
-	private Slider centerAxisZ;
 
 	@FXML
 	private Button generateButton;
@@ -285,7 +280,6 @@ public class ObjectRecognizerController {
 	public static int SNAPSHOT_DELAY = 250;
 	public static final boolean TEST_PROJECTIONS = true;
 	private int levels;
-	private int boxSize;
 
 	private float DISPLACEMENT_X;
 	private float DISPLACEMENT_Y;
@@ -312,13 +306,13 @@ public class ObjectRecognizerController {
 		calibrationTimerActive = false;
 		cameraCalibrator = new CameraCalibrator();
 		
-		DISPLACEMENT_X = -3;
-		DISPLACEMENT_Y = (float) -0.05;
-		DISPLACEMENT_Z = -3;
+		DISPLACEMENT_X = -2;
+		DISPLACEMENT_Y = -1;
+		DISPLACEMENT_Z = -2;
 		
-		CUBE_LENGTH_X = 11;
-		CUBE_LENGTH_Y = 8;
-		CUBE_LENGTH_Z = 11;
+		CUBE_LENGTH_X = 10;
+		CUBE_LENGTH_Y = (float) 6.5;
+		CUBE_LENGTH_Z = 8;
 		
 		this.levels = 0;// Integer.parseInt(this.levelsField.getText());
 		
@@ -326,6 +320,7 @@ public class ObjectRecognizerController {
 		initCalibrationIndices();
 		projectionGenerator = null;
 		octree = null;
+		cameraDistance = 300;
 	}
 
 	// TODO: generate this indices automatically
@@ -347,19 +342,10 @@ public class ObjectRecognizerController {
 	
 	@FXML
 	private void initialize() {
-		cameraAxisX.valueProperty().addListener((observable, oldValue, newValue) -> {
-			System.out.println("Camera axis X changed (newValue: " + newValue.intValue() + ")");
-			updateCameraPositionAxisX(newValue.intValue());
-		});
 
-		cameraAxisY.valueProperty().addListener((observable, oldValue, newValue) -> {
-			System.out.println("Camera axis Y changed (newValue: " + newValue.intValue() + ")");
-			updateCameraPositionAxisY(newValue.intValue());
-		});
-
-		cameraAxisZ.valueProperty().addListener((observable, oldValue, newValue) -> {
-			System.out.println("Camera axis Z changed (newValue: " + newValue.intValue() + ")");
-			updateCameraPositionAxisZ(newValue.intValue());
+		cameraDistanceSlider.valueProperty().addListener((observable, oldValue, newValue) -> {
+			System.out.println("Camera distance changed (newValue: " + newValue.intValue() + ")");
+			updateCameraDistance(newValue.intValue());
 		});
 
 		binaryThresholdSlider.valueProperty().addListener((observable, oldValue, newValue) -> {
@@ -449,55 +435,18 @@ public class ObjectRecognizerController {
 		projectionImagesArea.getChildren().add(projectionImagesView);
 		projectionImagesView.setMaxWidth(140);
 		
-		
-		fieldOfViewSlider.valueProperty().addListener((observable, oldValue, newValue) -> {
-			System.out.println("Field of view changed (newValue: " + newValue.intValue() + ")");
-			fieldOfView = newValue.intValue();
-		});
-
-		fieldOfViewSlider.valueChangingProperty().addListener(new ChangeListener<Boolean>() {
-			@Override
-			public void changed(ObservableValue<? extends Boolean> obs, Boolean wasChanging, Boolean isNowChanging) {
-				if (!isNowChanging) {
-					System.out.println("It stopped changing");
-					renderModel();
-				}
-			}
-		});
-
-		worldRotationYAngleSlider.valueChangingProperty().addListener(new ChangeListener<Boolean>() {
-			@Override
-			public void changed(ObservableValue<? extends Boolean> obs, Boolean wasChanging, Boolean isNowChanging) {
-				if (!isNowChanging) {
-					System.out.println("Rotation around Y angle was stopped");
-					renderModel();
-				}
-			}
-		});
-
-		centerAxisX.valueProperty().addListener((observable, oldValue, newValue) -> {
-			System.out.println("Center axis X changed (newValue: " + newValue.intValue() + ")");
-			//this.centerX = newValue.intValue();
-			this.renderModel();
-		});
-
-		centerAxisY.valueProperty().addListener((observable, oldValue, newValue) -> {
-			System.out.println("Center axis Y changed (newValue: " + newValue.intValue() + ")");
-			//this.centerY = newValue.intValue();
-			this.renderModel();
-		});
-
-		centerAxisZ.valueProperty().addListener((observable, oldValue, newValue) -> {
-			System.out.println("Center axis Z changed (newValue: " + newValue.intValue() + ")");
-			//this.centerZ = newValue.intValue();
-			this.renderModel();
-		});
-
 		generateButton.setOnKeyReleased((event) -> {
-			this.boxSize = Integer.parseInt(this.boxSizeField.getText());
+			CUBE_LENGTH_X = (float) Double.parseDouble(textFieldOctreeLengthX.getText());
+			CUBE_LENGTH_Y = (float) Double.parseDouble(textFieldOctreeLengthY.getText());
+			CUBE_LENGTH_Z = (float) Double.parseDouble(textFieldOctreeLengthZ.getText());
+			
+			DISPLACEMENT_X = (float) Double.parseDouble(textFieldOctreeDisplacementX.getText());
+			DISPLACEMENT_Y = (float) Double.parseDouble(textFieldOctreeDisplacementY.getText());
+			DISPLACEMENT_Z = (float) Double.parseDouble(textFieldOctreeDisplacementZ.getText());
 			this.levels = Integer.parseInt(this.levelsField.getText());
-			System.out.println("New Boxsize: " + this.boxSize + ", New levels value: " + this.levels);
-			this.renderModel();
+
+			constructModel();
+			renderModel();
 		});
 	}
 
@@ -787,10 +736,16 @@ public class ObjectRecognizerController {
 	 */
 	@FXML
 	protected void updateOctreeSettings() {
-		this.boxSize = Integer.parseInt(this.boxSizeField.getText());
+		CUBE_LENGTH_X = (float) Double.parseDouble(textFieldOctreeLengthX.getText());
+		CUBE_LENGTH_Y = (float) Double.parseDouble(textFieldOctreeLengthY.getText());
+		CUBE_LENGTH_Z = (float) Double.parseDouble(textFieldOctreeLengthZ.getText());
+		
+		DISPLACEMENT_X = (float) Double.parseDouble(textFieldOctreeDisplacementX.getText());
+		DISPLACEMENT_Y = (float) Double.parseDouble(textFieldOctreeDisplacementY.getText());
+		DISPLACEMENT_Z = (float) Double.parseDouble(textFieldOctreeDisplacementZ.getText());
 		this.levels = Integer.parseInt(this.levelsField.getText());
-		System.out.println("New Boxsize: " + this.boxSize + ", New levels value: " + this.levels);
-		this.renderModel();
+		constructModel();
+		renderModel();
 	}
 
 	/**
@@ -1086,7 +1041,7 @@ public class ObjectRecognizerController {
 
 	
 	public void constructModelAux(int octreeLevels) {
-		Utils.debugNewLine("generateModelTest", true);
+		Utils.debugNewLine("ObjectRecognizerController.constructModelAux(" + octreeLevels +")", true);
 
 		CameraPosition cameraPosition = new CameraPosition();
 		cameraPosition.positionAxisX = 0;
@@ -1122,15 +1077,12 @@ public class ObjectRecognizerController {
 			Utils.debugNewLine("***************** something weird happened here", true);
 		}
 
-		volumeRenderer = new VolumeRenderer();
-		// instantiate the volume generator object
 		// TODO: Maybe this generator could be a builder 
 		volumeGenerator = new VolumeGenerator(octree, volumeBoxParameters, distanceArrays,
 				invertedDistanceArrays, octreeLevels);
 		volumeGenerator.setImagesForDistanceComputation(this.imagesForDistanceComputation);
 		volumeGenerator.setDistanceArrays(distanceArrays);
 		volumeGenerator.setInvertedDistanceArrays(invertedDistanceArrays);
-		volumeGenerator.setFieldOfView(this.fieldOfView);
 		volumeGenerator.setProjectionGenerator(projectionGenerator);		
 		volumeGenerator.generateOctreeVoxels();
 		octree = volumeGenerator.getOctree();
@@ -1170,7 +1122,7 @@ public class ObjectRecognizerController {
 	
 	
 	private void createOctreeProjections(){				
-		System.out.println("[createOctreeProjections] is called!");
+		System.out.println("[ObjectRecognizerController.createOctreeProjections]");
 		
 		projectionImagesView = new ListView<String>();
 		projectionImagesNames = FXCollections.observableArrayList();
@@ -1196,7 +1148,7 @@ public class ObjectRecognizerController {
 
 		
 		projectionImagesView.setItems(projectionImagesNames);
-		System.out.println(projectionImagesDescription.keySet());
+		Utils.debugNewLine(projectionImagesDescription.keySet().toString(), true);
 
 		projectionImagesView.setCellFactory(param -> {
 			ListCell<String> cell = new ListCell<String>() {
@@ -1229,10 +1181,6 @@ public class ObjectRecognizerController {
                 if (cell.getItem() != null) {
                 	ImageView imageView = (ImageView)cell.getGraphic();
                 	setProjectedOctreeViewImage(imageView.getImage());
-                	//thresholdImageIndex = cell.getText();
-                	//int binaryThreshold = imageThresholdMap.get(thresholdImageIndex);
-                	//binaryThresholdSlider.setValue(binaryThreshold);
-                	//Utils.debugNewLine("Binary image name " + cell.getText(), true);
                 }
             });
 			
@@ -1242,7 +1190,6 @@ public class ObjectRecognizerController {
 		// to allow updating new elements for the list view
 		projectionImagesArea.getChildren().clear();
 		projectionImagesArea.getChildren().add(projectionImagesView);
-
 	}
 
 	/**
@@ -1256,22 +1203,16 @@ public class ObjectRecognizerController {
 	}
 
 	public void renderModel() {
-		volumeRenderer = new VolumeRenderer();
+		volumeRenderer = new VolumeRenderer(cameraDistance);
 		volumeRenderer.generateVolumeScene(volumeGenerator.getVoxels());
 		setVolumeSubScene(volumeRenderer.getSubScene());	
 		// The octree is update with the modified version in volume generator
 	}
 
-	private void updateCameraPositionAxisX(int positionX) {
-		System.out.println("Do nothing!");
-	}
 
-	private void updateCameraPositionAxisY(int positionY) {
-		System.out.println("Do nothing!");
-	}
-
-	private void updateCameraPositionAxisZ(int positionZ) {
-		System.out.println("Do nothing!");
+	private void updateCameraDistance(int cameraDistance) {
+		this.cameraDistance = cameraDistance;
+		renderModel();
 	}
 
 	private void updateBinaryThreshold(int binaryThreshold) {
@@ -1332,12 +1273,19 @@ public class ObjectRecognizerController {
 		for (String filename: objectImageFilenames){
 			Mat image = Utils.loadImage(filename);
 			if (image != null){
-				objectImagesMap.put(calibrationIndices.get(calIndex), image);							
+				String imageIdentifier = calibrationIndices.get(calIndex);				
+				objectImagesMap.put(imageIdentifier, image);
+				objectImagesToDisplay.add(image);
+				objectImagesNames.add(imageIdentifier);
+				objectImagesDescription.put(imageIdentifier, calIndex);
+				int threshold = (int) binaryThresholdSlider.getValue();
+				imageThresholdMap.put(imageIdentifier, threshold);
+
 				calIndex++;
 			}
 		}
 
-		
+		showImages();
 	}
 	
 	/**
@@ -1349,7 +1297,7 @@ public class ObjectRecognizerController {
 		Utils.debugNewLine("ModelGenerationTest", true);
 		loadDefaultImages();
 		Utils.debugNewLine("ObjectImagesMap size: " + objectImagesMap.size(), true);
-		extractSilhouettesTest(objectImagesMap);
+		extractSilhouettes();
 		
 		List<String> binaryImageFilenames = new ArrayList<String>();
 		binaryImageFilenames.add(DEFAULT_IMAGES_DIR + "bin-object-0.png");
@@ -1374,7 +1322,7 @@ public class ObjectRecognizerController {
 		}
 		
 		constructModel();
-		visualizeModel();		
+		//visualizeModel();		
 	}
 	
 	private Map<String, Mat> extractSilhouettesTest(Map<String, Mat> images){
@@ -1464,7 +1412,7 @@ public class ObjectRecognizerController {
 			Utils.debugNewLine("***************** something weird happened here", true);
 		}
 
-		volumeRenderer = new VolumeRenderer();
+		volumeRenderer = new VolumeRenderer(cameraDistance);
 		// instantiate the volume generator object
 		// TODO: Maybe this generator could be a builder 
 		volumeGenerator = new VolumeGenerator(octree, volumeBoxParameters, distanceArrays,
@@ -1472,7 +1420,6 @@ public class ObjectRecognizerController {
 		volumeGenerator.setImagesForDistanceComputation(this.imagesForDistanceComputation);
 		volumeGenerator.setDistanceArrays(distanceArrays);
 		volumeGenerator.setInvertedDistanceArrays(invertedDistanceArrays);
-		volumeGenerator.setFieldOfView(this.fieldOfView);
 		volumeGenerator.setProjectionGenerator(projectionGenerator);		
 		volumeGenerator.generateOctreeVoxels();
 		octree = volumeGenerator.getOctree();
@@ -1563,7 +1510,7 @@ public class ObjectRecognizerController {
 				objectVolume.addAll(octreeVolume);
 			}
 			
-			volumeRenderer = new VolumeRenderer();
+			volumeRenderer = new VolumeRenderer(cameraDistance);
 			volumeRenderer.generateVolumeScene(objectVolume);
 			setVolumeSubScene(volumeRenderer.getSubScene());
 			

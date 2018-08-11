@@ -60,8 +60,9 @@ public class VolumeRenderer {
 	    double mouseDeltaY;
 
 	
-	public VolumeRenderer() {
+	public VolumeRenderer(double cameraDistance) {
 		boxSizeFactor = 20;
+		this.cameraDistance = cameraDistance;
 		configVolumeScene();
 		initConfig();
 	}
@@ -74,7 +75,6 @@ public class VolumeRenderer {
 		cameraXform = new Xform();
 		cameraXform2 = new Xform();
 		cameraXform3 = new Xform();
-		cameraDistance = 600;
 		volumeGroup = new Xform();
 	}
 		
@@ -83,9 +83,9 @@ public class VolumeRenderer {
 		sceneWidth = appConfig.getVolumeSceneWidth();
 		sceneHeight = appConfig.getVolumeSceneHeight();
 		sceneDepth = appConfig.getVolumeSceneDepth();
-		boxSizeX = boxSizeFactor * 12;
-		boxSizeY = boxSizeFactor * 6;
-		boxSizeZ = boxSizeFactor * 12;
+		boxSizeX = boxSizeFactor * 10;
+		boxSizeY = boxSizeFactor * 10;
+		boxSizeZ = boxSizeFactor * 10;
 		
 		volumeBoxParameters = new BoxParameters();		
 		volumeBoxParameters.setSizeX(boxSizeX);
@@ -99,7 +99,7 @@ public class VolumeRenderer {
 	}
 	
     private void buildAxes() {
-        System.out.println("buildAxes()");
+        Utils.debugNewLine("[VolumeRenderer.buildAxes()]", true);
         final PhongMaterial redMaterial = new PhongMaterial();
         redMaterial.setDiffuseColor(Color.DARKRED);
         redMaterial.setSpecularColor(Color.RED);
@@ -367,5 +367,10 @@ public class VolumeRenderer {
 	public void setVolumeBoxParametersTest(BoxParameters volumeBoxParameters) {
 		this.volumeBoxParameters = volumeBoxParameters;
 	}
-		
+
+	public void updateCameraDistance(double cameraDistance){
+		this.cameraDistance = cameraDistance;
+		camera.setTranslateZ(-cameraDistance);
+	}
+	
 }

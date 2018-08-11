@@ -52,16 +52,13 @@ public class VolumeGenerator {
 	private Map<String, int[][]> invertedDistanceArrays;
 	private Map<String, int[][]> distanceArrays;
 	private Map<String, BufferedImage> imagesForDistanceComputation;
-	private TransformMatrices transformMatrices;
-	private int fieldOfView;
 	private int octreeHeight;
+	private BoxParameters volumeBoxParameters;
 
 	
 	public VolumeGenerator(Octree octree, BoxParameters boxParameters) {
 		this.octree = octree;
 		this.imagesForDistanceComputation = new HashMap<String, BufferedImage>();
-		this.fieldOfView = 32;
-		this.transformMatrices = new TransformMatrices(400, 290, fieldOfView);
 		distanceArrays = new HashMap<String, int[][]>();
 		invertedDistanceArrays = new HashMap<String, int[][]>();
 		//System.out.println(octree);
@@ -74,20 +71,16 @@ public class VolumeGenerator {
 
 	public VolumeGenerator(Octree octree, BoxParameters boxParameters, Map<String, int[][]> distanceArrays,
 			Map<String, int[][]> invertedDistanceArrays, int octreeHeight) {
-		// this(octree, boxParameters);
-		this.distanceArrays = distanceArrays;
-		this.invertedDistanceArrays = invertedDistanceArrays;
-
 		this.octree = octree;
+		volumeBoxParameters = boxParameters;
+		this.distanceArrays = distanceArrays;
+		this.invertedDistanceArrays = invertedDistanceArrays;		
 		this.imagesForDistanceComputation = new HashMap<String, BufferedImage>();
-		this.fieldOfView = 32;
-		this.transformMatrices = new TransformMatrices(400, 290, fieldOfView);
-		//System.out.println(octree);
+		this.octreeHeight = octreeHeight;
+
 		projectionGenerator = null;// cameraCalibrator.calibrateMultipleMatrices(calibrationImages, true);
 		projectedPoints = new ArrayList<ProjectedPoint>();
 		boundingBoxes = new ArrayList<BoundingBox>();
-		this.octreeHeight = octreeHeight;
-		projectionGenerator = null;
 		voxels = new ArrayList<Box>();
 	}
 
@@ -169,7 +162,7 @@ public class VolumeGenerator {
 	}
 	
 	public void generateOctreeVoxels(){
-		Utils.debugNewLine("[VolumeGenerator] generateVolume", true);
+		Utils.debugNewLine("[VolumeGenerator.generateOctreeVoxels]", true);
 		Utils.debugNewLine("ImagesForDistanceComputation: " + imagesForDistanceComputation.size(), true);
 		//return generateTestVoxels();
 		voxels = new ArrayList<Box>();
@@ -185,19 +178,16 @@ public class VolumeGenerator {
 		root = getTestedNodeAux(root);
 		octree.setRoot(root);
 		
-		ApplicationConfiguration appConfig = ApplicationConfiguration.getInstance();
-		int sceneWidth = appConfig.getVolumeSceneWidth() / 2;
-		int sceneHeight = appConfig.getVolumeSceneHeight() / 2;
-		int sceneDepth = appConfig.getVolumeSceneDepth() / 2;
-		BoxParameters volumeBoxParameters = new BoxParameters();
-		volumeBoxParameters.setSizeX(110);
-		volumeBoxParameters.setSizeY(80);
-		volumeBoxParameters.setSizeZ(110);
-		volumeBoxParameters.setCenterX(0);
-		volumeBoxParameters.setCenterY(0);
-		volumeBoxParameters.setCenterZ(0);
-
-		voxels = generateVolumeAux(root, volumeBoxParameters, deltas);
+		int scaleFactor = 10;
+		BoxParameters scaledBoxParameters = new BoxParameters();
+		scaledBoxParameters.setCenterX(0);
+		scaledBoxParameters.setCenterY(0);
+		scaledBoxParameters.setCenterZ(0);
+		scaledBoxParameters.setSizeX(volumeBoxParameters.getSizeX()*scaleFactor);
+		scaledBoxParameters.setSizeY(volumeBoxParameters.getSizeY()*scaleFactor);
+		scaledBoxParameters.setSizeZ(volumeBoxParameters.getSizeZ()*scaleFactor);
+		
+		voxels = generateVolumeAux(root, scaledBoxParameters, deltas);
 	}
 	
 
@@ -487,185 +477,6 @@ public class VolumeGenerator {
 		return root2D;
 	}
 
-	public Group getProjections(BoxParameters boxParameters) {
-		// start
-		long lStartTime = System.nanoTime();
-
-		ArrayList<Vector3D> projectedPoints = new ArrayList<>();
-
-		// TransformMatrices transformMatrices = new TransformMatrices(400, 290, 32.3);
-		VolumeModel volumeModel = new VolumeModel(boxParameters);
-
-		double leftMostPos = transformMatrices.screenWidth;
-		double rightMostPos = 0;
-		double topMostPos = transformMatrices.screenHeight;
-		double bottomMostPos = 0;
-
-		for (Vector3D vector : volumeModel.modelVertices) {
-
-			Vector3D viewVector = transformMatrices.toViewCoordinates(vector);
-			Vector3D clipVector = transformMatrices.toClipCoordinates(viewVector);
-
-			if (Math.abs(clipVector.getX()) > Math.abs(clipVector.getW())
-					|| Math.abs(clipVector.getY()) > Math.abs(clipVector.getW())
-					|| Math.abs(clipVector.getZ()) > Math.abs(clipVector.getW())) {
-			}
-
-			Vector3D ndcVector = transformMatrices.toNDCCoordinates(clipVector);
-			Vector3D windowVector = transformMatrices.toWindowCoordinates(ndcVector);
-			projectedPoints.add(windowVector);
-
-			if (windowVector.getX() > rightMostPos) {
-				rightMostPos = windowVector.getX();
-			} else if (windowVector.getX() < leftMostPos) {
-				leftMostPos = windowVector.getX();
-			}
-
-			if (windowVector.getY() > bottomMostPos) {
-				bottomMostPos = windowVector.getY();
-			} else if (windowVector.getY() < topMostPos) {
-				topMostPos = windowVector.getY();
-			}
-		}
-
-		Group root2D = new Group();
-
-		Image img = SwingFXUtils.toFXImage(this.imagesForDistanceComputation.get("cal0"), null);
-		Rectangle imageRect = new Rectangle();
-		imageRect.setX(0);// imageBoxParameters.getCenterX() - (img.getWidth() / 2));
-		imageRect.setY(0);// imageBoxParameters.getCenterY() - (img.getHeight() / 2));
-		imageRect.setWidth(img.getWidth());
-		System.out.println("img width: " + img.getWidth() + ", height: " + img.getHeight());
-		imageRect.setHeight(img.getHeight());
-		imageRect.setFill(new ImagePattern(img));
-		imageRect.setStroke(Color.BLACK);
-		// root2D.getChildren().add(imageRect);
-
-		Rectangle boundingBox = new Rectangle(leftMostPos, topMostPos, rightMostPos - leftMostPos,
-				bottomMostPos - topMostPos);
-		boundingBox.setFill(Color.CHARTREUSE);
-		boundingBox.setStroke(Color.BLACK);
-		System.out.println("(" + boundingBox.getX() + "," + boundingBox.getY() + ") - (" + boundingBox.getX() + ","
-				+ (boundingBox.getY() + boundingBox.getHeight()) + ")");
-		root2D.getChildren().add(boundingBox);
-
-		List<Color> cornerColors = new ArrayList<Color>();
-		cornerColors.add(Color.RED);
-		cornerColors.add(Color.BLACK);
-		cornerColors.add(Color.BLACK);
-		cornerColors.add(Color.BLACK);
-		cornerColors.add(Color.BLACK);
-		cornerColors.add(Color.BLACK);
-		cornerColors.add(Color.BLACK);
-		cornerColors.add(Color.BLACK);
-
-		int i = 0;
-		for (Vector3D point : projectedPoints) {
-			Ellipse circle = new Ellipse(point.getX(), point.getY(), 4, 4);
-			circle.setFill(cornerColors.get(i));
-			root2D.getChildren().add(circle);
-			i++;
-		}
-
-		// draw the lines
-		Line line1 = new Line(projectedPoints.get(4).getX(), projectedPoints.get(4).getY(),
-				projectedPoints.get(7).getX(), projectedPoints.get(7).getY());
-		line1.getStrokeDashArray().addAll(2d);
-		line1.setFill(Color.BLUE);
-		root2D.getChildren().add(line1);
-
-		Line line2 = new Line(projectedPoints.get(4).getX(), projectedPoints.get(4).getY(),
-				projectedPoints.get(5).getX(), projectedPoints.get(5).getY());
-		line2.getStrokeDashArray().addAll(2d);
-		line2.setFill(Color.BLUE);
-		root2D.getChildren().add(line2);
-
-		Line line3 = new Line(projectedPoints.get(4).getX(), projectedPoints.get(4).getY(),
-				projectedPoints.get(0).getX(), projectedPoints.get(0).getY());
-		line3.getStrokeDashArray().addAll(2d);
-		line3.setFill(Color.BLUE);
-		root2D.getChildren().add(line3);
-
-		Line line4 = new Line(projectedPoints.get(7).getX(), projectedPoints.get(7).getY(),
-				projectedPoints.get(3).getX(), projectedPoints.get(3).getY());
-		line4.getStrokeDashArray().addAll(2d);
-		line4.setFill(Color.BLUE);
-		root2D.getChildren().add(line4);
-
-		Line line5 = new Line(projectedPoints.get(7).getX(), projectedPoints.get(7).getY(),
-				projectedPoints.get(6).getX(), projectedPoints.get(6).getY());
-		line5.getStrokeDashArray().addAll(2d);
-		line5.setFill(Color.BLUE);
-		root2D.getChildren().add(line5);
-
-		Line line6 = new Line(projectedPoints.get(5).getX(), projectedPoints.get(5).getY(),
-				projectedPoints.get(6).getX(), projectedPoints.get(6).getY());
-		line6.getStrokeDashArray().addAll(2d);
-		line6.setFill(Color.BLUE);
-		root2D.getChildren().add(line6);
-
-		Line line7 = new Line(projectedPoints.get(5).getX(), projectedPoints.get(5).getY(),
-				projectedPoints.get(1).getX(), projectedPoints.get(1).getY());
-		line7.getStrokeDashArray().addAll(2d);
-		line7.setFill(Color.BLUE);
-		root2D.getChildren().add(line7);
-
-		Line line8 = new Line(projectedPoints.get(6).getX(), projectedPoints.get(6).getY(),
-				projectedPoints.get(2).getX(), projectedPoints.get(2).getY());
-		line8.getStrokeDashArray().addAll(2d);
-		line8.setFill(Color.BLUE);
-		root2D.getChildren().add(line8);
-
-		Line line9 = new Line(projectedPoints.get(0).getX(), projectedPoints.get(0).getY(),
-				projectedPoints.get(3).getX(), projectedPoints.get(3).getY());
-		line9.getStrokeDashArray().addAll(2d);
-		line9.setFill(Color.BLUE);
-		root2D.getChildren().add(line9);
-
-		Line line10 = new Line(projectedPoints.get(0).getX(), projectedPoints.get(0).getY(),
-				projectedPoints.get(1).getX(), projectedPoints.get(1).getY());
-		line10.getStrokeDashArray().addAll(2d);
-		line10.setFill(Color.BLUE);
-		root2D.getChildren().add(line10);
-
-		Line line11 = new Line(projectedPoints.get(3).getX(), projectedPoints.get(3).getY(),
-				projectedPoints.get(2).getX(), projectedPoints.get(2).getY());
-		line11.getStrokeDashArray().addAll(2d);
-		line11.setFill(Color.BLUE);
-		root2D.getChildren().add(line11);
-
-		Line line12 = new Line(projectedPoints.get(2).getX(), projectedPoints.get(2).getY(),
-				projectedPoints.get(1).getX(), projectedPoints.get(1).getY());
-		line12.getStrokeDashArray().addAll(2d);
-		line12.setFill(Color.BLUE);
-		root2D.getChildren().add(line12);
-
-		int sceneWidth = 440;
-		int sceneHeight = 320;
-		int sceneDepth = 320;
-		int scalingParameter = 10;
-		Box volume = new Box(volumeModel.xLength * scalingParameter, volumeModel.yLength * scalingParameter,
-				volumeModel.zLength * scalingParameter);
-
-		volume.setTranslateX(sceneWidth);
-		volume.setTranslateY(sceneHeight);
-		// volume.setTranslateZ(volumePositionZ);
-
-		PhongMaterial textureMaterial = new PhongMaterial();
-		// Color diffuseColor = nodeColor;
-		textureMaterial.setDiffuseColor(Color.BLUE);
-		volume.setMaterial(textureMaterial);
-		// root2D.getChildren().add(volume);
-
-		// end
-		long lEndTime = System.nanoTime();
-
-		// time elapsed
-		long output = lEndTime - lStartTime;
-		//System.out.println("Elapsed time for getProjections in milliseconds: " + output / 1000000);
-
-		return root2D;
-	}
 
 	public IntersectionStatus testIntersection(Node node, String imgIndex) {
 
@@ -1117,23 +928,6 @@ public class VolumeGenerator {
 			root2D.getChildren().add(circle);
 		}
 
-		// Hardcoded corners
-		/**
-		 * int xMinRange = 545; int xMaxRange = 684; int yMinRange = 432; int yMaxRange
-		 * = 609;
-		 * 
-		 * Ellipse corner1 = new Ellipse(xMinRange/2, yMinRange/2, 5, 5);
-		 * corner1.setFill(Color.BLUE); root2D.getChildren().add(corner1);
-		 * 
-		 * Ellipse corner2 = new Ellipse(xMaxRange/2, yMinRange/2, 5, 5);
-		 * corner2.setFill(Color.BLUE); root2D.getChildren().add(corner2);
-		 * 
-		 * Ellipse corner3 = new Ellipse(xMinRange/2, yMaxRange/2, 5, 5);
-		 * corner3.setFill(Color.BLUE); root2D.getChildren().add(corner3);
-		 * 
-		 * Ellipse corner4 = new Ellipse(xMaxRange/2, yMaxRange/2, 5, 5);
-		 * corner4.setFill(Color.BLUE); root2D.getChildren().add(corner4);
-		 **/
 
 		//Utils.debugNewLine("Bounding boxes length: " + boundingBoxes.size(), true);
 		for (BoundingBox boundingBox : boundingBoxes) {
@@ -1263,22 +1057,6 @@ public class VolumeGenerator {
 
 	public void setImagesForDistanceComputation(Map<String, BufferedImage> imagesForDistanceComputation) {
 		this.imagesForDistanceComputation = imagesForDistanceComputation;
-	}
-
-	public int getFieldOfView() {
-		return fieldOfView;
-	}
-
-	public void setFieldOfView(int fieldOfView) {
-		this.fieldOfView = fieldOfView;
-	}
-
-	public TransformMatrices getTransformMatrices() {
-		return transformMatrices;
-	}
-
-	public void setTransformMatrices(TransformMatrices transformMatrices) {
-		this.transformMatrices = transformMatrices;
 	}
 
 	public Octree getOctree() {

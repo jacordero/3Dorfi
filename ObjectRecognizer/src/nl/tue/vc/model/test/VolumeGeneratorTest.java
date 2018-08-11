@@ -164,7 +164,7 @@ public class VolumeGeneratorTest {
 	}
 	
 	public List<Box> generateOctreeVoxels(){
-		Utils.debugNewLine("[VolumeGenerator] generateVolume", true);
+		Utils.debugNewLine("[VolumeGenerator] generateOctreeVoxels", true);
 		Utils.debugNewLine("ImagesForDistanceComputation: " + imagesForDistanceComputation.size(), true);
 		//return generateTestVoxels();
 		

@@ -48,6 +48,17 @@
                                        <children>
                                           <CheckBox fx:id="turnOnCamera" mnemonicParsing="false" text="Start cam" />
                                           <CheckBox fx:id="enableCameraCalibration" mnemonicParsing="false" text="Calibrate" />
+                                          <Label text="Camera distance:">
+                                             <HBox.margin>
+                                                <Insets left="10.0" right="5.0" />
+                                             </HBox.margin>
+                                          </Label>
+                                          <Slider fx:id="cameraDistanceSlider" max="600.0" min="10.0" value="300.0">
+                                            <HBox.margin>
+                                                <Insets right="20.0" top="5.0" />
+                                             </HBox.margin>
+                                          </Slider>
+                                          
                                           <Button fx:id="applyButton" alignment="center" onAction="#updateSettings" text="Apply" />
                                           <Button fx:id="calibrateExtrinsicParamsButton" mnemonicParsing="false" onAction="#calibrateCameraForExtrinsicParams" text="Calibrate">
                                              <HBox.margin>
@@ -177,102 +188,78 @@
                                  <children>
                                     <HBox prefWidth="900.0">
                                        <children>
-                                          <Label text="Cam X:">
+                                                                              
+                                          <Label text="Octree Length X:">
                                              <HBox.margin>
-                                                <Insets left="10.0" right="5.0" />
+                                                <Insets right="10.0" />
                                              </HBox.margin>
                                           </Label>
-                                          <Slider fx:id="cameraAxisX" max="200.0" min="-50.0" />
-                                          <Label text="Cam Y:">
+                                          <TextField fx:id="textFieldOctreeLengthX" maxWidth="40" text="10">
                                              <HBox.margin>
-                                                <Insets left="10.0" right="5.0" />
+                                                <Insets right="10.0" />
+                                             </HBox.margin>
+                                          </TextField>
+
+                                          <Label text="Octree Length Y:">
+                                             <HBox.margin>
+                                                <Insets right="10.0" />
                                              </HBox.margin>
                                           </Label>
-                                          <Slider fx:id="cameraAxisY" max="200.0" min="-50.0" />
-                                          <Label text="Cam Z:">
+                                          <TextField fx:id="textFieldOctreeLengthY" maxWidth="40" text="6.5">
                                              <HBox.margin>
-                                                <Insets left="10.0" right="5.0" />
+                                                <Insets right="10.0" />
+                                             </HBox.margin>
+                                          </TextField>
+
+                                          <Label text="Octree Length Z:">
+                                             <HBox.margin>
+                                                <Insets right="10.0" />
                                              </HBox.margin>
                                           </Label>
-                                          <Slider fx:id="cameraAxisZ" max="100.0" min="-200.0">
+                                          <TextField fx:id="textFieldOctreeLengthZ" maxWidth="40" text="8">
                                              <HBox.margin>
-                                                <Insets />
+                                                <Insets right="10.0" />
                                              </HBox.margin>
-                                          </Slider>
-                                       </children>
-                                    </HBox>
-                                    <Separator />
-                                    <HBox prefWidth="900.0">
-                                       <children>
-                                          <Label text="Center X-coordinate:">
-                                             <HBox.margin>
-                                                <Insets left="10.0" right="5.0" />
-                                             </HBox.margin>
-                                          </Label>
-                                          <Slider fx:id="centerAxisX" blockIncrement="1.0" max="50.0" min="-10.0" showTickMarks="true" value="-1.0" />
-                                          <Label text="Center Y-coordinate:">
-                                             <HBox.margin>
-                                                <Insets left="10.0" right="5.0" />
-                                             </HBox.margin>
-                                          </Label>
-                                          <Slider fx:id="centerAxisY" blockIncrement="1.0" max="50.0" min="-10.0" showTickMarks="true" value="2.0" />
-                                          <Label text="Center Z-coordinate:">
-                                             <HBox.margin>
-                                                <Insets left="10.0" right="5.0" />
-                                             </HBox.margin>
-                                          </Label>
-                                          <Slider fx:id="centerAxisZ" blockIncrement="1.0" max="50.0" min="-10.0" showTickMarks="true">
-                                             <HBox.margin>
-                                                <Insets />
-                                             </HBox.margin>
-                                          </Slider>
+                                          </TextField>
+
                                        </children>
                                     </HBox>
                                     <Separator />
                                     <HBox prefHeight="30.0" prefWidth="1000.0">
                                        <children>
-                                          <Label text="World rotation Y angle:">
-                                             <opaqueInsets>
-                                                <Insets />
-                                             </opaqueInsets>
-                                             <padding>
-                                                <Insets left="10.0" />
-                                             </padding>
+                                          <Label text="Displacement X:">
                                              <HBox.margin>
                                                 <Insets right="10.0" />
                                              </HBox.margin>
                                           </Label>
-                                          <Slider fx:id="worldRotationYAngleSlider" showTickMarks="true">
+                                          <TextField fx:id="textFieldOctreeDisplacementX" maxWidth="40" text="-2">
                                              <HBox.margin>
                                                 <Insets right="10.0" />
-                                             </HBox.margin>
-                                          </Slider>
-                                          <Label text="FOV:">
-                                             <HBox.margin>
-                                                <Insets right="10.0" />
-                                             </HBox.margin>
-                                          </Label>
-                                          <Slider fx:id="fieldOfViewSlider" max="180.0" min="1.0" showTickMarks="true" value="50.0" />
-                                          <Label layoutX="293.0" layoutY="10.0" text="Octree box size:">
-                                             <HBox.margin>
-                                                <Insets left="10.0" />
-                                             </HBox.margin>
-                                          </Label>
-                                          <TextField fx:id="boxSizeField" maxWidth="50" text="12">
-                                             <HBox.margin>
-                                                <Insets left="10.0" />
                                              </HBox.margin>
                                           </TextField>
-                                          <Label layoutX="468.0" layoutY="10.0" text="Octree levels:">
+
+                                          <Label text="Displacement Y:">
                                              <HBox.margin>
-                                                <Insets left="10.0" />
+                                                <Insets right="10.0" />
                                              </HBox.margin>
                                           </Label>
-                                          <TextField fx:id="levelsField" layoutX="493.0" layoutY="10.0" maxWidth="50" text="0">
+                                          <TextField fx:id="textFieldOctreeDisplacementY" maxWidth="40" text="-1">
                                              <HBox.margin>
-                                                <Insets left="10.0" />
+                                                <Insets right="10.0" />
                                              </HBox.margin>
                                           </TextField>
+
+                                          <Label text="Displacement Z:">
+                                             <HBox.margin>
+                                                <Insets right="10.0" />
+                                             </HBox.margin>
+                                          </Label>
+                                          <TextField fx:id="textFieldOctreeDisplacementZ" maxWidth="40" text="-2">
+                                             <HBox.margin>
+                                                <Insets right="10.0" />
+                                             </HBox.margin>
+                                          </TextField>
+
                                           <Button fx:id="generateButton" alignment="center" onAction="#updateOctreeSettings" text="Generate">
                                              <HBox.margin>
                                                 <Insets left="10.0" />
@@ -300,7 +287,7 @@
                                  </padding>
                               </VBox>
                            </center>
-                           <left>
+                           <right>
                               <VBox fx:id="projectionImagesArea" alignment="CENTER" BorderPane.alignment="TOP_CENTER">
                                  <children>
                                     <ImageView fx:id="projectedImagesView" fitHeight="140.0" fitWidth="120.0" pickOnBounds="true" preserveRatio="true">
@@ -313,7 +300,7 @@
                                     <Insets left="10" right="10" />
                                  </padding>
                               </VBox>
-                           </left>
+                           </right>
                        </BorderPane>
                      </children>
                   </AnchorPane>
