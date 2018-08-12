@@ -51,7 +51,7 @@ public class ObjectRecognizer extends Application {
 			// set a whitesmoke background
 			rootGroup.setStyle("-fx-background-color: whitesmoke;");
 			//rootGroup.setCenter(volumeScene);
-			setVolumeSubScene(volumeScene);
+			//setVolumeSubScene(volumeScene);
 			
 			Scene scene = new Scene(rootGroup, appConfig.getWindowWidth(), appConfig.getWindowHeight());
 			scene.getStylesheets().add(getClass().getResource("application.css").toExternalForm());

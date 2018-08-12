@@ -63,6 +63,16 @@
                                  </children>
                               </VBox>
                            </top>
+                           <right>
+                              <VBox fx:id="vboxRightMain" alignment="CENTER" spacing="10" BorderPane.alignment="CENTER">
+                                 <children>
+                                    <ImageView fx:id="calibrationFrame" />
+                                 </children>
+                                 <padding>
+                                    <Insets left="10" right="10" />
+                                 </padding>
+                              </VBox>
+                           </right>
                         </BorderPane>
                      </children>
                   </AnchorPane>
@@ -81,11 +91,6 @@
                                           <Insets bottom="10" top="10" />
                                        </padding>
                                        <children>
-                                          <CheckBox fx:id="debugSegmentation" mnemonicParsing="false" text="Debug segmentation algorithm">
-                                             <HBox.margin>
-                                                <Insets left="10.0" right="20.0" top="5.0" />
-                                             </HBox.margin>
-                                          </CheckBox>
                                           <Label text="Segmentation alg:">
                                              <HBox.margin>
                                                 <Insets left="10.0" right="5.0" top="5.0" />
@@ -114,9 +119,6 @@
                            </top>
                            <right>
                               <VBox fx:id="imageProcessingArea" alignment="CENTER" spacing="10" BorderPane.alignment="CENTER">
-                                 <children>
-                                    <ImageView fx:id="calibrationFrame" />
-                                 </children>
                                  <padding>
                                     <Insets left="10" right="10" />
                                  </padding>

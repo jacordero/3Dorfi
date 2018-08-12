@@ -252,4 +252,26 @@ public final class Utils
 			System.out.println(str);
 		}
 	}
+	
+	public static List<String> listFilesForFolder(final File folder) {
+		List<String> fileNames = new ArrayList<String>();
+	    for (final File fileEntry : folder.listFiles()) {
+	        if (fileEntry.isDirectory()) {
+	            listFilesForFolder(fileEntry);
+	        } else {
+	            fileNames.add(fileEntry.getName());
+	        }
+	    }
+	    return fileNames;
+	}
+	
+	public static void clearFolder(final File folder) {
+		for (final File fileEntry : folder.listFiles()) {
+	        if (fileEntry.isDirectory()) {
+	        	clearFolder(fileEntry);
+	        } else {
+	            fileEntry.delete();
+	        }
+	    }
+	}
 }
