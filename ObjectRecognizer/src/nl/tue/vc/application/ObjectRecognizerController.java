@@ -48,6 +48,7 @@ import javafx.scene.layout.VBox;
 import javafx.scene.shape.Box;
 import javafx.stage.FileChooser;
 import javafx.stage.Stage;
+import nl.tue.vc.application.utils.OctreeVisualUtils;
 import nl.tue.vc.application.utils.Utils;
 import nl.tue.vc.application.visual.IntersectionTest;
 import nl.tue.vc.imgproc.CameraCalibrator;
@@ -1112,10 +1113,18 @@ public class ObjectRecognizerController {
 		// Create the projected octree images
 		createOctreeProjections();
 		
-		int maxLevels = 8;
-		for (int i = 0; i < maxLevels; i++){
+		
+		int maxLevels = 7;
+		for (int i = 0; i < maxLevels; i++){	
 			constructModelAux(i);			
 		}
+		
+		
+		/**
+		octree = OctreeVisualUtils.generateOctreeTest();
+		volumeGenerator = new VolumeGenerator();
+		volumeGenerator.generateTestVoxels(octree);
+		**/
 		System.out.println("+++++++ Model is ready ++++++++++");
 	}
 	
@@ -1322,7 +1331,7 @@ public class ObjectRecognizerController {
 		}
 		
 		constructModel();
-		//visualizeModel();		
+		visualizeModel();		
 	}
 	
 	private Map<String, Mat> extractSilhouettesTest(Map<String, Mat> images){

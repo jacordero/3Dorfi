@@ -22,19 +22,13 @@ import javafx.scene.paint.ImagePattern;
 import javafx.scene.paint.PhongMaterial;
 import javafx.scene.shape.Box;
 import javafx.scene.shape.Ellipse;
-import javafx.scene.shape.Line;
 import javafx.scene.shape.Rectangle;
-import nl.tue.vc.application.ApplicationConfiguration;
+import nl.tue.vc.application.utils.OctreeVisualUtils;
 import nl.tue.vc.application.utils.Utils;
 import nl.tue.vc.imgproc.CameraCalibrator;
-import nl.tue.vc.model.BoxParameters;
-import nl.tue.vc.model.ProjectedPoint;
 import nl.tue.vc.projection.BoundingBox;
 import nl.tue.vc.projection.IntersectionStatus;
 import nl.tue.vc.projection.ProjectionGenerator;
-import nl.tue.vc.projection.TransformMatrices;
-import nl.tue.vc.projection.Vector3D;
-import nl.tue.vc.projection.VolumeModel;
 import nl.tue.vc.voxelengine.DeltaStruct;
 import nl.tue.vc.voxelengine.SimpleRectangle;
 
@@ -56,12 +50,23 @@ public class VolumeGenerator {
 	private BoxParameters volumeBoxParameters;
 
 	
+	public VolumeGenerator(){
+		octree = null;
+		imagesForDistanceComputation = new HashMap<String, BufferedImage>();
+		distanceArrays = new HashMap<String, int[][]>();
+		invertedDistanceArrays = new HashMap<String, int[][]>();
+		projectedPoints = new ArrayList<ProjectedPoint>();
+		boundingBoxes = new ArrayList<BoundingBox>();
+		octreeHeight = -1;
+		projectionGenerator = null;
+		voxels = new ArrayList<Box>();		
+	}
+	
 	public VolumeGenerator(Octree octree, BoxParameters boxParameters) {
 		this.octree = octree;
 		this.imagesForDistanceComputation = new HashMap<String, BufferedImage>();
 		distanceArrays = new HashMap<String, int[][]>();
 		invertedDistanceArrays = new HashMap<String, int[][]>();
-		//System.out.println(octree);
 		projectedPoints = new ArrayList<ProjectedPoint>();
 		boundingBoxes = new ArrayList<BoundingBox>();
 		octreeHeight = -1;
@@ -90,75 +95,30 @@ public class VolumeGenerator {
 
 	// TODO: make the calibration matrices id values be automatically detected
 
-	public List<Box> generateTestVoxels(){
-		float cubeLength = 50;
-		
-		Box testBox0 = new Box(cubeLength, cubeLength, cubeLength);        
-		PhongMaterial textureMaterial0 = new PhongMaterial();
-		textureMaterial0.setDiffuseColor(Color.BLACK);
-		testBox0.setMaterial(textureMaterial0);
-        //testBox1.getTransforms().addAll(rotateZ1, rotateY1, rotateX1);
-        testBox0.setTranslateX(2.5*cubeLength);
-        testBox0.setTranslateY(2.5*cubeLength);
-        testBox0.setTranslateZ(0.5*cubeLength);
-        
-        Box testBox1 = new Box(cubeLength, cubeLength, cubeLength);
-		PhongMaterial textureMaterial1 = new PhongMaterial();
-		textureMaterial1.setDiffuseColor(Color.DARKGREEN);
-		testBox1.setMaterial(textureMaterial1);
-		//testBox2.getTransforms().addAll(rotateZ2, rotateY2, rotateX2);
-        testBox1.setTranslateX(3.5*cubeLength);
-        testBox1.setTranslateY(2.5*cubeLength);
-        testBox1.setTranslateZ(0.5*cubeLength);
-		
-        Box testBox2 = new Box(cubeLength, cubeLength, cubeLength);
-		PhongMaterial textureMaterial2 = new PhongMaterial();
-		textureMaterial2.setDiffuseColor(Color.RED);
-		testBox2.setMaterial(textureMaterial2);
-		//testBox3.getTransforms().addAll(rotateZ3, rotateY3, rotateX3);
-        testBox2.setTranslateX(2.5*cubeLength);
-        testBox2.setTranslateY(3.5*cubeLength);
-        testBox2.setTranslateZ(0.5*cubeLength);
-
-        
-        Box testBox3 = new Box(cubeLength, cubeLength, cubeLength);
-		PhongMaterial textureMaterial3 = new PhongMaterial();
-		textureMaterial3.setDiffuseColor(Color.MAGENTA);
-		testBox3.setMaterial(textureMaterial3);
-		//testBox4.getTransforms().addAll(rotateZ4, rotateY4, rotateX4);
-        testBox3.setTranslateX(3.5*cubeLength);
-        testBox3.setTranslateY(3.5*cubeLength);
-        testBox3.setTranslateZ(0.5*cubeLength);
-
-        
-        Box testBox4 = new Box(cubeLength, cubeLength, cubeLength);
-		PhongMaterial textureMaterial4 = new PhongMaterial();
-		textureMaterial4.setDiffuseColor(Color.YELLOW);
-		testBox4.setMaterial(textureMaterial4);
-		//testBox4.getTransforms().addAll(rotateZ4, rotateY4, rotateX4);
-        testBox4.setTranslateX(2.5*cubeLength);
-        testBox4.setTranslateY(2.5*cubeLength);
-        testBox4.setTranslateZ(1.5*cubeLength);
-        
-        
-        Box testBox5 = new Box(cubeLength, cubeLength, cubeLength);
-		PhongMaterial textureMaterial5 = new PhongMaterial();
-		textureMaterial5.setDiffuseColor(Color.BLUE);
-		testBox5.setMaterial(textureMaterial5);
-		//testBox4.getTransforms().addAll(rotateZ4, rotateY4, rotateX4);
-        testBox5.setTranslateX(3.5*cubeLength);
-        testBox5.setTranslateY(2.5*cubeLength);
-        testBox5.setTranslateZ(1.5*cubeLength);
-        
-        List<Box> voxels = new ArrayList<Box>();
-        voxels.add(testBox0);
-        voxels.add(testBox1);
-        voxels.add(testBox2);
-        voxels.add(testBox3);
-        voxels.add(testBox4);
-        voxels.add(testBox5);
-        return voxels;
-
+	public void generateTestVoxels(Octree octree){
+			Utils.debugNewLine("[VolumeGenerator.generateTestVoxels]", true);
+			voxels = new ArrayList<Box>();
+			
+			Node root = octree.getRoot();
+			BoxParameters rootBoxParameters = octree.getBoxParameters();
+			//this.octree.setRoot(root);
+			
+			int scaleFactor = 10;
+			BoxParameters scaledBoxParameters = new BoxParameters();
+			scaledBoxParameters.setCenterX(0);
+			scaledBoxParameters.setCenterY(0);
+			scaledBoxParameters.setCenterZ(0);
+			scaledBoxParameters.setSizeX(rootBoxParameters.getSizeX()*scaleFactor);
+			scaledBoxParameters.setSizeY(rootBoxParameters.getSizeY()*scaleFactor);
+			scaledBoxParameters.setSizeZ(rootBoxParameters.getSizeZ()*scaleFactor);
+			
+			DeltaStruct rootDeltas = new DeltaStruct();
+			rootDeltas.deltaX = 0;
+			rootDeltas.deltaY = 0;
+			rootDeltas.deltaZ = 0;
+			rootDeltas.index = 0;
+			
+			voxels = OctreeVisualUtils.colorForDebug(root, scaledBoxParameters, rootDeltas);
 	}
 	
 	public void generateOctreeVoxels(){
@@ -168,7 +128,6 @@ public class VolumeGenerator {
 		voxels = new ArrayList<Box>();
 		
 		Node root = octree.getRoot();
-		DeltaStruct deltas = new DeltaStruct();
 		Utils.debugNewLine("Octree height: "  + octree.getOctreeHeight(), false);
 		if (octree.getInternalNode().isLeaf()) {
 			Utils.debugNewLine("Octree children: 1", false);
@@ -187,10 +146,26 @@ public class VolumeGenerator {
 		scaledBoxParameters.setSizeY(volumeBoxParameters.getSizeY()*scaleFactor);
 		scaledBoxParameters.setSizeZ(volumeBoxParameters.getSizeZ()*scaleFactor);
 		
-		voxels = generateVolumeAux(root, scaledBoxParameters, deltas);
+		int octreeRegion = 2;
+		//if (root.isLeaf()){
+		DeltaStruct rootDeltas = new DeltaStruct();
+		rootDeltas.deltaX = 0;
+		rootDeltas.deltaY = 0;
+		rootDeltas.deltaZ = 0;
+		rootDeltas.index = 0;
+		
+		voxels = generateVolumeAux(root, scaledBoxParameters, rootDeltas);
+		//voxels = OctreeVisualUtils.colorForDebug(root, scaledBoxParameters, rootDeltas);
+		
+		//} else {
+		//	voxels = generateVolumeAux(root.getChildren()[octreeRegion], scaledBoxParameters, deltas);
+
+		//}
 	}
 	
 
+	
+	
 	private List<Box> generateVolumeAux(Node currentNode, BoxParameters currentParameters, DeltaStruct currentDeltas) {
 
 		List<Box> voxels = new ArrayList<Box>();
@@ -202,28 +177,37 @@ public class VolumeGenerator {
 
 		if (currentNode.isLeaf()) {
 			// working with leafs
-			Box box = generateVoxel(currentParameters, currentDeltas, currentNode.getColor());
+			//Box box = generateVoxel(currentParameters, currentDeltas, currentNode.getColor());
+			Box box = generateVoxelAux(currentParameters, currentDeltas, currentNode.getColor());
 			voxels.add(box);
 		} else {
 			Node[] children = currentNode.getChildren();
-			double newSizeX = currentParameters.getSizeX() / 2;
-			double newSizeY = currentParameters.getSizeY() / 2;
-			double newSizeZ = currentParameters.getSizeZ() / 2;			
+			double childrenSizeX = currentParameters.getSizeX() / 2;
+			double childrenSizeY = currentParameters.getSizeY() / 2;
+			double childrenSizeZ = currentParameters.getSizeZ() / 2;			
 			
-			BoxParameters newParameters = new BoxParameters();
-			newParameters.setSizeX(newSizeX);
-			newParameters.setSizeY(newSizeY);
-			newParameters.setSizeZ(newSizeZ);
-			newParameters.setCenterX(currentParameters.getCenterX() + (currentDeltas.deltaX * newSizeX));
-			newParameters.setCenterY(currentParameters.getCenterY() + (currentDeltas.deltaY * newSizeY));
-			newParameters.setCenterZ(currentParameters.getCenterZ() + (currentDeltas.deltaZ * newSizeZ));
 
 			for (int i = 0; i < children.length; i++) {
 				// compute deltaX, deltaY, and deltaZ for new voxels
+				
 				Node childNode = children[i];
 				if (childNode != null) {
-					DeltaStruct displacementDirections = computeDeltaDirections(i);
-					List<Box> innerBoxes = generateVolumeAux(childNode, newParameters, displacementDirections);
+
+					DeltaStruct displacementDirections = OctreeUtils.computeDisplacementDirections(i);
+					double displacementX = displacementDirections.deltaX * (childrenSizeX / 2);
+					double displacementY = displacementDirections.deltaY * (childrenSizeY / 2);
+					double displacementZ = displacementDirections.deltaZ * (childrenSizeZ / 2);
+
+					BoxParameters childrenParameters = new BoxParameters();
+					childrenParameters.setSizeX(childrenSizeX);
+					childrenParameters.setSizeY(childrenSizeY);
+					childrenParameters.setSizeZ(childrenSizeZ);
+		
+					childrenParameters.setCenterX(currentParameters.getCenterX() + displacementX);
+					childrenParameters.setCenterY(currentParameters.getCenterY() + displacementY);
+					childrenParameters.setCenterZ(currentParameters.getCenterZ() + displacementZ);
+					
+					List<Box> innerBoxes = generateVolumeAux(childNode, childrenParameters, displacementDirections);
 					voxels.addAll(innerBoxes);
 				}
 			}
@@ -237,25 +221,48 @@ public class VolumeGenerator {
 		//Utils.debugNewLine("#################### Intersection test for node: " + currentNode, false);
 
 		if (currentNode.isLeaf()) {
+			// Create a copy of the leaf
+			//boolean foundBlack = false;
+			int blackCounter = 0;
+			int grayCounter = 0;
+			int whiteCounter = 0;
+			//boolean foundGray = false;
+			//boolean foundWhite = false;
 			
 			for (String imageKey: imagesForDistanceComputation.keySet()){
+				Leaf copyNode = new Leaf(currentNode.getColor(), currentNode.getSizeX(), 
+						currentNode.getSizeY(), currentNode.getSizeZ(), currentNode.getPositionCenterX(), 
+						currentNode.getPositionCenterY(), currentNode.getPositionCenterZ());
 				
 				//Utils.debugNewLine("########## Testing against image " + (j + 1) + " ##########", false);
 				Color boxColor = Color.GRAY;
-				IntersectionStatus status = testIntersection(currentNode, imageKey);
+				IntersectionStatus status = testIntersection(copyNode, imageKey);
 				if (status == IntersectionStatus.INSIDE) {
-					boxColor = getPaintColor(currentNode.getColor(), Color.BLACK);
+					boxColor = getPaintColor(copyNode.getColor(), Color.BLACK);
 				} else if (status == IntersectionStatus.PARTIAL) {
-					boxColor = getPaintColor(currentNode.getColor(), Color.GRAY);
+					boxColor = getPaintColor(copyNode.getColor(), Color.GRAY);
 				} else {
-					boxColor = getPaintColor(currentNode.getColor(), Color.WHITE);
-
+					boxColor = getPaintColor(copyNode.getColor(), Color.WHITE);
 				}
-				currentNode.setColor(boxColor);
-				if(currentNode.getColor()==Color.BLACK) {
-					break;
+
+				if (boxColor == Color.BLACK){
+					blackCounter++;
+					//foundBlack = true;
+				} else if (boxColor == Color.GRAY){
+					grayCounter++;
+					//foundGray = true;
+				} else if (boxColor == Color.WHITE){
+					whiteCounter++;
+					//foundWhite = true;
 				}
 			}
+			if (blackCounter > 0 && grayCounter == 0 && whiteCounter == 0){
+				currentNode.setColor(Color.BLACK);
+			} else if (grayCounter > 0 && !(whiteCounter > (grayCounter + blackCounter))){
+				currentNode.setColor(Color.GRAY);
+			} else {
+				currentNode.setColor(Color.WHITE);
+			}			
 		} else {
 			if (currentNode.getColor() == Color.GRAY) {
 				Node[] children = currentNode.getChildren();
@@ -417,7 +424,7 @@ public class VolumeGenerator {
 				Node childNode = children[i];
 				if (childNode != null) {
 					childNode.setBoxParameters(newParameters);
-					DeltaStruct displacementDirections = computeDeltaDirections(i);
+					DeltaStruct displacementDirections = OctreeUtils.computeDisplacementDirections(i);
 					childNode.setDisplacementDirection(displacementDirections);
 					// Box box = new Box();
 					Color boxColor = Color.GRAY;
@@ -490,6 +497,8 @@ public class VolumeGenerator {
 		int yVal = (int) (boundingRectangle.getY() + boundingRectangle.getHeight());
 		int arrayRows = distanceArray.length;
 		int arrayCols = distanceArray[0].length;
+		
+		//Utils.debugNewLine("Rows: " + arrayRows + ", columns: " + arrayCols, true);
 
 		// TODO: check this values
 		if (xVal < 0) {
@@ -537,7 +546,8 @@ public class VolumeGenerator {
 //					true);
 
 			status = IntersectionStatus.OUTSIDE;
-		} else if (checkForPartial(determiningValue, transformedInvertedValue, xVal, yVal, arrayCols, arrayRows,
+		}
+		/**else if (checkForPartial(determiningValue, transformedInvertedValue, xVal, yVal, arrayCols, arrayRows,
 				(int) boundingRectangle.getWidth(), (int) boundingRectangle.getHeight())) {
 			//Utils.debugNewLine( "++++ C-PARTIALLY INSIDE +++++", true);
 
@@ -549,7 +559,8 @@ public class VolumeGenerator {
 //			Utils.debugNewLine("Projection out of bounds but totally outside oooooooooooooooooooooooooooooooooo", true);
 
 			status = IntersectionStatus.OUTSIDE;
-		} else {
+		} 
+		**/else {
 			//Utils.debugNewLine( "++++ PARTIALLY INSIDE +++++", true);
 //			Utils.debugNewLine(
 //					"Projection is partially inside ====================================================================================",
@@ -599,54 +610,22 @@ public class VolumeGenerator {
 		return result;
 	}
 
-	private DeltaStruct computeDeltaDirections(int index) {
-		DeltaStruct deltas = new DeltaStruct();
-		switch (index) {
-		case 0:
-			deltas.deltaX = -1;
-			deltas.deltaY = 1;
-			deltas.deltaZ = 1;
-			break;
-		case 1:
-			deltas.deltaX = 1;
-			deltas.deltaY = 1;
-			deltas.deltaZ = 1;
-			break;
-		case 2:
-			deltas.deltaX = -1;
-			deltas.deltaY = -1;
-			deltas.deltaZ = 1;
-			break;
-		case 3:
-			deltas.deltaX = 1;
-			deltas.deltaY = -1;
-			deltas.deltaZ = 1;
-			break;
-		case 4:
-			deltas.deltaX = -1;
-			deltas.deltaY = 1;
-			deltas.deltaZ = -1;
-			break;
-		case 5:
-			deltas.deltaX = 1;
-			deltas.deltaY = 1;
-			deltas.deltaZ = -1;
-			break;
-		case 6:
-			deltas.deltaX = -1;
-			deltas.deltaY = -1;
-			deltas.deltaZ = -1;
-			break;
-		case 7:
-			deltas.deltaX = 1;
-			deltas.deltaY = -1;
-			deltas.deltaZ = -1;
-			break;
-		default:
-			throw new RuntimeException("Invalid index value " + index);
-		}
+	
+	private Box generateVoxelAux(BoxParameters boxParameters, DeltaStruct deltas, Color nodeColor){
+		Box box = new Box(boxParameters.getSizeX(), boxParameters.getSizeY(), boxParameters.getSizeZ());
+		box.setTranslateX(boxParameters.getCenterX());
+		box.setTranslateY(boxParameters.getCenterY());
+		box.setTranslateZ(boxParameters.getCenterZ());
+		PhongMaterial textureMaterial = new PhongMaterial();
 
-		return deltas;
+		Color diffuseColor = nodeColor;
+		 
+		 diffuseColor = nodeColor == Color.BLACK ? nodeColor : Color.TRANSPARENT;
+		 //diffuseColor = nodeColor == Color.WHITE ? Color.TRANSPARENT: nodeColor;
+		
+		 textureMaterial.setDiffuseColor(diffuseColor);
+		box.setMaterial(textureMaterial);
+		return box;
 	}
 
 	private Box generateVoxel(BoxParameters boxParameters, DeltaStruct deltas, Color nodeColor) {
@@ -678,24 +657,9 @@ public class VolumeGenerator {
 		PhongMaterial textureMaterial = new PhongMaterial();
 
 		Color diffuseColor = nodeColor;
-		/**
-		if (nodeColor == Color.WHITE){
-			 diffuseColor = Color.TRANSPARENT;
-		}
-		
-		
-		 if (nodeColor == Color.WHITE){
-			 diffuseColor = Color.TRANSPARENT;
-		} else if (nodeColor == Color.BLACK){
-			diffuseColor = Color.BLACK;
-		} else {
-			diffuseColor = Color.GRAY;
-		 }
-		 **/
 		 
-		 
-		 //diffuseColor = nodeColor == Color.BLACK ? nodeColor : Color.TRANSPARENT;
-		 diffuseColor = nodeColor == Color.WHITE ? Color.TRANSPARENT: nodeColor;
+		 diffuseColor = nodeColor == Color.BLACK ? nodeColor : Color.TRANSPARENT;
+		 //diffuseColor = nodeColor == Color.WHITE ? Color.TRANSPARENT: nodeColor;
 		
 		 textureMaterial.setDiffuseColor(diffuseColor);
 		box.setMaterial(textureMaterial);
@@ -889,17 +853,6 @@ public class VolumeGenerator {
 		SimpleRectangle scaledRectangle = new SimpleRectangle(leftMostPos, topMostPos, rightMostPos - leftMostPos,
 				bottomMostPos - topMostPos);
 
-		/**
-		 * if (level == 0) { scaledRectangle.setFill(Color.RED);
-		 * scaledRectangle.setStroke(Color.RED); } else if (level >= 1) {
-		 * scaledRectangle.setFill(Color.BLUE); scaledRectangle.setStroke(Color.BLACK);
-		 * } else { scaledRectangle.setFill(Color.CHARTREUSE);
-		 * scaledRectangle.setStroke(Color.BLACK);
-		 * 
-		 * } scaledRectangle.setFill(Color.TRANSPARENT);
-		 **/
-		// scaledRectangle.setFill(Color.YELLOW);
-
 		BoundingBox boundingBox = new BoundingBox();
 		boundingBox.setScaledRectangle(scaledRectangle);
 		boundingBox.setUnScaledRectangle(unScaledRectangle);
@@ -979,7 +932,10 @@ public class VolumeGenerator {
 		// lStartTime = System.nanoTime();
 		int rows = distanceArrays.get(projectionMatrixId).length;
 		int columns = distanceArrays.get(projectionMatrixId)[0].length;
+		//Utils.debugNewLine("Rows: " + rows + ", Columns: " + columns, true);
+		
 		BoundingBox boundingBox = computeBoundingBox(projections, rows, columns, level);
+		Utils.debugNewLine(boundingBox.toString(), false);
 		// lEndTime = System.nanoTime();
 		// output = lEndTime - lStartTime;
 		// System.out.println("Elapsed time for computeBoundingBox in milliseconds: " +
