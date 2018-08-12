@@ -6,7 +6,7 @@ import org.opencv.videoio.VideoCapture;
 
 public class CameraController {
 
-	private static final int CAPTURE_DEVICE_NUMBER = 1;
+	private static final int CAPTURE_DEVICE_NUMBER = 0;
 	
 	private boolean isCameraActive;
 	

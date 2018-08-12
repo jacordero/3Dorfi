@@ -311,6 +311,7 @@ public class ObjectRecognizerController {
 		cameraController = new CameraController();
 		cameraFrame = new Mat();
 		cameraFrameView = new ImageView();
+		originalFrame = new ImageView();
 		videoTimer = new Timer();
 		videoTimerActive = false;
 		calibrationTimer = new Timer();
@@ -326,9 +327,17 @@ public class ObjectRecognizerController {
 		calibrationImageCounter = 0;
 		calibrationIndices = new ArrayList<String>();
 		calibrationIndices.add("deg-0");
+		calibrationIndices.add("deg-30");
+		calibrationIndices.add("deg-60");
 		calibrationIndices.add("deg-90");
+		calibrationIndices.add("deg-120");
+		calibrationIndices.add("deg-150");
 		calibrationIndices.add("deg-180");
+		calibrationIndices.add("deg-210");
+		calibrationIndices.add("deg-240");
 		calibrationIndices.add("deg-270");
+		calibrationIndices.add("deg-300");
+		calibrationIndices.add("deg-330");
 		projectionGenerator = null;
 		octree = null;
 	}
@@ -378,7 +387,7 @@ public class ObjectRecognizerController {
 
 				stopVideo();
 				System.out.println("Timers are cancelled!");
-				cameraFrameView.setImage(new Image("images/bkg_img.jpg"));
+				//cameraFrameView.setImage(new Image("images/bkg_img.jpg"));
 			}
 			// System.out.println("CheckBox Action (selected: " + selected + ")");
 		});
@@ -401,13 +410,13 @@ public class ObjectRecognizerController {
 		 **/
 
 		// Set default image
-		try {
+		/*try {
 			defaultVideoImage = new Image("images/bkg_img.jpg");
 			cameraFrameView.setImage(defaultVideoImage);
 		} catch (Exception e) {
 			e.printStackTrace();
 			defaultVideoImage = null;
-		}
+		}*/
 
 		// segmentationAlgorithm;
 		segmentationAlgorithm.getItems().add("Watersheed");
@@ -909,8 +918,8 @@ public class ObjectRecognizerController {
 					@Override
 					public void run() {
 						if (!cameraFrame.empty()) {
-							cameraFrameView.setImage(Utils.mat2Image(cameraFrame));
-							originalFrame.setFitWidth(100);
+							originalFrame.setImage(Utils.mat2Image(cameraFrame));
+							originalFrame.setFitWidth(500);
 							originalFrame.setPreserveRatio(true);
 						}
 					}
@@ -955,6 +964,7 @@ public class ObjectRecognizerController {
 					calibrationFrame.setFitWidth(100);
 					calibrationFrame.setPreserveRatio(true);
 					calibrationImagesMap.put(calibrationIndices.get(calibrationImageCounter), calibrationImage);
+					saveCalibrationImages(calibrationIndices.get(calibrationImageCounter), calibrationImage);
 					calibrationImageCounter += 1;
 					if (calibrationImageCounter > calibrationIndices.size() - 1){
 						calibrationImageCounter = 0;
@@ -1029,15 +1039,39 @@ public class ObjectRecognizerController {
 
 	@FXML
 	private void calibrateCameraForExtrinsicParams() {
-		
 		Utils.debugNewLine("*** Calibrating camera to find extrinsic parameters ***", true);
 		Utils.debugNewLine("Calibration images Map size: " + calibrationImagesMap.size(), true);
-		if (!calibrationImagesMap.isEmpty()) {
-			projectionGenerator = cameraCalibrator.calibrateMatrices(calibrationImagesMap, true);
-			//projector = cameraCalibrator.calibrateSingleMatrix(calibrationImage, true);
-		} else {
+		if (calibrationImagesMap.isEmpty()) {
 			Utils.debugNewLine("*** Load calibration images ***", true);
+			// Load calibration images
+			String imgPrefix = "images/calibrationImages/";
+			final File folder = new File(imgPrefix);
+			List<String> calibrationImageFilenames = Utils.listFilesForFolder(folder);
+
+			int calIndex = 0;
+			for (String filename: calibrationImageFilenames){
+				filename = imgPrefix + filename;
+				System.out.println("Filename: " + filename);
+				Mat image = Utils.loadImage(filename);
+				if (image != null){
+					calibrationImagesMap.put(calibrationIndices.get(calIndex), image);
+					calIndex++;
+				}
+			}
 		}
+		projectionGenerator = cameraCalibrator.calibrateMatrices(calibrationImagesMap, true);
+	}
+	
+	public List<String> listFilesForFolder(final File folder) {
+		List<String> fileNames = new ArrayList<String>();
+	    for (final File fileEntry : folder.listFiles()) {
+	        if (fileEntry.isDirectory()) {
+	            listFilesForFolder(fileEntry);
+	        } else {
+	            fileNames.add(fileEntry.getName());
+	        }
+	    }
+	    return fileNames;
 	}
 
 	/**
@@ -1692,6 +1726,11 @@ public class ObjectRecognizerController {
 		imageOperationsFrame.setImage(image);
 		imageOperationsFrame.setFitWidth(500);
 		imageOperationsFrame.setPreserveRatio(true);
+	}
+	
+	public void saveCalibrationImages(String imageKey, Mat calibrationImage) {
+		String imagePrefix = "images/calibrationImages/";
+		Utils.saveImage(calibrationImage, imagePrefix + imageKey + ".jpg");
 	}
 
 }

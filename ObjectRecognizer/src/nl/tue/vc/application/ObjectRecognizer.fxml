@@ -48,13 +48,6 @@
                                        <children>
                                           <CheckBox fx:id="turnOnCamera" mnemonicParsing="false" text="Start cam" />
                                           <CheckBox fx:id="enableCameraCalibration" mnemonicParsing="false" text="Calibrate" />
-                                          <Label text="Boards #" />
-                                          <TextField fx:id="numBoards" maxWidth="50" text="20" />
-                                          <Label text="Horizontal corners #" />
-                                          <TextField fx:id="numHorCorners" maxWidth="50" text="9" />
-                                          <Label text="Vertical corners #" />
-                                          <TextField fx:id="numVertCorners" maxWidth="50" text="6" />
-                                          <Button fx:id="applyButton" alignment="center" onAction="#updateSettings" text="Apply" />
                                           <Button fx:id="calibrateExtrinsicParamsButton" mnemonicParsing="false" onAction="#calibrateCameraForExtrinsicParams" text="Calibrate">
                                              <HBox.margin>
                                                 <Insets left="10.0" />
@@ -69,6 +62,30 @@
                                  </children>
                               </VBox>
                            </top>
+                           <left>
+                              <VBox fx:id="vboxLeftMain" alignment="CENTER" BorderPane.alignment="CENTER">
+                                 <children>
+                                    <ImageView fx:id="cameraFrameView" fitHeight="140.0" fitWidth="120.0" pickOnBounds="true" preserveRatio="true">
+                                       <VBox.margin>
+                                          <Insets bottom="10.0" top="10.0" />
+                                       </VBox.margin>
+                                    </ImageView>
+                                 </children>
+                                 <padding>
+                                    <Insets left="10" right="10" />
+                                 </padding>
+                              </VBox>
+                           </left>
+                           <right>
+                              <VBox fx:id="vboxRightMain" alignment="CENTER" spacing="10" BorderPane.alignment="CENTER">
+                                 <children>
+                                    <ImageView fx:id="calibrationFrame" />
+                                 </children>
+                                 <padding>
+                                    <Insets left="10" right="10" />
+                                 </padding>
+                              </VBox>
+                           </right>
                         </BorderPane>
                      </children>
                   </AnchorPane>
@@ -87,11 +104,6 @@
                                           <Insets bottom="10" top="10" />
                                        </padding>
                                        <children>
-                                          <CheckBox fx:id="debugSegmentation" mnemonicParsing="false" text="Debug segmentation algorithm">
-                                             <HBox.margin>
-                                                <Insets left="10.0" right="20.0" top="5.0" />
-                                             </HBox.margin>
-                                          </CheckBox>
                                           <Label text="Segmentation alg:">
                                              <HBox.margin>
                                                 <Insets left="10.0" right="5.0" top="5.0" />
@@ -118,16 +130,6 @@
                                  </children>
                               </VBox>
                            </top>
-                           <right>
-                              <VBox fx:id="vboxRight" alignment="CENTER" spacing="10" BorderPane.alignment="CENTER">
-                                 <children>
-                                    <ImageView fx:id="calibrationFrame" />
-                                 </children>
-                                 <padding>
-                                    <Insets left="10" right="10" />
-                                 </padding>
-                              </VBox>
-                           </right>
                            <center>
                               <VBox alignment="CENTER" minHeight="-Infinity" minWidth="-Infinity" prefHeight="400.0" prefWidth="500.0" BorderPane.alignment="CENTER">
                                  <children>
@@ -154,10 +156,17 @@
                                  </padding>
                               </HBox>
                            </bottom>
+                           <right>
+                              <VBox fx:id="vboxRight" alignment="CENTER" spacing="10" BorderPane.alignment="CENTER">
+                                 <padding>
+                                    <Insets left="10" right="10" />
+                                 </padding>
+                              </VBox>
+                           </right>
                            <left>
-                              <VBox fx:id="vboxLeft" alignment="CENTER" BorderPane.alignment="TOP_CENTER">
+                              <VBox fx:id="vboxLeft" alignment="CENTER" BorderPane.alignment="CENTER">
                                  <children>
-                                    <ImageView fx:id="cameraFrameView" fitHeight="140.0" fitWidth="120.0" pickOnBounds="true" preserveRatio="true">
+                                    <ImageView fx:id="cameraFrameView1" fitHeight="140.0" fitWidth="120.0" pickOnBounds="true" preserveRatio="true">
                                        <VBox.margin>
                                           <Insets bottom="10.0" top="10.0" />
                                        </VBox.margin>
