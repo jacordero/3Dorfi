@@ -1,8 +1,5 @@
 package nl.tue.vc.model;
 
-import java.util.ArrayList;
-import java.util.List;
-
 import javafx.scene.paint.Color;
 import nl.tue.vc.application.utils.Utils;
 import nl.tue.vc.model.BoxParameters;
@@ -30,12 +27,12 @@ public class InternalNode extends Node{
 		positionCenterZ = parentCenterZ;
 		
 		this.boxParameters = new BoxParameters();		
-		this.boxParameters.setSizeX((int) sizeX);
-		this.boxParameters.setSizeY((int) sizeY);
-		this.boxParameters.setSizeZ((int) sizeZ);
-		this.boxParameters.setCenterX((int)parentCenterX);
-		this.boxParameters.setCenterY((int)parentCenterY);
-		this.boxParameters.setCenterZ((int)parentCenterZ);
+		this.boxParameters.setSizeX(sizeX);
+		this.boxParameters.setSizeY(sizeY);
+		this.boxParameters.setSizeZ(sizeZ);
+		this.boxParameters.setCenterX(parentCenterX);
+		this.boxParameters.setCenterY(parentCenterY);
+		this.boxParameters.setCenterZ(parentCenterZ);
 
 		if (octreeHeight < 0){
 			children = null;
@@ -43,15 +40,6 @@ public class InternalNode extends Node{
 			double childrenSizeX = sizeX / 2;
 			double childrenSizeY = sizeY / 2;
 			double childrenSizeZ = sizeZ / 2;
-			List<Color> childrenColors = new ArrayList<Color>();
-			childrenColors.add(Color.GREEN);
-			childrenColors.add(Color.RED);
-			childrenColors.add(Color.YELLOW);
-			childrenColors.add(Color.BROWN);
-			childrenColors.add(Color.ORANGE);
-			childrenColors.add(Color.CYAN);
-			childrenColors.add(Color.BLUE);
-			childrenColors.add(Color.MAGENTA);
 			for (int i = 0; i < children.length; i++){
 				DeltaStruct displacementDirections = computeDisplacementDirections(i);
 				double displacementX = childrenSizeX / 2;
@@ -93,13 +81,13 @@ public class InternalNode extends Node{
 		positionCenterZ = 0;
 		
 		this.boxParameters = new BoxParameters();		
-		this.boxParameters.setSizeX((int) sizeX);
-		this.boxParameters.setSizeY((int) sizeY);
-		this.boxParameters.setSizeZ((int) sizeZ);
+		this.boxParameters.setSizeX(sizeX);
+		this.boxParameters.setSizeY(sizeY);
+		this.boxParameters.setSizeZ(sizeZ);
 
-		this.boxParameters.setCenterX((int)positionCenterX);
-		this.boxParameters.setCenterY((int)positionCenterY);
-		this.boxParameters.setCenterZ((int)positionCenterZ);
+		this.boxParameters.setCenterX(positionCenterX);
+		this.boxParameters.setCenterY(positionCenterY);
+		this.boxParameters.setCenterZ(positionCenterZ);
 	}
 
 	

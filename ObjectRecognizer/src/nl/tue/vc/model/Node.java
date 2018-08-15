@@ -119,6 +119,8 @@ public abstract class Node {
 	}
 	
 	protected DeltaStruct computeDisplacementDirections(int index) {
+		return OctreeUtils.computeDisplacementDirections(index);
+		/**
 		DeltaStruct deltas = new DeltaStruct();
 		switch (index) {
 		case 0:
@@ -166,6 +168,7 @@ public abstract class Node {
 		}
 
 		return deltas;
+		**/
 	}
 
 	

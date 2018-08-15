@@ -17,12 +17,12 @@ public class Leaf extends Node{
 		this.positionCenterZ = centerZ;
 		this.color = color;
 		this.boxParameters = new BoxParameters();		
-		this.boxParameters.setSizeX((int)sizeX);
-		this.boxParameters.setSizeY((int)sizeY);
-		this.boxParameters.setSizeZ((int)sizeZ);		
-		this.boxParameters.setCenterX((int)centerX);
-		this.boxParameters.setCenterY((int)centerY);
-		this.boxParameters.setCenterZ((int)centerZ);
+		this.boxParameters.setSizeX(sizeX);
+		this.boxParameters.setSizeY(sizeY);
+		this.boxParameters.setSizeZ(sizeZ);		
+		this.boxParameters.setCenterX(centerX);
+		this.boxParameters.setCenterY(centerY);
+		this.boxParameters.setCenterZ(centerZ);
 	}
 	
 	public Leaf(Color color, double sizeX, double sizeY, double sizeZ) {
@@ -34,12 +34,12 @@ public class Leaf extends Node{
 		this.positionCenterZ = 0;
 		this.color = color;
 		this.boxParameters = new BoxParameters();		
-		this.boxParameters.setSizeX((int)sizeX);
-		this.boxParameters.setSizeY((int)sizeY);
-		this.boxParameters.setSizeZ((int)sizeZ);		
-		this.boxParameters.setCenterX((int)positionCenterX);
-		this.boxParameters.setCenterY((int)positionCenterY);
-		this.boxParameters.setCenterZ((int)positionCenterZ);
+		this.boxParameters.setSizeX(sizeX);
+		this.boxParameters.setSizeY(sizeY);
+		this.boxParameters.setSizeZ(sizeZ);		
+		this.boxParameters.setCenterX(positionCenterX);
+		this.boxParameters.setCenterY(positionCenterY);
+		this.boxParameters.setCenterZ(positionCenterZ);
 	}
 	
 	@Override

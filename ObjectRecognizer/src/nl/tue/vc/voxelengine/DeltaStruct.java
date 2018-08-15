@@ -8,9 +8,11 @@ public class DeltaStruct {
 	
 	public int deltaZ;
 	
+	public int index;
+	
 	@Override
 	public String toString() {
-		return "deltaX: " + deltaX + ", deltaY: " + deltaY + ", deltaZ: " + deltaZ;
+		return "index: " + index + ", deltaX: " + deltaX + ", deltaY: " + deltaY + ", deltaZ: " + deltaZ;
 	}
 	
 }

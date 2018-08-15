@@ -164,7 +164,7 @@ public class VolumeGeneratorTest {
 	}
 	
 	public List<Box> generateOctreeVoxels(){
-		Utils.debugNewLine("[VolumeGenerator] generateVolume", true);
+		Utils.debugNewLine("[VolumeGenerator] generateOctreeVoxels", true);
 		Utils.debugNewLine("ImagesForDistanceComputation: " + imagesForDistanceComputation.size(), true);
 		//return generateTestVoxels();
 		
@@ -299,13 +299,17 @@ public class VolumeGeneratorTest {
 			double newSizeY = currentParameters.getSizeY() / 2;
 			double newSizeZ = currentParameters.getSizeZ() / 2;			
 			
+			double deltaCenterX = newSizeX / 2;
+			double deltaCenterY = newSizeY / 2;
+			double deltaCenterZ = newSizeZ / 2;
+			
 			BoxParameters newParameters = new BoxParameters();
 			newParameters.setSizeX(newSizeX);
 			newParameters.setSizeY(newSizeY);
 			newParameters.setSizeZ(newSizeZ);
-			newParameters.setCenterX(currentParameters.getCenterX() + (currentDeltas.deltaX * newSizeX));
-			newParameters.setCenterY(currentParameters.getCenterY() + (currentDeltas.deltaY * newSizeY));
-			newParameters.setCenterZ(currentParameters.getCenterZ() + (currentDeltas.deltaZ * newSizeZ));
+			newParameters.setCenterX(currentParameters.getCenterX() + (currentDeltas.deltaX * deltaCenterX));
+			newParameters.setCenterY(currentParameters.getCenterY() + (currentDeltas.deltaY * deltaCenterY));
+			newParameters.setCenterZ(currentParameters.getCenterZ() + (currentDeltas.deltaZ * deltaCenterZ));
 
 			for (int i = 0; i < children.length; i++) {
 				// compute deltaX, deltaY, and deltaZ for new voxels
@@ -922,24 +926,19 @@ public class VolumeGeneratorTest {
 		double sceneWidth = boxParameters.getCenterX();
 		double sceneHeight = boxParameters.getCenterY();
 		double sceneDepth = boxParameters.getCenterZ();
+
 		double sizeX = boxParameters.getSizeX();
-		
-		// invert the axis
 		double sizeY = boxParameters.getSizeY();
 		double sizeZ = boxParameters.getSizeZ();
 		
 		
 		Box box = new Box(sizeX, sizeY, sizeZ);
 		double posx = sceneWidth + (deltas.deltaX * (sizeX / 2));
-		
-		// invert the axis
 		double posy = sceneHeight + (deltas.deltaY * (sizeY / 2));
 		double posz = sceneDepth + (deltas.deltaZ * (sizeZ / 2));
 		
 		//Mirror the position in the y axis. So far only works for a maximum value of 80		
 		box.setTranslateX(posx);
-		
-		
 		box.setTranslateY(posy);
 		box.setTranslateZ(posz);
 
