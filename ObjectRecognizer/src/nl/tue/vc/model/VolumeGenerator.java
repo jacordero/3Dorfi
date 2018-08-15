@@ -245,23 +245,22 @@ public class VolumeGenerator {
 					boxColor = getPaintColor(copyNode.getColor(), Color.WHITE);
 				}
 
-				if (boxColor == Color.BLACK){
+				if (boxColor == Color.WHITE){
+					whiteCounter++;
+					break;
+				} else if (boxColor == Color.BLACK){
 					blackCounter++;
-					//foundBlack = true;
 				} else if (boxColor == Color.GRAY){
 					grayCounter++;
-					//foundGray = true;
-				} else if (boxColor == Color.WHITE){
-					whiteCounter++;
-					//foundWhite = true;
 				}
 			}
-			if (blackCounter > 0 && grayCounter == 0 && whiteCounter == 0){
-				currentNode.setColor(Color.BLACK);
-			} else if (grayCounter > 0 && !(whiteCounter > (grayCounter + blackCounter))){
-				currentNode.setColor(Color.GRAY);
-			} else {
+			
+			if (whiteCounter > 0 ){
 				currentNode.setColor(Color.WHITE);
+			} else if (blackCounter > 0 && grayCounter == 0){
+				currentNode.setColor(Color.BLACK);
+			} else if (grayCounter > 0){
+				currentNode.setColor(Color.GRAY);
 			}			
 		} else {
 			if (currentNode.getColor() == Color.GRAY) {

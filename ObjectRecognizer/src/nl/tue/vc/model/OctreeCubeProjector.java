@@ -58,6 +58,8 @@ public class OctreeCubeProjector {
 		Scalar black = new Scalar(0, 0, 0);
 		Scalar magenta = new Scalar(139, 0, 139);
 		
+		Mat imgCopy = img.clone();
+		
 		List<MatOfPoint> topPoints = new ArrayList<MatOfPoint>();		
 		topPoints.add(new MatOfPoint(new Point(projectedPoints.get(4).getX(), projectedPoints.get(4).getY())));
 		topPoints.add(new MatOfPoint(new Point(projectedPoints.get(5).getX(), projectedPoints.get(5).getY())));
@@ -75,25 +77,25 @@ public class OctreeCubeProjector {
 		
 		int thickness = 5;
 		// Top
-		Imgproc.line(img, point4, point5, red, thickness);
-		Imgproc.line(img, point5, point6, red, thickness);
-		Imgproc.line(img, point6, point7, red, thickness);
-		Imgproc.line(img, point7, point4, red, thickness);
+		Imgproc.line(imgCopy, point4, point5, red, thickness);
+		Imgproc.line(imgCopy, point5, point6, red, thickness);
+		Imgproc.line(imgCopy, point6, point7, red, thickness);
+		Imgproc.line(imgCopy, point7, point4, red, thickness);
 		
 		// Bottom
-		Imgproc.line(img, point0, point1, red, thickness);
-		Imgproc.line(img, point1, point2, red, thickness);
-		Imgproc.line(img, point2, point3, red, thickness);
-		Imgproc.line(img, point3, point0, red, thickness);
+		Imgproc.line(imgCopy, point0, point1, red, thickness);
+		Imgproc.line(imgCopy, point1, point2, red, thickness);
+		Imgproc.line(imgCopy, point2, point3, red, thickness);
+		Imgproc.line(imgCopy, point3, point0, red, thickness);
 		
 		// Sides
-		Imgproc.line(img, point0, point4, red, thickness);
-		Imgproc.line(img, point1, point5, red, thickness);
-		Imgproc.line(img, point2, point6, red, thickness);
-		Imgproc.line(img, point3, point7, red, thickness);
+		Imgproc.line(imgCopy, point0, point4, red, thickness);
+		Imgproc.line(imgCopy, point1, point5, red, thickness);
+		Imgproc.line(imgCopy, point2, point6, red, thickness);
+		Imgproc.line(imgCopy, point3, point7, red, thickness);
 				
 		
-		return img;
+		return imgCopy;
 	}
 		
 	public List<ProjectedPoint> projectPoints(String matrixIndex, ProjectionGenerator projectionGenerator){

@@ -174,7 +174,7 @@ public class ObjectRecognizerController {
 	private TextField levelsField;
 
 	@FXML
-	private Button generateButton;
+	private Button update3dModelButton;
 
 	@FXML
 	private Button modelGenerationTestButton;
@@ -432,7 +432,8 @@ public class ObjectRecognizerController {
 		projectionImagesArea.getChildren().add(projectionImagesView);
 		projectionImagesView.setMaxWidth(140);
 		
-		generateButton.setOnKeyReleased((event) -> {
+		/**
+		update3dModelButton.setOnKeyReleased((event) -> {
 			CUBE_LENGTH_X = (float) Double.parseDouble(textFieldOctreeLengthX.getText());
 			CUBE_LENGTH_Y = (float) Double.parseDouble(textFieldOctreeLengthY.getText());
 			CUBE_LENGTH_Z = (float) Double.parseDouble(textFieldOctreeLengthZ.getText());
@@ -440,11 +441,12 @@ public class ObjectRecognizerController {
 			DISPLACEMENT_X = (float) Double.parseDouble(textFieldOctreeDisplacementX.getText());
 			DISPLACEMENT_Y = (float) Double.parseDouble(textFieldOctreeDisplacementY.getText());
 			DISPLACEMENT_Z = (float) Double.parseDouble(textFieldOctreeDisplacementZ.getText());
-			this.levels = Integer.parseInt(this.levelsField.getText());
 
-			constructModel();
-			renderModel();
+			createOctreeProjections();
+			//constructModel();
+			//renderModel();
 		});
+		**/
 	}
 
 	/**
@@ -728,7 +730,7 @@ public class ObjectRecognizerController {
 	 * updates the boxsize and levels of the octree
 	 */
 	@FXML
-	protected void updateOctreeSettings() {
+	protected void update3DModel() {
 		CUBE_LENGTH_X = (float) Double.parseDouble(textFieldOctreeLengthX.getText());
 		CUBE_LENGTH_Y = (float) Double.parseDouble(textFieldOctreeLengthY.getText());
 		CUBE_LENGTH_Z = (float) Double.parseDouble(textFieldOctreeLengthZ.getText());
@@ -736,9 +738,9 @@ public class ObjectRecognizerController {
 		DISPLACEMENT_X = (float) Double.parseDouble(textFieldOctreeDisplacementX.getText());
 		DISPLACEMENT_Y = (float) Double.parseDouble(textFieldOctreeDisplacementY.getText());
 		DISPLACEMENT_Z = (float) Double.parseDouble(textFieldOctreeDisplacementZ.getText());
-		this.levels = Integer.parseInt(this.levelsField.getText());
-		constructModel();
-		renderModel();
+		createOctreeProjections();
+		//constructModel();
+		//renderModel();
 	}
 
 	/**
@@ -1136,6 +1138,7 @@ public class ObjectRecognizerController {
 	private void createOctreeProjections(){				
 		System.out.println("[ObjectRecognizerController.createOctreeProjections]");
 		projectionImagesView = new ListView<String>();
+		projectionImagesMap = new HashMap<String, Mat>();
 		projectionImagesNames = FXCollections.observableArrayList();
 		projectionImagesDescription = new HashMap<String, Integer>();
 
@@ -1210,6 +1213,7 @@ public class ObjectRecognizerController {
 	protected void visualizeModel() {
 		octree = null;
 		renderModel();
+		Utils.debugNewLine("+++ Model visualization is ready!", true);
 	}
 
 	public void renderModel() {

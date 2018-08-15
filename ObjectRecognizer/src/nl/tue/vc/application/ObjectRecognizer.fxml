@@ -262,7 +262,7 @@
                                              </HBox.margin>
                                           </TextField>
 
-                                          <Button fx:id="generateButton" alignment="center" onAction="#updateOctreeSettings" text="Generate">
+                                          <Button fx:id="update3dModelButton" alignment="center" onAction="#update3DModel" text="Update Model">
                                              <HBox.margin>
                                                 <Insets left="10.0" />
                                              </HBox.margin>
