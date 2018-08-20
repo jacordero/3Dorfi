@@ -84,6 +84,20 @@
                                  </padding>
                               </VBox>
                            </right>
+                           <left>
+                              <VBox fx:id="objectImageArea" alignment="CENTER" BorderPane.alignment="TOP_CENTER">
+                                 <children>
+                                    <ImageView fx:id="cameraFrameView" fitHeight="140.0" fitWidth="120.0" pickOnBounds="true" preserveRatio="true">
+                                       <VBox.margin>
+                                          <Insets bottom="10.0" top="10.0" />
+                                       </VBox.margin>
+                                    </ImageView>
+                                 </children>
+                                 <padding>
+                                    <Insets left="10" right="10" />
+                                 </padding>
+                              </VBox>
+                           </left>
                         </BorderPane>
                      </children>
                   </AnchorPane>
@@ -122,6 +136,7 @@
                                                 <Insets right="20.0" top="5.0" />
                                              </HBox.margin>
                                           </Slider>
+                                          <CheckBox fx:id="thresholdForAll" mnemonicParsing="false" text="Apply to all" />
                                        </children>
                                     </HBox>
                                     <Separator prefWidth="200.0" />
@@ -161,20 +176,6 @@
                                  </padding>
                               </HBox>
                            </bottom>
-                           <left>
-                              <VBox fx:id="objectImageArea" alignment="CENTER" BorderPane.alignment="TOP_CENTER">
-                                 <children>
-                                    <ImageView fx:id="cameraFrameView" fitHeight="140.0" fitWidth="120.0" pickOnBounds="true" preserveRatio="true">
-                                       <VBox.margin>
-                                          <Insets bottom="10.0" top="10.0" />
-                                       </VBox.margin>
-                                    </ImageView>
-                                 </children>
-                                 <padding>
-                                    <Insets left="10" right="10" />
-                                 </padding>
-                              </VBox>
-                           </left>
                         </BorderPane>
                      </children>
                   </AnchorPane>

@@ -57,6 +57,7 @@ import nl.tue.vc.imgproc.SilhouetteExtractor;
 import nl.tue.vc.projection.ProjectionGenerator;
 import nl.tue.vc.voxelengine.CameraPosition;
 import nl.tue.vc.voxelengine.VolumeRenderer;
+import sun.rmi.server.Util;
 import nl.tue.vc.model.BoxParameters;
 import nl.tue.vc.model.Octree;
 import nl.tue.vc.model.OctreeCubeProjector;
@@ -148,10 +149,16 @@ public class ObjectRecognizerController {
 
 	@FXML
 	private CheckBox enableCameraCalibration;
+	
+	@FXML
+	private CheckBox thresholdForAll;
 
 	@FXML
 	private ImageView cameraFrameView;
-
+	
+	@FXML
+	private ImageView binaryFrameView;
+	
 	@FXML
 	private TextField textFieldOctreeLengthX;
 	
@@ -215,6 +222,8 @@ public class ObjectRecognizerController {
 	private Mat distCoeffs;
 	private boolean isCalibrated;
 
+	private int OCTREE_LEVELS = 7;
+	
 	private String thresholdImageIndex = "ALL_IMAGES";
 	Map<String, Integer> imageThresholdMap = new HashMap<String, Integer>();
 	private Map<String, Mat> objectImagesMap = new HashMap<String, Mat>();
@@ -291,8 +300,9 @@ public class ObjectRecognizerController {
 	private Octree octree;
 	private String calibrationImagesDir = "images/calibrationImages/";
 
-	private String DEFAULT_IMAGES_DIR = "images/multiOctreesTest/";
-
+	private String OBJECT_IMAGES_DIR = "images/laptopCharger/";
+	private String CALIBRATION_IMAGES_DIR = "images/laptopCharger/calibrationImages/";
+	
 	public ObjectRecognizerController() {
 
 		silhouetteExtractor = new SilhouetteExtractor();
@@ -306,13 +316,24 @@ public class ObjectRecognizerController {
 		calibrationTimerActive = false;
 		cameraCalibrator = new CameraCalibrator();
 		
+		/** Xbox control 
 		DISPLACEMENT_X = -2;
 		DISPLACEMENT_Y = -1;
-		DISPLACEMENT_Z = -2;
+		DISPLACEMENT_Z = (float) -6.5;
+		
+		CUBE_LENGTH_X = 11;
+		CUBE_LENGTH_Y = (float) 6.5;
+		CUBE_LENGTH_Z = (float) 14.5;
+		**/
+		
+		DISPLACEMENT_X = -2;
+		DISPLACEMENT_Y = -1;
+		DISPLACEMENT_Z = (float) -2;
 		
 		CUBE_LENGTH_X = 10;
 		CUBE_LENGTH_Y = (float) 6.5;
-		CUBE_LENGTH_Z = 8;
+		CUBE_LENGTH_Z = (float) 8;
+		
 		
 		this.levels = 0;// Integer.parseInt(this.levelsField.getText());
 
@@ -348,12 +369,26 @@ public class ObjectRecognizerController {
 			updateCameraDistance(newValue.intValue());
 		});
 
+		binaryThresholdSlider.valueChangingProperty().addListener(new ChangeListener<Boolean>(){
+			@Override
+			public void changed(ObservableValue<? extends Boolean> observableValue,
+					Boolean wasChanging,
+					Boolean changing){
+				if (!changing){
+					updateBinaryThreshold((int)binaryThresholdSlider.getValue());
+				} else {
+					thresholdLabel.setText("Threshold: " + String.format("%.2f", binaryThresholdSlider.getValue()));
+				}
+			}
+		});
+		
 		binaryThresholdSlider.valueProperty().addListener((observable, oldValue, newValue) -> {
 			// System.out.println("Binary treshold value changed (newValue: " +
 			// newValue.intValue() + ")");
 			thresholdLabel.setText("Threshold: " + String.format("%.2f", newValue));
 			updateBinaryThreshold(newValue.intValue());
 		});
+		
 
 		// configuration of the camera
 		turnOnCamera.setOnAction((event) -> {
@@ -384,6 +419,7 @@ public class ObjectRecognizerController {
 		// Camera calibration is selected
 		enableCameraCalibration.setOnAction((event) -> {
 			calibrationImageCounter = 0;
+			Utils.debugNewLine("calibrationImageCounter is set to " + calibrationImageCounter, true);
 		});
 
 		/**
@@ -568,16 +604,20 @@ public class ObjectRecognizerController {
 						setText(null);
 						setGraphic(null);
 					} else {
-						Utils.debugNewLine("Image name: ", true);
 						int imagePosition = objectImagesDescription.get(name);
+						Utils.debugNewLine("Image name: " + name + ", position: " + imagePosition, true);
+						Utils.debugNewLine("ObjectImagesToDisplay size: " + objectImagesToDisplay.size(), true);
 						imageView.setImage(Utils.mat2Image(objectImagesToDisplay.get(imagePosition)));
 						imageView.setFitWidth(100);
 						imageView.setPreserveRatio(true);
 						setText(name);
 						setGraphic(imageView);
+						
+						/**
 						if (imageOperationsFrame.getImage() == null) {
 							setImageOperationFrameImage(imageView.getImage());
 						}
+						**/
 					}
 				}
 			};
@@ -594,8 +634,8 @@ public class ObjectRecognizerController {
 			return cell;
 		});
 
-		objectImagesView.setMaxWidth(140);
-		objectImagesView.refresh();
+		//objectImagesView.setMaxWidth(140);
+		//objectImagesView.refresh();
 	}
 
 	/**
@@ -619,7 +659,7 @@ public class ObjectRecognizerController {
 		binaryImagesDescription = new HashMap<String, Integer>();
 
 		Utils.debugNewLine("Silhouette extraction for " + thresholdImageIndex, true);
-		if (thresholdImageIndex.equals("ALL_IMAGES")) {
+		if (thresholdImageIndex.equals("ALL_IMAGES") || thresholdForAll.isSelected()) {
 			binarizedImagesMap = new HashMap<String, Mat>();
 
 			for (String imageKey : objectImagesMap.keySet()) {
@@ -715,6 +755,8 @@ public class ObjectRecognizerController {
 		// to allow updating new elements for the list view
 		this.imageProcessingArea.getChildren().clear();
 		this.imageProcessingArea.getChildren().add(binaryImagesView);
+		
+		createOctreeProjections();
 	}
 
 	/**
@@ -935,11 +977,21 @@ public class ObjectRecognizerController {
 				@Override
 				public void run() {
 					cameraController.startCamera();
-					int imagePosition = objectImagesMap.size();
-					String imageKey = calibrationIndices.get(imagePosition);
-					objectImagesMap.put(imageKey, cameraController.grabFrame());
+					//int imagePosition = objectImagesMap.size();
+					
+					String imageKey = calibrationIndices.get(calibrationImageCounter);
+					Mat image = cameraController.grabFrame();
+					objectImagesToDisplay.add(image);
+					objectImagesMap.put(imageKey, image);
 					objectImagesNames.add(imageKey);
-					objectImagesDescription.put(imageKey, objectImagesMap.size() - 1);
+					objectImagesDescription.put(imageKey, objectImagesToDisplay.size() - 1);
+					int threshold = (int) binaryThresholdSlider.getValue();
+					imageThresholdMap.put(imageKey, threshold);
+
+					calibrationImageCounter += 1;
+					if (calibrationImageCounter > calibrationIndices.size() - 1){
+						calibrationImageCounter = 0;
+					}
 					showImages();
 				}
 			};
@@ -1115,11 +1167,9 @@ public class ObjectRecognizerController {
 			invertedDistanceArrays.put(imageKey, transformedInvertedArray);
 		}
 
-		// Create the projected octree images
-		createOctreeProjections();
+		// Create the projected octree images		
 		
-		
-		int maxLevels = 7;
+		int maxLevels = 8;
 		for (int i = 0; i < maxLevels; i++){	
 			constructModelAux(i);			
 		}
@@ -1145,19 +1195,16 @@ public class ObjectRecognizerController {
 		OctreeCubeProjector octreeCubeProjector = new OctreeCubeProjector(CUBE_LENGTH_X, CUBE_LENGTH_Y, CUBE_LENGTH_Z,
 				DISPLACEMENT_X, DISPLACEMENT_Y, DISPLACEMENT_Z);
 
-		Utils.debugNewLine("Silhouette extraction for " + thresholdImageIndex, true);
-		if (thresholdImageIndex.equals("ALL_IMAGES")) {
-			projectionImagesMap = new HashMap<String, Mat>();
+		projectionImagesMap = new HashMap<String, Mat>();
 
-			for (String imageKey : objectImagesMap.keySet()) {
-				Mat binaryImage = binarizedImagesMap.get(imageKey);
-				Utils.debugNewLine("Projecting octree for " + imageKey, true);
+		for (String imageKey : objectImagesMap.keySet()) {
+			Mat binaryImage = binarizedImagesMap.get(imageKey);
+			Utils.debugNewLine("Projecting octree for " + imageKey, true);
 
-				Mat projectedImage = octreeCubeProjector.drawProjection(binaryImage, imageKey, projectionGenerator);
-				projectionImagesMap.put(imageKey, projectedImage);
-				projectionImagesNames.add(imageKey);
-				projectionImagesDescription.put(imageKey, projectionImagesMap.size() - 1);
-			}
+			Mat projectedImage = octreeCubeProjector.drawProjection(binaryImage, imageKey, projectionGenerator);
+			projectionImagesMap.put(imageKey, projectedImage);
+			projectionImagesNames.add(imageKey);
+			projectionImagesDescription.put(imageKey, projectionImagesMap.size() - 1);
 		}
 
 		projectionImagesView.setItems(projectionImagesNames);
@@ -1230,8 +1277,17 @@ public class ObjectRecognizerController {
 	}
 
 	private void updateBinaryThreshold(int binaryThreshold) {
+		Utils.debugNewLine("Updating binary threshold!!", true);
+		//selectedBinaryThreshold = binaryThreshold;
+		
 		if (!thresholdImageIndex.equals("ALL_IMAGES")) {
-			imageThresholdMap.put(thresholdImageIndex, binaryThreshold);
+			if (thresholdForAll.isSelected()){
+				for (String imageKey: imageThresholdMap.keySet()){
+					imageThresholdMap.put(imageKey, binaryThreshold);
+				}
+			} else {
+				imageThresholdMap.put(thresholdImageIndex, binaryThreshold);				
+			}
 		}
 	}
 
@@ -1241,18 +1297,18 @@ public class ObjectRecognizerController {
 
 	private void loadDefaultImages() {
 		List<String> calibrationImageFilenames = new ArrayList<String>();
-		calibrationImageFilenames.add(DEFAULT_IMAGES_DIR + "chessboard-0.jpg");
-		calibrationImageFilenames.add(DEFAULT_IMAGES_DIR + "chessboard-30.jpg");
-		calibrationImageFilenames.add(DEFAULT_IMAGES_DIR + "chessboard-60.jpg");
-		calibrationImageFilenames.add(DEFAULT_IMAGES_DIR + "chessboard-90.jpg");
-		calibrationImageFilenames.add(DEFAULT_IMAGES_DIR + "chessboard-120.jpg");
-		calibrationImageFilenames.add(DEFAULT_IMAGES_DIR + "chessboard-150.jpg");
-		calibrationImageFilenames.add(DEFAULT_IMAGES_DIR + "chessboard-180.jpg");
-		calibrationImageFilenames.add(DEFAULT_IMAGES_DIR + "chessboard-210.jpg");
-		calibrationImageFilenames.add(DEFAULT_IMAGES_DIR + "chessboard-240.jpg");
-		calibrationImageFilenames.add(DEFAULT_IMAGES_DIR + "chessboard-270.jpg");
-		calibrationImageFilenames.add(DEFAULT_IMAGES_DIR + "chessboard-300.jpg");
-		calibrationImageFilenames.add(DEFAULT_IMAGES_DIR + "chessboard-330.jpg");
+		calibrationImageFilenames.add(CALIBRATION_IMAGES_DIR + "deg-0.jpg");
+		calibrationImageFilenames.add(CALIBRATION_IMAGES_DIR + "deg-30.jpg");
+		calibrationImageFilenames.add(CALIBRATION_IMAGES_DIR + "deg-60.jpg");
+		calibrationImageFilenames.add(CALIBRATION_IMAGES_DIR + "deg-90.jpg");
+		calibrationImageFilenames.add(CALIBRATION_IMAGES_DIR + "deg-120.jpg");
+		calibrationImageFilenames.add(CALIBRATION_IMAGES_DIR + "deg-150.jpg");
+		calibrationImageFilenames.add(CALIBRATION_IMAGES_DIR + "deg-180.jpg");
+		calibrationImageFilenames.add(CALIBRATION_IMAGES_DIR + "deg-210.jpg");
+		calibrationImageFilenames.add(CALIBRATION_IMAGES_DIR + "deg-240.jpg");
+		calibrationImageFilenames.add(CALIBRATION_IMAGES_DIR + "deg-270.jpg");
+		calibrationImageFilenames.add(CALIBRATION_IMAGES_DIR + "deg-300.jpg");
+		calibrationImageFilenames.add(CALIBRATION_IMAGES_DIR + "deg-330.jpg");
 
 		calibrationImagesMap = new HashMap<String, Mat>();
 		int calIndex = 0;
@@ -1270,18 +1326,18 @@ public class ObjectRecognizerController {
 
 		// Load object images
 		List<String> objectImageFilenames = new ArrayList<String>();
-		objectImageFilenames.add(DEFAULT_IMAGES_DIR + "object-0.jpg");
-		objectImageFilenames.add(DEFAULT_IMAGES_DIR + "object-30.jpg");
-		objectImageFilenames.add(DEFAULT_IMAGES_DIR + "object-60.jpg");
-		objectImageFilenames.add(DEFAULT_IMAGES_DIR + "object-90.jpg");
-		objectImageFilenames.add(DEFAULT_IMAGES_DIR + "object-120.jpg");
-		objectImageFilenames.add(DEFAULT_IMAGES_DIR + "object-150.jpg");
-		objectImageFilenames.add(DEFAULT_IMAGES_DIR + "object-180.jpg");
-		objectImageFilenames.add(DEFAULT_IMAGES_DIR + "object-210.jpg");
-		objectImageFilenames.add(DEFAULT_IMAGES_DIR + "object-240.jpg");
-		objectImageFilenames.add(DEFAULT_IMAGES_DIR + "object-270.jpg");
-		objectImageFilenames.add(DEFAULT_IMAGES_DIR + "object-300.jpg");
-		objectImageFilenames.add(DEFAULT_IMAGES_DIR + "object-330.jpg");
+		objectImageFilenames.add(OBJECT_IMAGES_DIR + "object-0.jpg");
+		objectImageFilenames.add(OBJECT_IMAGES_DIR + "object-30.jpg");
+		objectImageFilenames.add(OBJECT_IMAGES_DIR + "object-60.jpg");
+		objectImageFilenames.add(OBJECT_IMAGES_DIR + "object-90.jpg");
+		objectImageFilenames.add(OBJECT_IMAGES_DIR + "object-120.jpg");
+		objectImageFilenames.add(OBJECT_IMAGES_DIR + "object-150.jpg");
+		objectImageFilenames.add(OBJECT_IMAGES_DIR + "object-180.jpg");
+		objectImageFilenames.add(OBJECT_IMAGES_DIR + "object-210.jpg");
+		objectImageFilenames.add(OBJECT_IMAGES_DIR + "object-240.jpg");
+		objectImageFilenames.add(OBJECT_IMAGES_DIR + "object-270.jpg");
+		objectImageFilenames.add(OBJECT_IMAGES_DIR + "object-300.jpg");
+		objectImageFilenames.add(OBJECT_IMAGES_DIR + "object-330.jpg");
 		objectImagesMap = new HashMap<String, Mat>();
 		calIndex = 0;
 		for (String filename : objectImageFilenames) {
@@ -1299,6 +1355,21 @@ public class ObjectRecognizerController {
 			}
 		}
 
+		// Load specific values for the threshold map
+		/**
+		imageThresholdMap.put(calibrationIndices.get(11), 100);
+		imageThresholdMap.put(calibrationIndices.get(4), 85);
+		imageThresholdMap.put(calibrationIndices.get(2), 100);
+		imageThresholdMap.put(calibrationIndices.get(7), 91);
+		imageThresholdMap.put(calibrationIndices.get(10), 94);
+		imageThresholdMap.put(calibrationIndices.get(1), 98);
+		imageThresholdMap.put(calibrationIndices.get(0), 100);
+		imageThresholdMap.put(calibrationIndices.get(6), 98);
+		imageThresholdMap.put(calibrationIndices.get(5), 96);
+		imageThresholdMap.put(calibrationIndices.get(3), 92);
+		imageThresholdMap.put(calibrationIndices.get(9), 95);
+		imageThresholdMap.put(calibrationIndices.get(8), 96);
+		**/
 		showImages();
 	}
 
@@ -1313,18 +1384,18 @@ public class ObjectRecognizerController {
 		Utils.debugNewLine("ObjectImagesMap size: " + objectImagesMap.size(), true);
 		extractSilhouettes();
 		List<String> binaryImageFilenames = new ArrayList<String>();
-		binaryImageFilenames.add(DEFAULT_IMAGES_DIR + "bin-object-0.png");
-		binaryImageFilenames.add(DEFAULT_IMAGES_DIR + "bin-object-30.png");
-		binaryImageFilenames.add(DEFAULT_IMAGES_DIR + "bin-object-60.png");
-		binaryImageFilenames.add(DEFAULT_IMAGES_DIR + "bin-object-90.png");
-		binaryImageFilenames.add(DEFAULT_IMAGES_DIR + "bin-object-120.png");
-		binaryImageFilenames.add(DEFAULT_IMAGES_DIR + "bin-object-150.png");
-		binaryImageFilenames.add(DEFAULT_IMAGES_DIR + "bin-object-180.png");
-		binaryImageFilenames.add(DEFAULT_IMAGES_DIR + "bin-object-210.png");
-		binaryImageFilenames.add(DEFAULT_IMAGES_DIR + "bin-object-240.png");
-		binaryImageFilenames.add(DEFAULT_IMAGES_DIR + "bin-object-270.png");
-		binaryImageFilenames.add(DEFAULT_IMAGES_DIR + "bin-object-300.png");
-		binaryImageFilenames.add(DEFAULT_IMAGES_DIR + "bin-object-330.png");
+		binaryImageFilenames.add(OBJECT_IMAGES_DIR + "bin-object-0.png");
+		binaryImageFilenames.add(OBJECT_IMAGES_DIR + "bin-object-30.png");
+		binaryImageFilenames.add(OBJECT_IMAGES_DIR + "bin-object-60.png");
+		binaryImageFilenames.add(OBJECT_IMAGES_DIR + "bin-object-90.png");
+		binaryImageFilenames.add(OBJECT_IMAGES_DIR + "bin-object-120.png");
+		binaryImageFilenames.add(OBJECT_IMAGES_DIR + "bin-object-150.png");
+		binaryImageFilenames.add(OBJECT_IMAGES_DIR + "bin-object-180.png");
+		binaryImageFilenames.add(OBJECT_IMAGES_DIR + "bin-object-210.png");
+		binaryImageFilenames.add(OBJECT_IMAGES_DIR + "bin-object-240.png");
+		binaryImageFilenames.add(OBJECT_IMAGES_DIR + "bin-object-270.png");
+		binaryImageFilenames.add(OBJECT_IMAGES_DIR + "bin-object-300.png");
+		binaryImageFilenames.add(OBJECT_IMAGES_DIR + "bin-object-330.png");
 
 		int imageFilenameIndex = 0;
 		System.out.println("BinarizedImagesMap size: " + binarizedImagesMap.size());
@@ -1664,6 +1735,14 @@ public class ObjectRecognizerController {
 		renderingDisplayBorderPane.setCenter(projectionsSubScene);
 	}
 
+	/**
+	public void setCameraFrameImage(Image image){
+		cameraFrameView.setImage(image);
+		cameraFrameView.setFitWidth(500);
+		cameraFrameView.
+	}
+	**/
+	
 	public void setImageOperationFrameImage(Image image) {
 		imageOperationsFrame.setImage(image);
 		imageOperationsFrame.setFitWidth(500);
@@ -1677,7 +1756,7 @@ public class ObjectRecognizerController {
 	}
 	
 	public void saveCalibrationImages(String imageKey, Mat calibrationImage) {
-			Utils.saveImage(calibrationImage, calibrationImagesDir + imageKey + ".jpg");
-		}
+		Utils.saveImage(calibrationImage, calibrationImagesDir + imageKey + ".jpg");
+	}
 
 }
