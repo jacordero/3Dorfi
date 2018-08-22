@@ -300,8 +300,8 @@ public class ObjectRecognizerController {
 	private Octree octree;
 	private String calibrationImagesDir = "images/calibrationImages/";
 
-	private String OBJECT_IMAGES_DIR = "images/laptopCharger/";
-	private String CALIBRATION_IMAGES_DIR = "images/laptopCharger/calibrationImages/";
+	private String OBJECT_IMAGES_DIR = "images/pancake/";
+	private String CALIBRATION_IMAGES_DIR = "images/pancake/calibrationImages/";
 	
 	public ObjectRecognizerController() {
 
@@ -330,9 +330,9 @@ public class ObjectRecognizerController {
 		DISPLACEMENT_Y = -1;
 		DISPLACEMENT_Z = (float) -2;
 		
-		CUBE_LENGTH_X = 10;
-		CUBE_LENGTH_Y = (float) 6.5;
-		CUBE_LENGTH_Z = (float) 8;
+		CUBE_LENGTH_X = 12;
+		CUBE_LENGTH_Y = (float) 8;
+		CUBE_LENGTH_Z = (float) 10;
 		
 		
 		this.levels = 0;// Integer.parseInt(this.levelsField.getText());
@@ -1169,7 +1169,7 @@ public class ObjectRecognizerController {
 
 		// Create the projected octree images		
 		
-		int maxLevels = 8;
+		int maxLevels = 7;
 		for (int i = 0; i < maxLevels; i++){	
 			constructModelAux(i);			
 		}

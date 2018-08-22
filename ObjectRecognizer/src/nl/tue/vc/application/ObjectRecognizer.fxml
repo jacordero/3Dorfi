@@ -197,7 +197,7 @@
                                                 <Insets right="10.0" />
                                              </HBox.margin>
                                           </Label>
-                                          <TextField fx:id="textFieldOctreeLengthX" maxWidth="40" text="10">
+                                          <TextField fx:id="textFieldOctreeLengthX" maxWidth="40" text="12">
                                              <HBox.margin>
                                                 <Insets right="10.0" />
                                              </HBox.margin>
@@ -208,7 +208,7 @@
                                                 <Insets right="10.0" />
                                              </HBox.margin>
                                           </Label>
-                                          <TextField fx:id="textFieldOctreeLengthY" maxWidth="40" text="6.5">
+                                          <TextField fx:id="textFieldOctreeLengthY" maxWidth="40" text="8">
                                              <HBox.margin>
                                                 <Insets right="10.0" />
                                              </HBox.margin>
@@ -219,7 +219,7 @@
                                                 <Insets right="10.0" />
                                              </HBox.margin>
                                           </Label>
-                                          <TextField fx:id="textFieldOctreeLengthZ" maxWidth="40" text="8">
+                                          <TextField fx:id="textFieldOctreeLengthZ" maxWidth="40" text="10">
                                              <HBox.margin>
                                                 <Insets right="10.0" />
                                              </HBox.margin>
