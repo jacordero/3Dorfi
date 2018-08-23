@@ -23,6 +23,8 @@ public abstract class Node {
 	
 	protected double positionCenterZ;
 	
+	protected int depth;
+	
 	protected BoxParameters boxParameters;
 	
 	DeltaStruct displacementDirection;
@@ -99,6 +101,14 @@ public abstract class Node {
 		this.positionCenterZ = positionCenterZ;
 	}
 	
+	
+	public void setDepth(int depth){
+		this.depth = depth;
+	}
+	
+	public int getDepth(){
+		return depth;
+	}
 	
 	public MatOfPoint3f getCorners(){
 		
@@ -178,7 +188,9 @@ public abstract class Node {
 	
 	public abstract void setChildNode(Node childNode, int childIndex);
 	
-	abstract public Node splitNode(int levels);
+	abstract public Node splitNode(int levels, int maxDepth);
+	
+
 	
 	@Override
 	public String toString() {
@@ -192,5 +204,4 @@ public abstract class Node {
 		}
 		return str;
 	}
-	
 }

@@ -8,7 +8,8 @@ public class Leaf extends Node{
 
 	
 	
-	public Leaf(Color color, double sizeX, double sizeY, double sizeZ, double centerX, double centerY, double centerZ) {
+	public Leaf(Color color, double sizeX, double sizeY, double sizeZ, double centerX, double centerY, double centerZ, int nodeDepth) {
+		//Utils.debugNewLine("******************* Leaf with depth: " + nodeDepth, true);
 		this.sizeX = sizeX;
 		this.sizeY = sizeY;
 		this.sizeZ = sizeZ;
@@ -23,6 +24,7 @@ public class Leaf extends Node{
 		this.boxParameters.setCenterX(centerX);
 		this.boxParameters.setCenterY(centerY);
 		this.boxParameters.setCenterZ(centerZ);
+		this.depth = nodeDepth;
 	}
 	
 	public Leaf(Color color, double sizeX, double sizeY, double sizeZ) {
@@ -58,10 +60,12 @@ public class Leaf extends Node{
 	}
 	
 	@Override
-	public Node splitNode(int deltaHeight){
+	public Node splitNode(int deltaHeight, int maxDepth){
+		//Utils.debugNewLine("@@@@@@@@@@@@@ Try to split leaft ", true);		
 		if (deltaHeight > 0 && color == Color.GRAY){
-			Utils.debugNewLine("@@@@@@@@@@@@@ Leaf splitted up to " + deltaHeight + " levels", false);
-			return new InternalNode(color, sizeX, sizeY, sizeZ, positionCenterX, positionCenterY, positionCenterZ, deltaHeight);
+		//if (color == Color.GRAY){	
+			//Utils.debugNewLine("@@@@@@@@@@@@@ Leaf splitted up to " + deltaHeight + " levels", true);
+			return new InternalNode(Color.BLACK, sizeX, sizeY, sizeZ, positionCenterX, positionCenterY, positionCenterZ, deltaHeight, depth);
 		}
 		return this;
 	}

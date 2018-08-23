@@ -25,6 +25,8 @@
                                     <Button fx:id="constructButton" mnemonicParsing="false" onAction="#constructModel" text="Construct 3D Model" />
                                     <Button fx:id="visualizeButton" mnemonicParsing="false" onAction="#visualizeModel" text="Visualize Model" />
                                     <Button fx:id="modelGenerationTestButton" mnemonicParsing="false" onAction="#modelGenerationTest" text="Test" />
+                                    <Button fx:id="modelGenerationSlowTestButton" mnemonicParsing="false" onAction="#modelGenerationSlowTest" text="Slow Test" />
+                  
                                  </children>
                                  <padding>
                                     <Insets bottom="25" left="25" right="25" top="25" />
@@ -58,6 +60,11 @@
                                                 <Insets right="20.0" top="5.0" />
                                              </HBox.margin>
                                           </Slider>
+                                          <ComboBox fx:id="exampleSelection" prefWidth="150.0">
+                                             <HBox.margin>
+                                                <Insets right="20.0" top="5.0" />
+                                             </HBox.margin>
+                                          </ComboBox>
                                           
                                           <Button fx:id="applyButton" alignment="center" onAction="#updateSettings" text="Apply" />
                                           <Button fx:id="calibrateExtrinsicParamsButton" mnemonicParsing="false" onAction="#calibrateCameraForExtrinsicParams" text="Calibrate">

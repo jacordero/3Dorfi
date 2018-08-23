@@ -121,20 +121,22 @@ public class VolumeGenerator {
 			voxels = OctreeVisualUtils.colorForDebug(root, scaledBoxParameters, rootDeltas);
 	}
 	
-	public void generateOctreeVoxels(){
+	public void generateOctreeVoxels(int octreeDepth){
 		Utils.debugNewLine("[VolumeGenerator.generateOctreeVoxels]", true);
 		Utils.debugNewLine("ImagesForDistanceComputation: " + imagesForDistanceComputation.size(), true);
 		//return generateTestVoxels();
 		voxels = new ArrayList<Box>();
 		
+		
 		Node root = octree.getRoot();
+		
 		Utils.debugNewLine("Octree height: "  + octree.getOctreeHeight(), false);
 		if (octree.getInternalNode().isLeaf()) {
 			Utils.debugNewLine("Octree children: 1", false);
 		} else {
 			Utils.debugNewLine("Octree children: " + root.getChildren().length, false);
 		}
-		root = getTestedNodeAux(root);
+		root = getTestedNodeAux(root, octreeDepth);
 		octree.setRoot(root);
 		
 		int scaleFactor = 10;
@@ -171,7 +173,8 @@ public class VolumeGenerator {
 		List<Box> voxels = new ArrayList<Box>();
 		// System.out.println("========================== generateVolumeAux: " +
 		// currentNode + "| " + currentParameters.getBoxSize());
-		if (currentNode == null) {
+		if (currentNode == null || currentNode.getColor() == Color.WHITE) {
+			//Utils.debugNewLine("Current color is white", true);
 			return voxels;
 		}
 
@@ -181,6 +184,8 @@ public class VolumeGenerator {
 			Box box = generateVoxelAux(currentParameters, currentDeltas, currentNode.getColor());
 			voxels.add(box);
 		} else {
+			
+			
 			Node[] children = currentNode.getChildren();
 			double childrenSizeX = currentParameters.getSizeX() / 2;
 			double childrenSizeY = currentParameters.getSizeY() / 2;
@@ -216,7 +221,7 @@ public class VolumeGenerator {
 		return voxels;
 	}
 
-	private Node getTestedNodeAux(Node currentNode) {
+	private Node getTestedNodeAux(Node currentNode, int octreeDepth) {
 
 		//Utils.debugNewLine("#################### Intersection test for node: " + currentNode, false);
 
@@ -232,18 +237,22 @@ public class VolumeGenerator {
 			for (String imageKey: imagesForDistanceComputation.keySet()){
 				Leaf copyNode = new Leaf(currentNode.getColor(), currentNode.getSizeX(), 
 						currentNode.getSizeY(), currentNode.getSizeZ(), currentNode.getPositionCenterX(), 
-						currentNode.getPositionCenterY(), currentNode.getPositionCenterZ());
+						currentNode.getPositionCenterY(), currentNode.getPositionCenterZ(), currentNode.getDepth());
 				
 				//Utils.debugNewLine("########## Testing against image " + (j + 1) + " ##########", false);
-				Color boxColor = Color.GRAY;
-				IntersectionStatus status = testIntersection(copyNode, imageKey);
+				//Color boxColor = Color.GRAY;
+				IntersectionStatus testResult = testIntersection(copyNode, imageKey);
+				Color boxColor = computeColor(copyNode.getColor(), testResult);
+				
+				/**
 				if (status == IntersectionStatus.INSIDE) {
 					boxColor = getPaintColor(copyNode.getColor(), Color.BLACK);
 				} else if (status == IntersectionStatus.PARTIAL) {
 					boxColor = getPaintColor(copyNode.getColor(), Color.GRAY);
 				} else {
 					boxColor = getPaintColor(copyNode.getColor(), Color.WHITE);
-				}
+				}**/
+				
 
 				if (boxColor == Color.WHITE){
 					whiteCounter++;
@@ -263,12 +272,12 @@ public class VolumeGenerator {
 				currentNode.setColor(Color.GRAY);
 			}			
 		} else {
-			if (currentNode.getColor() == Color.GRAY) {
+			if (currentNode.getColor() == Color.GRAY || (currentNode.getColor() == Color.BLACK && currentNode.getDepth() < octreeDepth)) {
 				Node[] children = currentNode.getChildren();
 				for (int i = 0; i < children.length; i++) {
 					Node childNode = children[i];
 					if (childNode != null) {
-						childNode = getTestedNodeAux(childNode);
+						childNode = getTestedNodeAux(childNode, octreeDepth);
 						currentNode.setChildNode(childNode, i);
 					}
 				}
@@ -620,6 +629,7 @@ public class VolumeGenerator {
 		Color diffuseColor = nodeColor;
 		 
 		 diffuseColor = nodeColor == Color.BLACK ? nodeColor : Color.TRANSPARENT;
+		 //diffuseColor = nodeColor;
 		 //diffuseColor = nodeColor == Color.WHITE ? Color.TRANSPARENT: nodeColor;
 		
 		 textureMaterial.setDiffuseColor(diffuseColor);
@@ -975,6 +985,30 @@ public class VolumeGenerator {
 		return result;
 	}
 
+	public Color computeColor(Color oldColor, IntersectionStatus testResult){
+		// Color is white by default unless previous color is white or gray
+		Color newColor = Color.WHITE;
+		if (oldColor.equals(Color.BLACK)){
+			if (testResult == IntersectionStatus.INSIDE){
+				newColor = Color.BLACK;
+			} else if (testResult == IntersectionStatus.PARTIAL){
+				newColor = Color.GRAY;
+			} else {
+				newColor = Color.WHITE;
+			}
+		} else if (oldColor.equals(Color.GRAY)){
+			if (testResult == IntersectionStatus.INSIDE){
+				newColor = Color.GRAY;
+			} else if (testResult == IntersectionStatus.PARTIAL){
+				newColor = Color.GRAY;
+			} else {
+				newColor = Color.WHITE;
+			}
+		}
+		
+		return newColor;
+	}
+	
 	public Group getVolume() {
 		return octreeVolume;
 	}

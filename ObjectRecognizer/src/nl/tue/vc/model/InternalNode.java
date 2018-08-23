@@ -13,7 +13,7 @@ public class InternalNode extends Node{
 	//private NodeColor[] colors = {NodeColor.BLACK, NodeColor.BLACK, NodeColor.BLACK, NodeColor.WHITE,
 	//		NodeColor.BLACK, NodeColor.BLACK, NodeColor.BLACK, NodeColor.WHITE};
 	
-	public InternalNode(Color color, double sizeX, double sizeY, double sizeZ, double parentCenterX, double parentCenterY, double parentCenterZ, int octreeHeight) {
+	public InternalNode(Color color, double sizeX, double sizeY, double sizeZ, double parentCenterX, double parentCenterY, double parentCenterZ, int octreeHeight, int nodeDepth) {
 		//Utils.debugNewLine("[InternalNodeTest] -> octreeHeight: " + octreeHeight, true);
 		
 		this.color = color;
@@ -21,6 +21,7 @@ public class InternalNode extends Node{
 		this.sizeX = sizeX;
 		this.sizeY = sizeY;
 		this.sizeZ = sizeZ;
+		this.depth = nodeDepth;
 		
 		positionCenterX = parentCenterX;
 		positionCenterY = parentCenterY;
@@ -59,9 +60,9 @@ public class InternalNode extends Node{
 				**/
 				
 				if (octreeHeight > 1){
-					children[i] = new InternalNode(Color.GRAY, childrenSizeX, childrenSizeY, childrenSizeZ, newParentCenterX, newParentCenterY, newParentCenterZ, octreeHeight - 1);
+					children[i] = new InternalNode(Color.BLACK, childrenSizeX, childrenSizeY, childrenSizeZ, newParentCenterX, newParentCenterY, newParentCenterZ, octreeHeight - 1, nodeDepth + 1);
 				} else {
-					children[i] = new Leaf(Color.BLACK, childrenSizeX, childrenSizeY, childrenSizeZ, newParentCenterX, newParentCenterY, newParentCenterZ);
+					children[i] = new Leaf(Color.BLACK, childrenSizeX, childrenSizeY, childrenSizeZ, newParentCenterX, newParentCenterY, newParentCenterZ, nodeDepth + 1);
 				} 
 			}			
 		}
@@ -125,14 +126,17 @@ public class InternalNode extends Node{
 	 * deltaHeight corresponds to the levels of splitting that are going to be done at the leaf level
 	 */
 	@Override
-	public Node splitNode(int deltaHeight){
+	public Node splitNode(int deltaHeight, int maxDepth){
+		
 		if (deltaHeight > 0){
-			Utils.debugNewLine("++++++++++ split internal node", false);
+			//Utils.debugNewLine("++++++++++ split internal node with depth " + depth, true);
 			Node[] splittedChildren = new Node[8];
 			if (children != null){
 				for (int i = 0; i < children.length; i++){
-					if (children[i] != null && children[i].getColor() == Color.GRAY){
-						splittedChildren[i] = children[i].splitNode(deltaHeight);
+					if (children[i] != null && children[i].getColor() == Color.BLACK && children[i].getDepth() < maxDepth){
+						splittedChildren[i] = children[i].splitNode(deltaHeight, maxDepth);
+					} else if (children[i] != null && children[i].getColor() == Color.GRAY){
+						splittedChildren[i] = children[i].splitNode(deltaHeight, maxDepth);
 					} else {
 						splittedChildren[i] = children[i];
 					}

@@ -71,11 +71,11 @@ public class Octree {
 	
 	public void splitNodes(int newOctreeHeight){
 		int deltaHeight = newOctreeHeight - octreeHeight;
-		Utils.debugNewLine("octree height: " + octreeHeight, false);
-		Utils.debugNewLine("new octree height: " + newOctreeHeight, false);
-		Utils.debugNewLine("split root with " + deltaHeight + " levels", false);
+		//Utils.debugNewLine("******************** Octree height: " + octreeHeight, true);
+		//Utils.debugNewLine("******************** New octree height: " + newOctreeHeight, true);
+		//Utils.debugNewLine("******************** Split root with " + deltaHeight + " levels", true);
 		if (deltaHeight > 0){
-			root = root.splitNode(deltaHeight);
+			root = root.splitNode(deltaHeight, newOctreeHeight);
 			octreeHeight = newOctreeHeight;
 		}
 		
@@ -87,9 +87,9 @@ public class Octree {
 		
 		Utils.debugNewLine(message, true);
 		if (octreeHeight > 0){
-			return new InternalNode(Color, sizeX, sizeY, sizeZ, centerX, centerY, centerZ, octreeHeight);
+			return new InternalNode(Color, sizeX, sizeY, sizeZ, centerX, centerY, centerZ, octreeHeight, 1);
 		} else {
-			return new Leaf(Color, sizeX, sizeY, sizeZ, centerX, centerY, centerZ);
+			return new Leaf(Color, sizeX, sizeY, sizeZ, centerX, centerY, centerZ, 1);
 		}
 		// this.node = new InternalNode(Color.BLACK, boxSize, this.centerX, this.centerY, this.centerZ, this.levels);
 		// this.node = new InternalNode(Color.BLACK, boxSize, centerX, centerY, centerZ, levels);

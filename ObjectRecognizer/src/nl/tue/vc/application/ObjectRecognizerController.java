@@ -142,6 +142,9 @@ public class ObjectRecognizerController {
 	private ComboBox<String> segmentationAlgorithm;
 
 	@FXML
+	private ComboBox<String> exampleSelection;
+	
+	@FXML
 	private CheckBox debugSegmentation;
 
 	@FXML
@@ -186,6 +189,9 @@ public class ObjectRecognizerController {
 	@FXML
 	private Button modelGenerationTestButton;
 
+	@FXML
+	private Button modelGenerationSlowTestButton;
+	
 	private int fieldOfView;
 
 	// old timer
@@ -300,8 +306,10 @@ public class ObjectRecognizerController {
 	private Octree octree;
 	private String calibrationImagesDir = "images/calibrationImages/";
 
-	private String OBJECT_IMAGES_DIR = "images/pancake/";
-	private String CALIBRATION_IMAGES_DIR = "images/pancake/calibrationImages/";
+	private String OBJECT_IMAGES_DIR = "examples/laptopCharger/";
+	private String CALIBRATION_IMAGES_DIR = "examples/laptopCharger/calibrationImages/";
+	private String OBJECT_IMAGES_DIR_SLOW_TEST = "examples/blackCup242/";
+	private String CALIBRATION_IMAGES_DIR_SLOW_TEST = "examples/blackCup242/calibrationImages/";
 	
 	public ObjectRecognizerController() {
 
@@ -339,6 +347,7 @@ public class ObjectRecognizerController {
 
 		calibrationImageCounter = 0;
 		initCalibrationIndices();
+		initCalibrationIndicesSlowTest();
 		projectionGenerator = null;
 		octree = null;
 		cameraDistance = 300;
@@ -361,6 +370,33 @@ public class ObjectRecognizerController {
 		calibrationIndices.add("deg-330");
 	}
 
+	private void initCalibrationIndicesSlowTest(){
+		calibrationIndices = new ArrayList<String>();
+		calibrationIndices.add("deg-0");
+		calibrationIndices.add("deg-15");		
+		calibrationIndices.add("deg-30");
+		calibrationIndices.add("deg-45");
+		calibrationIndices.add("deg-60");
+		calibrationIndices.add("deg-75");
+		calibrationIndices.add("deg-90");
+		calibrationIndices.add("deg-105");
+		calibrationIndices.add("deg-120");
+		calibrationIndices.add("deg-135");
+		calibrationIndices.add("deg-150");
+		calibrationIndices.add("deg-165");
+		calibrationIndices.add("deg-180");
+		calibrationIndices.add("deg-195");
+		calibrationIndices.add("deg-210");
+		calibrationIndices.add("deg-240");
+		calibrationIndices.add("deg-255");
+		calibrationIndices.add("deg-270");
+		calibrationIndices.add("deg-285");
+		calibrationIndices.add("deg-300");
+		calibrationIndices.add("deg-315");
+		calibrationIndices.add("deg-330");
+		calibrationIndices.add("deg-345");
+	}
+	
 	@FXML
 	private void initialize() {
 
@@ -453,6 +489,11 @@ public class ObjectRecognizerController {
 
 		System.out.println(segmentationAlgorithm.getValue());
 
+		exampleSelection.getItems().add("Charger");
+		exampleSelection.getItems().add("Cup");
+		exampleSelection.getItems().add("Hexagon");
+		exampleSelection.setValue("Charger");
+		
 		/*
 		 * if (calibrateCamera.isSelected()) { startCameraCalibration(); } else {
 		 * startVideo(); }
@@ -766,6 +807,7 @@ public class ObjectRecognizerController {
 	@FXML
 	protected void updateSettings() {
 		Utils.debugNewLine("[updateSettings] called!", true);
+		configValuesForExample();
 	}
 
 	/**
@@ -1100,14 +1142,7 @@ public class ObjectRecognizerController {
 		objectImagesDescription.clear();
 	}
 
-	public void constructModelAux(int octreeLevels) {
-		Utils.debugNewLine("ObjectRecognizerController.constructModelAux(" + octreeLevels +")", true);
-
-		CameraPosition cameraPosition = new CameraPosition();
-		cameraPosition.positionAxisX = 0;
-		cameraPosition.positionAxisY = 0;
-		cameraPosition.positionAxisZ = 0;
-
+	public BoxParameters createRootNodeParameters(){
 		float centerX = (CUBE_LENGTH_X + DISPLACEMENT_X) / 2;
 		float centerY = (CUBE_LENGTH_Y + DISPLACEMENT_Y) / 2;
 		float centerZ = (CUBE_LENGTH_Z + DISPLACEMENT_Z) / 2;
@@ -1120,33 +1155,38 @@ public class ObjectRecognizerController {
 		volumeBoxParameters.setCenterX(centerX);
 		volumeBoxParameters.setCenterY(centerY);
 		volumeBoxParameters.setCenterZ(centerZ);
-
+		
+		return volumeBoxParameters;
+	}
+	
+	public void constructModelAux(int octreeLevels) {
+		Utils.debugNewLine("ObjectRecognizerController.constructModelAux(" + octreeLevels +")", true);
+		
 		// If there is no octree, create one. Otherwise, update the current one
-		if (octree == null) {
-			Utils.debugNewLine("++++++++++++++++++++++++ Creating octree", false);
-			octree = new Octree(volumeBoxParameters, octreeLevels);
-			Utils.debugNewLine(octree.toString(), false);
-		} else {
-			Utils.debugNewLine("++++++++++++++++++++++++ Updating octree", false);
-			octree.setBoxParameters(volumeBoxParameters);
-			octree.splitNodes(octreeLevels);
-		}
+		Utils.debugNewLine("++++++++++++++++++++++++ Updating octree", false);
+		BoxParameters volumeBoxParameters = createRootNodeParameters();
+		octree.setBoxParameters(volumeBoxParameters);
+		octree.splitNodes(octreeLevels);
 
 		if (octree == null) {
 			Utils.debugNewLine("***************** something weird happened here", true);
 		}
 
 		// TODO: Maybe this generator could be a builder 
+		octree = updateOctreeLeafs(octree, volumeBoxParameters, octreeLevels);//volumeGenerator.getOctree();
+	}
+
+	public Octree updateOctreeLeafs(Octree octree, BoxParameters volumeBoxParameters, int octreeDepth){
 		volumeGenerator = new VolumeGenerator(octree, volumeBoxParameters, distanceArrays,
-				invertedDistanceArrays, octreeLevels);
+				invertedDistanceArrays, octreeDepth);
 		volumeGenerator.setImagesForDistanceComputation(this.imagesForDistanceComputation);
 		volumeGenerator.setDistanceArrays(distanceArrays);
 		volumeGenerator.setInvertedDistanceArrays(invertedDistanceArrays);
 		volumeGenerator.setProjectionGenerator(projectionGenerator);		
-		volumeGenerator.generateOctreeVoxels();
-		octree = volumeGenerator.getOctree();
+		volumeGenerator.generateOctreeVoxels(octreeDepth);
+		return volumeGenerator.getOctree();	
 	}
-
+	
 	/**
 	 * The action triggered by pushing the button for constructing the model from
 	 * the loaded images
@@ -1169,11 +1209,19 @@ public class ObjectRecognizerController {
 
 		// Create the projected octree images		
 		
+		int initialLevels = 2;
 		int maxLevels = 7;
-		for (int i = 0; i < maxLevels; i++){	
-			constructModelAux(i);			
-		}
 		
+		Utils.debugNewLine("+++++++ Creating octree ++++++++++++", false);
+		BoxParameters volumeBoxParameters = createRootNodeParameters();
+		octree = new Octree(volumeBoxParameters, initialLevels);
+		octree = updateOctreeLeafs(octree, volumeBoxParameters, initialLevels);
+		Utils.debugNewLine(octree.toString(), false);
+		
+		for (int i = initialLevels + 1; i <= maxLevels; i++){	
+			Utils.debugNewLine("+++++ Update octree to depth: " + i + " +++++++", true);
+			constructModelAux(i);	
+		}
 		
 		/**
 		octree = OctreeVisualUtils.generateOctreeTest();
@@ -1294,7 +1342,69 @@ public class ObjectRecognizerController {
 	public void updateCameraPosition(CameraPosition cameraPosition) {
 		System.out.println("Do nothing!");
 	}
+	
+	
+	private void configValuesForExample(){
+		String selection = exampleSelection.getValue();
+		if(selection.equals("Charger")){
+			DISPLACEMENT_X = -2;
+			DISPLACEMENT_Y = (float) -0.5;
+			DISPLACEMENT_Z = (float) -2;
+			
+			CUBE_LENGTH_X = 12;
+			CUBE_LENGTH_Y = (float) 5;
+			CUBE_LENGTH_Z = (float) 10;
+			
+			OBJECT_IMAGES_DIR = "examples/laptopCharger/";
+			CALIBRATION_IMAGES_DIR = "examples/laptopCharger/calibrationImages/";
 
+		} else if (selection.equals("Cup")){
+			DISPLACEMENT_X = -2;
+			DISPLACEMENT_Y = (float) -0.5;
+			DISPLACEMENT_Z = (float) -2;
+			
+			CUBE_LENGTH_X = 12;
+			CUBE_LENGTH_Y = (float) 8.5;
+			CUBE_LENGTH_Z = (float) 10;
+
+			OBJECT_IMAGES_DIR = "examples/blackCup242/";
+			CALIBRATION_IMAGES_DIR = "examples/blackCup242/calibrationImages/";
+
+		} else if (selection.equals("Hexagon")){
+			DISPLACEMENT_X = -2;
+			DISPLACEMENT_Y = (float) -0.5;
+			DISPLACEMENT_Z = (float) -2;
+			
+			CUBE_LENGTH_X = 12;
+			CUBE_LENGTH_Y = (float) 2.5;
+			CUBE_LENGTH_Z = (float) 10;
+
+			OBJECT_IMAGES_DIR = "examples/hexagon/";
+			CALIBRATION_IMAGES_DIR = "examples/hexagon/calibrationImages/";
+
+		} else {
+			DISPLACEMENT_X = -2;
+			DISPLACEMENT_Y = (float)-0.5;
+			DISPLACEMENT_Z = (float) -2;
+			
+			CUBE_LENGTH_X = 12;
+			CUBE_LENGTH_Y = (float) 5;
+			CUBE_LENGTH_Z = (float) 10;
+
+			OBJECT_IMAGES_DIR = "examples/laptopCharger/";
+			CALIBRATION_IMAGES_DIR = "examples/laptopCharger/calibrationImages/";
+
+		}
+
+		textFieldOctreeLengthX.insertText(0, "" + CUBE_LENGTH_X);
+		textFieldOctreeLengthY.insertText(0, "" + CUBE_LENGTH_Y);
+		textFieldOctreeLengthZ.insertText(0, "" + CUBE_LENGTH_Z);
+		
+		textFieldOctreeDisplacementX.insertText(0, "" + DISPLACEMENT_X);
+		textFieldOctreeDisplacementY.insertText(0, "" + DISPLACEMENT_Y);
+		textFieldOctreeDisplacementZ.insertText(0, "" + DISPLACEMENT_Z);		
+	}
+	
 	private void loadDefaultImages() {
 		List<String> calibrationImageFilenames = new ArrayList<String>();
 		calibrationImageFilenames.add(CALIBRATION_IMAGES_DIR + "deg-0.jpg");
@@ -1373,13 +1483,119 @@ public class ObjectRecognizerController {
 		showImages();
 	}
 
+
+	private void loadDefaultImagesSlowTest() {
+		List<String> calibrationImageFilenames = new ArrayList<String>();
+		calibrationImageFilenames.add(CALIBRATION_IMAGES_DIR_SLOW_TEST + "deg-0.jpg");
+		calibrationImageFilenames.add(CALIBRATION_IMAGES_DIR_SLOW_TEST + "deg-15.jpg");
+		calibrationImageFilenames.add(CALIBRATION_IMAGES_DIR_SLOW_TEST + "deg-30.jpg");
+		calibrationImageFilenames.add(CALIBRATION_IMAGES_DIR_SLOW_TEST + "deg-45.jpg");		
+		calibrationImageFilenames.add(CALIBRATION_IMAGES_DIR_SLOW_TEST + "deg-60.jpg");
+		calibrationImageFilenames.add(CALIBRATION_IMAGES_DIR_SLOW_TEST + "deg-75.jpg");
+		calibrationImageFilenames.add(CALIBRATION_IMAGES_DIR_SLOW_TEST + "deg-90.jpg");
+		calibrationImageFilenames.add(CALIBRATION_IMAGES_DIR_SLOW_TEST + "deg-105.jpg");
+		calibrationImageFilenames.add(CALIBRATION_IMAGES_DIR_SLOW_TEST + "deg-120.jpg");
+		calibrationImageFilenames.add(CALIBRATION_IMAGES_DIR_SLOW_TEST + "deg-135.jpg");
+		calibrationImageFilenames.add(CALIBRATION_IMAGES_DIR_SLOW_TEST + "deg-150.jpg");
+		calibrationImageFilenames.add(CALIBRATION_IMAGES_DIR_SLOW_TEST + "deg-165.jpg");
+		calibrationImageFilenames.add(CALIBRATION_IMAGES_DIR_SLOW_TEST + "deg-180.jpg");
+		calibrationImageFilenames.add(CALIBRATION_IMAGES_DIR_SLOW_TEST + "deg-195.jpg");
+		calibrationImageFilenames.add(CALIBRATION_IMAGES_DIR_SLOW_TEST + "deg-210.jpg");
+		calibrationImageFilenames.add(CALIBRATION_IMAGES_DIR_SLOW_TEST + "deg-240.jpg");
+		calibrationImageFilenames.add(CALIBRATION_IMAGES_DIR_SLOW_TEST + "deg-255.jpg");
+		calibrationImageFilenames.add(CALIBRATION_IMAGES_DIR_SLOW_TEST + "deg-270.jpg");
+		calibrationImageFilenames.add(CALIBRATION_IMAGES_DIR_SLOW_TEST + "deg-285.jpg");
+		calibrationImageFilenames.add(CALIBRATION_IMAGES_DIR_SLOW_TEST + "deg-300.jpg");
+		calibrationImageFilenames.add(CALIBRATION_IMAGES_DIR_SLOW_TEST + "deg-315.jpg");
+		calibrationImageFilenames.add(CALIBRATION_IMAGES_DIR_SLOW_TEST + "deg-330.jpg");
+		calibrationImageFilenames.add(CALIBRATION_IMAGES_DIR_SLOW_TEST + "deg-345.jpg");
+		
+		calibrationImagesMap = new HashMap<String, Mat>();
+		int calIndex = 0;
+		for (String filename : calibrationImageFilenames) {
+			Mat image = Utils.loadImage(filename);
+			if (image != null) {
+				calibrationImagesMap.put(calibrationIndices.get(calIndex), image);
+				calIndex++;
+			}
+		}
+
+		// compute calibration matrices
+		projectionGenerator = cameraCalibrator.calibrateMatrices(calibrationImagesMap, true);
+		System.out.println("Calibration map size: " + projectionGenerator.effectiveSize());
+
+		// Load object images
+		List<String> objectImageFilenames = new ArrayList<String>();
+		objectImageFilenames.add(OBJECT_IMAGES_DIR_SLOW_TEST + "object-0.jpg");
+		objectImageFilenames.add(OBJECT_IMAGES_DIR_SLOW_TEST + "object-15.jpg");
+		objectImageFilenames.add(OBJECT_IMAGES_DIR_SLOW_TEST + "object-30.jpg");
+		objectImageFilenames.add(OBJECT_IMAGES_DIR_SLOW_TEST + "object-45.jpg");
+		objectImageFilenames.add(OBJECT_IMAGES_DIR_SLOW_TEST + "object-60.jpg");
+		objectImageFilenames.add(OBJECT_IMAGES_DIR_SLOW_TEST + "object-75.jpg");
+		objectImageFilenames.add(OBJECT_IMAGES_DIR_SLOW_TEST + "object-90.jpg");
+		objectImageFilenames.add(OBJECT_IMAGES_DIR_SLOW_TEST + "object-105.jpg");
+		objectImageFilenames.add(OBJECT_IMAGES_DIR_SLOW_TEST + "object-120.jpg");
+		objectImageFilenames.add(OBJECT_IMAGES_DIR_SLOW_TEST + "object-135.jpg");
+		objectImageFilenames.add(OBJECT_IMAGES_DIR_SLOW_TEST + "object-150.jpg");
+		objectImageFilenames.add(OBJECT_IMAGES_DIR_SLOW_TEST + "object-165.jpg");
+		objectImageFilenames.add(OBJECT_IMAGES_DIR_SLOW_TEST + "object-180.jpg");
+		objectImageFilenames.add(OBJECT_IMAGES_DIR_SLOW_TEST + "object-195.jpg");
+		objectImageFilenames.add(OBJECT_IMAGES_DIR_SLOW_TEST + "object-210.jpg");
+		objectImageFilenames.add(OBJECT_IMAGES_DIR_SLOW_TEST + "object-240.jpg");
+		objectImageFilenames.add(OBJECT_IMAGES_DIR_SLOW_TEST + "object-255.jpg");
+		objectImageFilenames.add(OBJECT_IMAGES_DIR_SLOW_TEST + "object-270.jpg");
+		objectImageFilenames.add(OBJECT_IMAGES_DIR_SLOW_TEST + "object-285.jpg");
+		objectImageFilenames.add(OBJECT_IMAGES_DIR_SLOW_TEST + "object-300.jpg");
+		objectImageFilenames.add(OBJECT_IMAGES_DIR_SLOW_TEST + "object-315.jpg");
+		objectImageFilenames.add(OBJECT_IMAGES_DIR_SLOW_TEST + "object-330.jpg");
+		objectImageFilenames.add(OBJECT_IMAGES_DIR_SLOW_TEST + "object-345.jpg");
+		objectImagesMap = new HashMap<String, Mat>();
+		calIndex = 0;
+		for (String filename : objectImageFilenames) {
+			Mat image = Utils.loadImage(filename);
+			if (image != null){
+				String imageIdentifier = calibrationIndices.get(calIndex);				
+				objectImagesMap.put(imageIdentifier, image);
+				objectImagesToDisplay.add(image);
+				objectImagesNames.add(imageIdentifier);
+				objectImagesDescription.put(imageIdentifier, calIndex);
+				int threshold = (int) binaryThresholdSlider.getValue();
+				imageThresholdMap.put(imageIdentifier, threshold);
+
+				calIndex++;
+			}
+		}
+
+		// Load specific values for the threshold map
+		/**
+		imageThresholdMap.put(calibrationIndices.get(11), 100);
+		imageThresholdMap.put(calibrationIndices.get(4), 85);
+		imageThresholdMap.put(calibrationIndices.get(2), 100);
+		imageThresholdMap.put(calibrationIndices.get(7), 91);
+		imageThresholdMap.put(calibrationIndices.get(10), 94);
+		imageThresholdMap.put(calibrationIndices.get(1), 98);
+		imageThresholdMap.put(calibrationIndices.get(0), 100);
+		imageThresholdMap.put(calibrationIndices.get(6), 98);
+		imageThresholdMap.put(calibrationIndices.get(5), 96);
+		imageThresholdMap.put(calibrationIndices.get(3), 92);
+		imageThresholdMap.put(calibrationIndices.get(9), 95);
+		imageThresholdMap.put(calibrationIndices.get(8), 96);
+		**/
+		showImages();
+	}
+
+	
 	/**
 	 * Button used to test the generation of the model using predefined images
 	 */
 	@FXML
 	public void modelGenerationTest() {
 
+		
+		//clearLoadedImages();
 		Utils.debugNewLine("ModelGenerationTest", true);
+		
+		configValuesForExample();
 		loadDefaultImages();
 		Utils.debugNewLine("ObjectImagesMap size: " + objectImagesMap.size(), true);
 		extractSilhouettes();
@@ -1409,6 +1625,51 @@ public class ObjectRecognizerController {
 		visualizeModel();
 	}
 
+	@FXML
+	public void modelGenerationSlowTest(){
+		//clearLoadedImages();
+		Utils.debugNewLine("ModelGenerationsSlowTest", true);
+		loadDefaultImagesSlowTest();
+		Utils.debugNewLine("ObjectImagesMap size: " + objectImagesMap.size(), true);
+		extractSilhouettes();
+		List<String> binaryImageFilenames = new ArrayList<String>();
+		binaryImageFilenames.add(OBJECT_IMAGES_DIR_SLOW_TEST + "bin-object-0.png");
+		binaryImageFilenames.add(OBJECT_IMAGES_DIR_SLOW_TEST + "bin-object-15.png");
+		binaryImageFilenames.add(OBJECT_IMAGES_DIR_SLOW_TEST + "bin-object-30.png");
+		binaryImageFilenames.add(OBJECT_IMAGES_DIR_SLOW_TEST + "bin-object-55.png");
+		binaryImageFilenames.add(OBJECT_IMAGES_DIR_SLOW_TEST + "bin-object-60.png");
+		binaryImageFilenames.add(OBJECT_IMAGES_DIR_SLOW_TEST + "bin-object-75.png");
+		binaryImageFilenames.add(OBJECT_IMAGES_DIR_SLOW_TEST + "bin-object-90.png");
+		binaryImageFilenames.add(OBJECT_IMAGES_DIR_SLOW_TEST + "bin-object-105.png");
+		binaryImageFilenames.add(OBJECT_IMAGES_DIR_SLOW_TEST + "bin-object-120.png");
+		binaryImageFilenames.add(OBJECT_IMAGES_DIR_SLOW_TEST + "bin-object-135.png");
+		binaryImageFilenames.add(OBJECT_IMAGES_DIR_SLOW_TEST + "bin-object-150.png");
+		binaryImageFilenames.add(OBJECT_IMAGES_DIR_SLOW_TEST + "bin-object-165.png");
+		binaryImageFilenames.add(OBJECT_IMAGES_DIR_SLOW_TEST + "bin-object-180.png");
+		binaryImageFilenames.add(OBJECT_IMAGES_DIR_SLOW_TEST + "bin-object-195.png");
+		binaryImageFilenames.add(OBJECT_IMAGES_DIR_SLOW_TEST + "bin-object-210.png");
+		binaryImageFilenames.add(OBJECT_IMAGES_DIR_SLOW_TEST + "bin-object-240.png");
+		binaryImageFilenames.add(OBJECT_IMAGES_DIR_SLOW_TEST + "bin-object-255.png");
+		binaryImageFilenames.add(OBJECT_IMAGES_DIR_SLOW_TEST + "bin-object-270.png");
+		binaryImageFilenames.add(OBJECT_IMAGES_DIR_SLOW_TEST + "bin-object-285.png");
+		binaryImageFilenames.add(OBJECT_IMAGES_DIR_SLOW_TEST + "bin-object-300.png");
+		binaryImageFilenames.add(OBJECT_IMAGES_DIR_SLOW_TEST + "bin-object-315.png");
+		binaryImageFilenames.add(OBJECT_IMAGES_DIR_SLOW_TEST + "bin-object-330.png");
+		binaryImageFilenames.add(OBJECT_IMAGES_DIR_SLOW_TEST + "bin-object-345.png");
+
+		int imageFilenameIndex = 0;
+		System.out.println("BinarizedImagesMap size: " + binarizedImagesMap.size());
+		for (String imageKey : binarizedImagesMap.keySet()) {
+			Mat binaryImage = binarizedImagesMap.get(imageKey);
+			Utils.saveImage(binaryImage, binaryImageFilenames.get(imageFilenameIndex));
+			imageFilenameIndex++;
+		}
+
+		constructModel();
+		visualizeModel();
+		
+	}
+	
 	private Map<String, Mat> extractSilhouettesTest(Map<String, Mat> images) {
 		Utils.debugNewLine("extractSilhouettesTest", true);
 
@@ -1457,11 +1718,6 @@ public class ObjectRecognizerController {
 	public void generateModelTest(int octreeLevels) {
 		Utils.debugNewLine("generateModelTest", true);
 
-		CameraPosition cameraPosition = new CameraPosition();
-		cameraPosition.positionAxisX = 0;
-		cameraPosition.positionAxisY = 0;
-		cameraPosition.positionAxisZ = 0;
-
 		float centerX = (CUBE_LENGTH_X + DISPLACEMENT_X) / 2;
 		float centerY = (CUBE_LENGTH_Y + DISPLACEMENT_Y) / 2;
 		float centerZ = (CUBE_LENGTH_Z + DISPLACEMENT_Z) / 2;
@@ -1502,7 +1758,7 @@ public class ObjectRecognizerController {
 		volumeGenerator.setDistanceArrays(distanceArrays);
 		volumeGenerator.setInvertedDistanceArrays(invertedDistanceArrays);
 		volumeGenerator.setProjectionGenerator(projectionGenerator);		
-		volumeGenerator.generateOctreeVoxels();
+		volumeGenerator.generateOctreeVoxels(octreeLevels);
 		octree = volumeGenerator.getOctree();
 
 		volumeRenderer.generateVolumeScene(volumeGenerator.getVoxels());
@@ -1512,11 +1768,6 @@ public class ObjectRecognizerController {
 
 	public void generateModelMultipleOctrees(int octreeLevels) {
 		Utils.debugNewLine("generateModelTest", true);
-
-		CameraPosition cameraPosition = new CameraPosition();
-		cameraPosition.positionAxisX = 0;
-		cameraPosition.positionAxisY = 0;
-		cameraPosition.positionAxisZ = 0;
 
 		float dx = -2;
 		float dy = -1;

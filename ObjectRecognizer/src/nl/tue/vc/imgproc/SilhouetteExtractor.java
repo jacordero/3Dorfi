@@ -64,8 +64,8 @@ public class SilhouetteExtractor {
 	public void extract(Mat image, String method) {
 		imageWidth = image.cols();
 		imageHeight = image.rows();
-		deltaWidth = imageWidth / 4;
-		deltaHeight = imageHeight / 4;
+		deltaWidth = imageWidth / 4;//3*(imageWidth/8);//imageWidth / 4;
+		deltaHeight = 3*(imageHeight/8); //imageHeight / 4;
 		
 		Utils.debugNewLine("Silhouette extration for image with dimensions: [" + imageWidth + ", " + imageHeight + "]", DEBUG_OPS);
 		Utils.debugNewLine("Segmentation algorithm: " + method, DEBUG_OPS);

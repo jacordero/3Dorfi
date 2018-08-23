@@ -87,6 +87,7 @@ public class CameraCalibrator {
 			projector.addProjectionMatrices(calibrationIndex, projectionMatrices);
 		}
 		
+		Utils.debugNewLine("Calibration matrices " + projector.effectiveSize(), true);
 		return projector;
 	}
 	
