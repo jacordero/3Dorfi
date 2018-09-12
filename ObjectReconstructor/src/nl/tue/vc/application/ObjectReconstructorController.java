@@ -9,18 +9,8 @@ import java.util.Map;
 import java.util.Timer;
 import java.util.TimerTask;
 
-import org.opencv.calib3d.Calib3d;
-import org.opencv.core.Core;
-import org.opencv.core.CvType;
 import org.opencv.core.Mat;
-import org.opencv.core.MatOfPoint2f;
-import org.opencv.core.MatOfPoint3f;
-import org.opencv.core.Rect;
-import org.opencv.core.Scalar;
-import org.opencv.core.Size;
-import org.opencv.core.TermCriteria;
 import org.opencv.imgcodecs.Imgcodecs;
-import org.opencv.imgproc.Imgproc;
 import org.opencv.videoio.VideoCapture;
 
 import javafx.application.Platform;
@@ -36,50 +26,45 @@ import javafx.scene.control.ComboBox;
 import javafx.scene.control.Label;
 import javafx.scene.control.ListCell;
 import javafx.scene.control.ListView;
+import javafx.scene.control.RadioButton;
 import javafx.scene.control.Slider;
 import javafx.scene.control.Tab;
 import javafx.scene.control.TabPane;
 import javafx.scene.control.TextField;
+import javafx.scene.control.Toggle;
+import javafx.scene.control.ToggleGroup;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.layout.AnchorPane;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.VBox;
 import javafx.scene.shape.Box;
+import javafx.stage.DirectoryChooser;
 import javafx.stage.FileChooser;
 import javafx.stage.Stage;
-import nl.tue.vc.application.utils.OctreeVisualUtils;
 import nl.tue.vc.application.utils.Utils;
 import nl.tue.vc.application.visual.IntersectionTest;
 import nl.tue.vc.imgproc.CameraCalibrator;
 import nl.tue.vc.imgproc.CameraController;
 import nl.tue.vc.imgproc.SilhouetteExtractor;
-import nl.tue.vc.projection.ProjectionGenerator;
-import nl.tue.vc.voxelengine.CameraPosition;
-import nl.tue.vc.voxelengine.VolumeRenderer;
-import sun.rmi.server.Util;
 import nl.tue.vc.model.BoxParameters;
 import nl.tue.vc.model.Octree;
 import nl.tue.vc.model.OctreeCubeProjector;
 import nl.tue.vc.model.VolumeGenerator;
 import nl.tue.vc.model.test.OctreeTest;
 import nl.tue.vc.model.test.VolumeGeneratorTest;
+import nl.tue.vc.projection.ProjectionGenerator;
+import nl.tue.vc.voxelengine.CameraPosition;
+import nl.tue.vc.voxelengine.VolumeRenderer;
 
-/**
- * The controller associated to the only view of our application. The
- * application logic is implemented here. It handles the button for opening an
- * image and perform all the operation related to the ObjectRecognizer
- * transformation and antitransformation.
- *
- */
 public class ObjectReconstructorController {
 	// images to show in the view
 	@FXML
 	private ImageView originalImage;
-	// images to show in the view
+	
 	@FXML
 	private ImageView originalImage2;
-	// a FXML button for performing the antitransformation
+
 	@FXML
 	private VBox objectImageArea;
 
@@ -88,13 +73,16 @@ public class ObjectReconstructorController {
 
 	@FXML
 	private ImageView transformedImage;
+	
 	@FXML
 	private ImageView antitransformedImage;
-	// a FXML button for performing the transformation
+
 	@FXML
 	private Button extractButton;
+	
 	@FXML
 	private Button constructButton;
+	
 	@FXML
 	private Button visualizeButton;
 
@@ -107,7 +95,6 @@ public class ObjectReconstructorController {
 	@FXML
 	private Button snapshotButton;
 
-	// the FXML area for showing the current frame (before calibration)
 	@FXML
 	private ImageView originalFrame;
 
@@ -196,8 +183,6 @@ public class ObjectReconstructorController {
 
 	// old timer
 	private Timer calibrationTimer;
-	private boolean calibrationTimerActive;
-	// a timer for acquiring the video stream
 
 	private Timer imageTimer;
 	// the OpenCV object that performs the video capture
@@ -205,9 +190,9 @@ public class ObjectReconstructorController {
 	// a flag to change the button behavior
 	private boolean cameraActive;
 	// the saved chessboard image
-	private Mat savedImage, processedExtractedImage;
+	private Mat savedImage;
 	// the calibrated camera frame
-	private Image undistoredImage, CamStream;
+	private Image CamStream;
 
 	// Image used for calibration of extrinsic parameters
 	private Map<String, Mat> calibrationImagesMap = new HashMap<String, Mat>();
@@ -215,18 +200,6 @@ public class ObjectReconstructorController {
 	private List<String> calibrationIndices;
 
 	private Mat calibrationImage = null;
-	// various variables needed for the calibration
-	private List<Mat> imagePoints;
-	private List<Mat> objectPoints;
-	private MatOfPoint3f obj;
-	private MatOfPoint2f imageCorners;
-	private int boardsNumber;
-	private int numCornersHor;
-	private int numCornersVer;
-	private int successes;
-	private Mat intrinsic;
-	private Mat distCoeffs;
-	private boolean isCalibrated;
 
 	private int OCTREE_LEVELS = 7;
 	
@@ -257,6 +230,7 @@ public class ObjectReconstructorController {
 	private Stage stage;
 	// the JavaFX file chooser
 	private FileChooser fileChooser;
+	private DirectoryChooser directoryChooser;
 	// support variables
 	private Mat image;
 	private List<Mat> planes;
@@ -265,13 +239,41 @@ public class ObjectReconstructorController {
 	// The rootGroup
 	private AnchorPane rootGroup;
 	private TabPane tabPane;
-	private BorderPane displayBorderPane;
-	private Tab mainTab;
-	private AnchorPane mainTabAnchor;
-	private BorderPane renderingDisplayBorderPane;
-	private Tab renderingTab;
-	private AnchorPane renderingTabAnchor;
+	private Tab cameraCalibrationTab;
+	private AnchorPane cameraCalibrationAnchorPane;
+	private BorderPane cameraCalibrationBorderPane;
+	private Tab imageSelectionTab;
+	private AnchorPane imageSelectionAnchorPane;
+	private BorderPane imageSelectionBorderPane;
+	private Tab modelRenderingTab;
+	private AnchorPane modelRenderingAnchorPane;
+	private BorderPane modelRenderingBorderPane;
+	private Tab modelConfigTab;
+	private AnchorPane modelConfigAnchorPane;
+	private BorderPane modelConfigBorderPane;
+	private Tab silhouettesConfigTab;
+	private AnchorPane silhouettesConfigAnchorPane;
+	private BorderPane silhouettesConfigBorderPane;
+	
+	private int CAMERA_CALIBRATION_TAB_ORDER = 0;
+	private int IMAGE_SELECTION_TAB_ORDER = 1;
+	private int MODEL_RENDERING_TAB_ORDER = 2;
+	private int SILHOUETTES_CONFIG_TAB_ORDER = 3;
+	private int MODEL_CONFIG_TAG_ORDER = 4;
+	
 
+	private ToggleGroup calibrateCameraOptions;
+	
+	@FXML
+	private RadioButton calibrateCameraFromDirectory;
+	
+	@FXML
+	private RadioButton calibrateCameraFromWebcam;
+	
+	@FXML
+	private Button cameraCalibrationDirectoryButton;
+	
+	
 	private VolumeRenderer volumeRenderer;
 	private VolumeGenerator volumeGenerator;
 
@@ -288,8 +290,6 @@ public class ObjectReconstructorController {
 	private Timer videoTimer;
 
 	private boolean videoTimerActive;
-
-	private Image defaultVideoImage;
 
 	public static int SNAPSHOT_DELAY = 250;
 	public static final boolean TEST_PROJECTIONS = true;
@@ -321,7 +321,6 @@ public class ObjectReconstructorController {
 		videoTimer = new Timer();
 		videoTimerActive = false;
 		calibrationTimer = new Timer();
-		calibrationTimerActive = false;
 		cameraCalibrator = new CameraCalibrator();
 		
 		/** Xbox control 
@@ -524,28 +523,47 @@ public class ObjectReconstructorController {
 			//renderModel();
 		});
 		**/
+		
+		configureGUI();
 	}
 
-	/**
-	 * Init the needed variables
-	 */
+	protected void configureGUI(){
+		calibrateCameraOptions = new ToggleGroup();
+		calibrateCameraFromWebcam.setToggleGroup(calibrateCameraOptions);
+		calibrateCameraFromDirectory.setToggleGroup(calibrateCameraOptions);
+		calibrateCameraFromDirectory.setSelected(true);
+		
+		calibrateCameraOptions.selectedToggleProperty().addListener(new ChangeListener<Toggle>(){
+			public void changed(ObservableValue<? extends Toggle> observable, Toggle oldValue, Toggle newValue){
+				RadioButton radioButton = (RadioButton) calibrateCameraOptions.getSelectedToggle();
+				if (radioButton != null){
+					String selection = radioButton.getText();
+					System.out.println("Radio button selected: " + selection);
+					if (selection.equals("Webcam")){
+						cameraCalibrationDirectoryButton.setDisable(true);
+					} else if (selection.equals("Directory")){
+						cameraCalibrationDirectoryButton.setDisable(false);						
+					}
+				}
+			}
+		});
+		
+		cameraCalibrationDirectoryButton.setOnAction(event -> {
+			File selectedDirectory = directoryChooser.showDialog(stage);
+			if (selectedDirectory != null){
+				System.out.println(selectedDirectory.getAbsolutePath());
+			}
+		});
+	}
+	
 	protected void init() {
 		this.fileChooser = new FileChooser();
+		directoryChooser = new DirectoryChooser();
 		this.image = new Mat();
 		this.planes = new ArrayList<>();
 		this.calibrationCapture = new VideoCapture();
 		this.cameraActive = false;
-		this.obj = new MatOfPoint3f();
-		this.imageCorners = new MatOfPoint2f();
 		this.savedImage = new Mat();
-		this.processedExtractedImage = new Mat();
-		this.undistoredImage = null;
-		this.imagePoints = new ArrayList<>();
-		this.objectPoints = new ArrayList<>();
-		this.intrinsic = new Mat(3, 3, CvType.CV_32FC1);
-		this.distCoeffs = new Mat();
-		this.successes = 0;
-		this.isCalibrated = false;
 	}
 
 	/**
@@ -597,8 +615,6 @@ public class ObjectReconstructorController {
 							calibrationImageCounter = 0;
 						}
 					} else {
-						// load the images into the listview
-						String imgName = file.getName().split("\\.")[0];
 						String calibrationIndex = calibrationIndices.get(calibrationImageCounter);
 
 						objectImagesNames.add(calibrationIndex);
@@ -871,7 +887,6 @@ public class ObjectReconstructorController {
 				};
 				calibrationTimer = new Timer();
 				calibrationTimer.schedule(frameGrabber, 0, 33);
-				calibrationTimerActive = true;
 
 				// update the button content
 				// this.cameraButton.setText("Stop Camera");
@@ -1044,51 +1059,6 @@ public class ObjectReconstructorController {
 		imageTimer.schedule(frameGrabber, 250);
 	}
 
-	/**
-	 * Find and draws the points needed for the calibration on the chessboard
-	 *
-	 * @param frame
-	 *            the current frame
-	 * @return the current number of successfully identified chessboards as an int
-	 */
-	private void findAndDrawPoints(Mat frame) {
-
-		System.out.println("*** findAndDrawPoints!!!");
-		// init
-		Mat grayImage = new Mat();
-
-		// I would perform this operation only before starting the calibration
-		// process
-		if (this.successes < this.boardsNumber) {
-			System.out.println("**** Successes < boardsNumber!!!");
-			// convert the frame in gray scale
-			Imgproc.cvtColor(frame, grayImage, Imgproc.COLOR_BGR2GRAY);
-			// the size of the chessboard
-			Size boardSize = new Size(this.numCornersHor, this.numCornersVer);
-			// look for the inner chessboard corners
-			boolean found = Calib3d.findChessboardCorners(grayImage, boardSize, imageCorners,
-					Calib3d.CALIB_CB_ADAPTIVE_THRESH + Calib3d.CALIB_CB_NORMALIZE_IMAGE + Calib3d.CALIB_CB_FAST_CHECK);
-			// all the required corners have been found...
-			if (found) {
-				System.out.println("**** found!!!");
-				// optimization
-				TermCriteria term = new TermCriteria(TermCriteria.EPS | TermCriteria.MAX_ITER, 30, 0.1);
-				Imgproc.cornerSubPix(grayImage, imageCorners, new Size(11, 11), new Size(-1, -1), term);
-				// save the current frame for further elaborations
-				grayImage.copyTo(this.savedImage);
-				// show the chessboard inner corners on screen
-				Calib3d.drawChessboardCorners(frame, boardSize, imageCorners, found);
-
-				// enable the option for taking a snapshot
-				this.snapshotButton.setDisable(false);
-				// take the snapshot
-				// takeSnapshot();
-			} else {
-				this.snapshotButton.setDisable(true);
-			}
-		}
-	}
-
 	@FXML
 	private void calibrateCameraForExtrinsicParams() {
 
@@ -1114,26 +1084,6 @@ public class ObjectReconstructorController {
 		projectionGenerator = cameraCalibrator.calibrateMatrices(calibrationImagesMap, true);
 	}
 
-	/**
-	 * The effective camera calibration, to be performed once in the program
-	 * execution
-	 */
-	private void calibrateCamera() {
-		// init needed variables according to OpenCV docs
-		List<Mat> rvecs = new ArrayList<>();
-		List<Mat> tvecs = new ArrayList<>();
-		intrinsic.put(0, 0, 1);
-		intrinsic.put(1, 1, 1);
-		// calibrate!
-		this.calibrationResult = Calib3d.calibrateCamera(objectPoints, imagePoints, savedImage.size(), intrinsic,
-				distCoeffs, rvecs, tvecs);
-		System.out.println("Calibration result = " + this.calibrationResult);
-
-		this.isCalibrated = true;
-
-		// you cannot take other snapshot, at this point...
-		this.snapshotButton.setDisable(true);
-	}
 
 	@FXML
 	protected void clearLoadedImages() {
@@ -1314,7 +1264,7 @@ public class ObjectReconstructorController {
 	public void renderModel() {
 		volumeRenderer = new VolumeRenderer(cameraDistance);
 		volumeRenderer.generateVolumeScene(volumeGenerator.getVoxels());
-		setVolumeSubScene(volumeRenderer.getSubScene());
+		setModelRenderingSubScene(volumeRenderer.getSubScene());
 		// The octree is update with the modified version in volume generator
 	}
 
@@ -1666,54 +1616,9 @@ public class ObjectReconstructorController {
 		}
 
 		constructModel();
-		visualizeModel();
-		
+		visualizeModel();		
 	}
 	
-	private Map<String, Mat> extractSilhouettesTest(Map<String, Mat> images) {
-		Utils.debugNewLine("extractSilhouettesTest", true);
-
-		Map<String, Mat> binarizedImages = new HashMap<String, Mat>();
-
-		for (String imageKey : images.keySet()) {
-			Mat image = images.get(imageKey);
-			silhouetteExtractor.extract(image, segmentationAlgorithm.getValue());
-			binarizedImagesMap.put(imageKey, silhouetteExtractor.getSegmentedImage());
-
-			try {
-				imagesForDistanceComputation.put(imageKey,
-						IntersectionTest.Mat2BufferedImage(silhouetteExtractor.getSegmentedImage()));
-			} catch (Exception e) {
-				System.out.println("Something went really wrong!!!");
-				e.printStackTrace();
-			}
-
-			binarizedImages.put(imageKey, silhouetteExtractor.getSegmentedImage());
-		}
-
-		return binarizedImages;
-
-	}
-
-	/**
-	 * This method could be executed using multiple threads
-	 */
-	private void computeDistanceArraysTest() {
-		Utils.debugNewLine("computeDistanceArraysTest", true);
-
-		for (String imageKey : imagesForDistanceComputation.keySet()) {
-			// System.out.println("Converted mat width = " + convertedMat.getWidth() + ",
-			// height = " + convertedMat.getHeight());
-			BufferedImage image = imagesForDistanceComputation.get(imageKey);
-			int[][] sourceArray = IntersectionTest.getBinaryArray(image);
-			int[][] transformedArray = IntersectionTest.computeDistanceTransform(sourceArray);
-			distanceArrays.put(imageKey, transformedArray);
-
-			int[][] invertedArray = IntersectionTest.getInvertedArray(sourceArray);
-			int[][] transformedInvertedArray = IntersectionTest.computeDistanceTransform(invertedArray);
-			invertedDistanceArrays.put(imageKey, transformedInvertedArray);
-		}
-	}
 
 	public void generateModelTest(int octreeLevels) {
 		Utils.debugNewLine("generateModelTest", true);
@@ -1762,7 +1667,7 @@ public class ObjectReconstructorController {
 		octree = volumeGenerator.getOctree();
 
 		volumeRenderer.generateVolumeScene(volumeGenerator.getVoxels());
-		setVolumeSubScene(volumeRenderer.getSubScene());
+		setModelRenderingSubScene(volumeRenderer.getSubScene());
 		// The octree is update with the modified version in volume generator
 	}
 
@@ -1840,7 +1745,7 @@ public class ObjectReconstructorController {
 			}
 			volumeRenderer = new VolumeRenderer(cameraDistance);
 			volumeRenderer.generateVolumeScene(objectVolume);
-			setVolumeSubScene(volumeRenderer.getSubScene());
+			setModelRenderingSubScene(volumeRenderer.getSubScene());
 
 		}
 	}
@@ -1858,87 +1763,8 @@ public class ObjectReconstructorController {
 		return volumeGenerator.generateOctreeVoxels();
 	}
 
-	/**
-	 * Optimize the image dimensions
-	 *
-	 * @param image
-	 *            the {@link Mat} to optimize
-	 * @return the image whose dimensions have been optimized
-	 */
-	private Mat optimizeImageDim(Mat image) {
-		// init
-		Mat padded = new Mat();
-		// get the optimal rows size for dft
-		int addPixelRows = Core.getOptimalDFTSize(image.rows());
-		// get the optimal cols size for dft
-		int addPixelCols = Core.getOptimalDFTSize(image.cols());
-		// apply the optimal cols and rows size to the image
-		Core.copyMakeBorder(image, padded, 0, addPixelRows - image.rows(), 0, addPixelCols - image.cols(),
-				Core.BORDER_CONSTANT, Scalar.all(0));
 
-		return padded;
-	}
 
-	/**
-	 * Optimize the magnitude of the complex image obtained from the DFT, to improve
-	 * its visualization
-	 *
-	 * @param complexImage
-	 *            the complex image obtained from the DFT
-	 * @return the optimized image
-	 */
-	private Mat createOptimizedMagnitude(Mat complexImage) {
-		// init
-		List<Mat> newPlanes = new ArrayList<>();
-		Mat mag = new Mat();
-		// split the comples image in two planes
-		Core.split(complexImage, newPlanes);
-		// compute the magnitude
-		Core.magnitude(newPlanes.get(0), newPlanes.get(1), mag);
-
-		// move to a logarithmic scale
-		Core.add(Mat.ones(mag.size(), CvType.CV_32F), mag, mag);
-		Core.log(mag, mag);
-		// optionally reorder the 4 quadrants of the magnitude image
-		this.shiftDFT(mag);
-		// normalize the magnitude image for the visualization since both JavaFX
-		// and OpenCV need images with value between 0 and 255
-		// convert back to CV_8UC1
-		mag.convertTo(mag, CvType.CV_8UC1);
-		Core.normalize(mag, mag, 0, 255, Core.NORM_MINMAX, CvType.CV_8UC1);
-
-		// you can also write on disk the resulting image...
-		// Imgcodecs.imwrite("../magnitude.png", mag);
-
-		return mag;
-	}
-
-	/**
-	 * Reorder the 4 quadrants of the image representing the magnitude, after the
-	 * DFT
-	 *
-	 * @param image
-	 *            the {@link Mat} object whose quadrants are to reorder
-	 */
-	private void shiftDFT(Mat image) {
-		image = image.submat(new Rect(0, 0, image.cols() & -2, image.rows() & -2));
-		int cx = image.cols() / 2;
-		int cy = image.rows() / 2;
-
-		Mat q0 = new Mat(image, new Rect(0, 0, cx, cy));
-		Mat q1 = new Mat(image, new Rect(cx, 0, cx, cy));
-		Mat q2 = new Mat(image, new Rect(0, cy, cx, cy));
-		Mat q3 = new Mat(image, new Rect(cx, cy, cx, cy));
-
-		Mat tmp = new Mat();
-		q0.copyTo(tmp);
-		q3.copyTo(q0);
-		tmp.copyTo(q3);
-
-		q1.copyTo(tmp);
-		q2.copyTo(q1);
-		tmp.copyTo(q2);
-	}
 
 	/**
 	 * Set the current stage (needed for the FileChooser modal window)
@@ -1970,29 +1796,46 @@ public class ObjectReconstructorController {
 		Utils.onFXThread(view.imageProperty(), image);
 	}
 
-	public void setVolumeSubScene(SubScene volumeSubScene) {
+	
+	public void setCameraCalibrationSubScene(SubScene imageSubScene){
 		tabPane = (TabPane) rootGroup.getChildren().get(0);
-		mainTab = tabPane.getTabs().get(0);
-		mainTabAnchor = (AnchorPane) mainTab.getContent();
-		displayBorderPane = (BorderPane) mainTabAnchor.getChildren().get(0);
-		displayBorderPane.setCenter(volumeSubScene);
+		cameraCalibrationTab = tabPane.getTabs().get(CAMERA_CALIBRATION_TAB_ORDER);
+		cameraCalibrationAnchorPane = (AnchorPane) cameraCalibrationTab.getContent();
+		cameraCalibrationBorderPane = (BorderPane) cameraCalibrationAnchorPane.getChildren().get(0);
+		cameraCalibrationBorderPane.setCenter(imageSubScene);
+	}
+	
+	public void setImageSelectionSubScene(SubScene imageSubScene){
+		tabPane = (TabPane) rootGroup.getChildren().get(0);
+		imageSelectionTab = tabPane.getTabs().get(IMAGE_SELECTION_TAB_ORDER);
+		imageSelectionAnchorPane = (AnchorPane) imageSelectionTab.getContent();
+		imageSelectionBorderPane = (BorderPane) imageSelectionAnchorPane.getChildren().get(0);
+		imageSelectionBorderPane.setCenter(imageSubScene);
+	}
+	
+	public void setModelRenderingSubScene(SubScene volumeSubScene) {
+		tabPane = (TabPane) rootGroup.getChildren().get(0);
+		modelRenderingTab = tabPane.getTabs().get(MODEL_RENDERING_TAB_ORDER);
+		modelRenderingAnchorPane = (AnchorPane) modelRenderingTab.getContent();
+		modelRenderingBorderPane = (BorderPane) modelRenderingAnchorPane.getChildren().get(0);
+		modelRenderingBorderPane.setCenter(volumeSubScene);
 	}
 
-	public void setProjectionsSubScene(SubScene projectionsSubScene) {
+	public void setSilhouettesSubScene(SubScene imageSubScene) {
 		tabPane = (TabPane) rootGroup.getChildren().get(0);
-		renderingTab = tabPane.getTabs().get(2);
-		renderingTabAnchor = (AnchorPane) renderingTab.getContent();
-		renderingDisplayBorderPane = (BorderPane) renderingTabAnchor.getChildren().get(0);
-		renderingDisplayBorderPane.setCenter(projectionsSubScene);
+		silhouettesConfigTab = tabPane.getTabs().get(SILHOUETTES_CONFIG_TAB_ORDER);
+		silhouettesConfigAnchorPane = (AnchorPane) silhouettesConfigTab.getContent();
+		silhouettesConfigBorderPane = (BorderPane) silhouettesConfigAnchorPane.getChildren().get(0);
+		silhouettesConfigBorderPane.setCenter(imageSubScene);
+	}	
+	
+	public void setModelConfigSubScene(SubScene imageSubScene) {
+		tabPane = (TabPane) rootGroup.getChildren().get(0);
+		modelConfigTab = tabPane.getTabs().get(MODEL_CONFIG_TAG_ORDER);
+		modelConfigAnchorPane = (AnchorPane) modelConfigTab.getContent();
+		modelConfigBorderPane = (BorderPane) modelConfigAnchorPane.getChildren().get(0);
+		modelConfigBorderPane.setCenter(imageSubScene);
 	}
-
-	/**
-	public void setCameraFrameImage(Image image){
-		cameraFrameView.setImage(image);
-		cameraFrameView.setFitWidth(500);
-		cameraFrameView.
-	}
-	**/
 	
 	public void setImageOperationFrameImage(Image image) {
 		imageOperationsFrame.setImage(image);

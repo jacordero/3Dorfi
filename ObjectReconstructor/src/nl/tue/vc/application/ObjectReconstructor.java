@@ -67,11 +67,13 @@ public class ObjectReconstructor extends Application {
 			controller.setRootGroup(rootGroup);
 			//controller.setVolumeRenderer(volumeRenderer);
 			controller.init();
+			//controller.configureGUI();
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
 	}
 	
+	/**
 	public void setVolumeSubScene(SubScene volumeSubScene) {
 		tabPane = (TabPane) rootGroup.getChildren().get(0);
 		mainTab = tabPane.getTabs().get(0);
@@ -87,6 +89,7 @@ public class ObjectReconstructor extends Application {
 		renderingDisplayBorderPane = (BorderPane) renderingTabAnchor.getChildren().get(0);
 		renderingDisplayBorderPane.setCenter(projectionSubScene);
 	}
+	**/
 
 	public static void main(String[] args) {
 		// load the native OpenCV library
