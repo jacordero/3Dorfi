@@ -72,7 +72,7 @@ import nl.tue.vc.model.test.VolumeGeneratorTest;
  * transformation and antitransformation.
  *
  */
-public class ObjectRecognizerController {
+public class ObjectReconstructorController {
 	// images to show in the view
 	@FXML
 	private ImageView originalImage;
@@ -311,7 +311,7 @@ public class ObjectRecognizerController {
 	private String OBJECT_IMAGES_DIR_SLOW_TEST = "examples/blackCup242/";
 	private String CALIBRATION_IMAGES_DIR_SLOW_TEST = "examples/blackCup242/calibrationImages/";
 	
-	public ObjectRecognizerController() {
+	public ObjectReconstructorController() {
 
 		silhouetteExtractor = new SilhouetteExtractor();
 		cameraController = new CameraController();

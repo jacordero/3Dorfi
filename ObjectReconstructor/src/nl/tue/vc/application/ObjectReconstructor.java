@@ -20,7 +20,7 @@ import nl.tue.vc.voxelengine.VolumeRenderer;
  * transformation and anti transformation.
  *
  */
-public class ObjectRecognizer extends Application {
+public class ObjectReconstructor extends Application {
 	// the main stage
 	private Stage primaryStage;
 
@@ -62,7 +62,7 @@ public class ObjectRecognizer extends Application {
 			this.primaryStage.show();
 
 			// init the controller
-			ObjectRecognizerController controller = loader.getController();
+			ObjectReconstructorController controller = loader.getController();
 			controller.setStage(this.primaryStage);
 			controller.setRootGroup(rootGroup);
 			//controller.setVolumeRenderer(volumeRenderer);
