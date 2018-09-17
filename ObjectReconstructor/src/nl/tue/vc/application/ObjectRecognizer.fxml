@@ -23,7 +23,7 @@
                                  <children>
                                     <RadioButton fx:id="calibrateCameraFromWebcam" mnemonicParsing="false" text="Webcam">
                                        <HBox.margin>
-                                          <Insets bottom="10.0" left="10.0" right="20.0" top="10.0" />
+                                          <Insets bottom="10.0" left="10.0" right="40.0" top="10.0" />
                                        </HBox.margin>
                                     </RadioButton>
                                     <RadioButton fx:id="calibrateCameraFromDirectory" mnemonicParsing="false" text="Directory">
@@ -31,7 +31,12 @@
                                           <Insets left="20.0" right="10.0" top="10.0" />
                                        </HBox.margin>
                                     </RadioButton>
-                                    <Button fx:id="cameraCalibrationDirectoryButton" mnemonicParsing="false" text="Select Directory">
+                                    <TextField fx:id="cameraCalibrationDirectoryText" prefWidth="300.0">
+                                       <HBox.margin>
+                                          <Insets bottom="10.0" right="10.0" top="10.0" />
+                                       </HBox.margin>
+                                    </TextField>
+                                    <Button fx:id="cameraCalibrationDirectoryButton" mnemonicParsing="false" text="Browse">
                                        <HBox.margin>
                                           <Insets right="10.0" top="10.0" />
                                        </HBox.margin>
@@ -39,6 +44,13 @@
                                  </children>
                               </HBox>
                            </top>
+                           <bottom>
+                              <Button fx:id="calibrateExtrinsicParamsButton" mnemonicParsing="false" onAction="#calibrateCameraForExtrinsicParams" text="Calibrate Camera" BorderPane.alignment="TOP_CENTER">
+                                 <BorderPane.margin>
+                                    <Insets bottom="20.0" />
+                                 </BorderPane.margin>
+                              </Button>
+                           </bottom>
                         </BorderPane>
                      </children>
                   </AnchorPane>
@@ -46,7 +58,44 @@
             </Tab>
             <Tab text="Image Selection">
               <content>
-                <AnchorPane minHeight="0.0" minWidth="0.0" prefHeight="180.0" prefWidth="200.0" />
+                <AnchorPane minHeight="0.0" minWidth="0.0" prefHeight="180.0" prefWidth="200.0">
+                     <children>
+                        <BorderPane prefHeight="600.0" prefWidth="950.0">
+                           <top>
+                              <HBox prefHeight="50.0" prefWidth="600.0" BorderPane.alignment="CENTER">
+                                 <children>
+                                    <RadioButton fx:id="loadObjectImagesFromWebcam" mnemonicParsing="false" text="Webcam">
+                                       <HBox.margin>
+                                          <Insets bottom="10.0" left="10.0" right="40.0" top="10.0" />
+                                       </HBox.margin>
+                                    </RadioButton>
+                                    <RadioButton fx:id="loadObjectImagesFromDirectory" mnemonicParsing="false" text="Directory">
+                                       <HBox.margin>
+                                          <Insets left="20.0" right="10.0" top="10.0" />
+                                       </HBox.margin>
+                                    </RadioButton>
+                                    <TextField fx:id="objectImagesDirectoryText" prefWidth="300.0">
+                                       <HBox.margin>
+                                          <Insets bottom="10.0" right="10.0" top="10.0" />
+                                       </HBox.margin>
+                                    </TextField>
+                                    <Button fx:id="objectImagesDirectoryButton" mnemonicParsing="false" text="Browse">
+                                       <HBox.margin>
+                                          <Insets right="10.0" top="10.0" />
+                                       </HBox.margin>
+                                    </Button>
+                                 </children>
+                              </HBox>
+                           </top>
+                           <bottom>
+                              <Button fx:id="loadObjectImagesButton" mnemonicParsing="false" onAction="#loadObjectImagesFromDirectory" text="Load Object Images" BorderPane.alignment="CENTER">
+                                 <BorderPane.margin>
+                                    <Insets bottom="20.0" />
+                                 </BorderPane.margin>
+                              </Button>
+                           </bottom>
+                        </BorderPane>
+                     </children></AnchorPane>
               </content>
             </Tab>
             <Tab text="Model Rendering">
@@ -103,11 +152,6 @@
                                           </ComboBox>
                                           
                                           <Button fx:id="applyButton" alignment="center" onAction="#updateSettings" text="Apply" />
-                                          <Button fx:id="calibrateExtrinsicParamsButton" mnemonicParsing="false" onAction="#calibrateCameraForExtrinsicParams" text="Calibrate">
-                                             <HBox.margin>
-                                                <Insets left="10.0" />
-                                             </HBox.margin>
-                                          </Button>
                                        </children>
                                        <padding>
                                           <Insets bottom="10" top="10" />

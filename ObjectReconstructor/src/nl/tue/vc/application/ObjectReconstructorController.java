@@ -273,6 +273,27 @@ public class ObjectReconstructorController {
 	@FXML
 	private Button cameraCalibrationDirectoryButton;
 	
+	@FXML
+	private TextField cameraCalibrationDirectoryText;
+	
+
+	private ToggleGroup loadObjectImagesOptions;
+	
+	@FXML
+	private RadioButton loadObjectImagesFromDirectory;
+	
+	@FXML
+	private RadioButton loadObjectImagesFromWebcam;
+	
+	@FXML
+	private Button objectImagesDirectoryButton;
+	
+	@FXML
+	private TextField objectImagesDirectoryText;
+	
+	@FXML
+	private Button loadObjectImagesButton;	
+	
 	
 	private VolumeRenderer volumeRenderer;
 	private VolumeGenerator volumeGenerator;
@@ -308,6 +329,9 @@ public class ObjectReconstructorController {
 
 	private String OBJECT_IMAGES_DIR = "examples/laptopCharger/";
 	private String CALIBRATION_IMAGES_DIR = "examples/laptopCharger/calibrationImages/";
+	List<String> objectImageFilenames;
+
+	
 	private String OBJECT_IMAGES_DIR_SLOW_TEST = "examples/blackCup242/";
 	private String CALIBRATION_IMAGES_DIR_SLOW_TEST = "examples/blackCup242/calibrationImages/";
 	
@@ -551,7 +575,38 @@ public class ObjectReconstructorController {
 		cameraCalibrationDirectoryButton.setOnAction(event -> {
 			File selectedDirectory = directoryChooser.showDialog(stage);
 			if (selectedDirectory != null){
-				System.out.println(selectedDirectory.getAbsolutePath());
+				CALIBRATION_IMAGES_DIR = selectedDirectory.getAbsolutePath();
+				System.out.println(CALIBRATION_IMAGES_DIR);
+				cameraCalibrationDirectoryText.setText(CALIBRATION_IMAGES_DIR);
+			}
+		});
+		
+		loadObjectImagesOptions = new ToggleGroup();
+		loadObjectImagesFromWebcam.setToggleGroup(loadObjectImagesOptions);
+		loadObjectImagesFromDirectory.setToggleGroup(loadObjectImagesOptions);
+		loadObjectImagesFromDirectory.setSelected(true);
+		
+		loadObjectImagesOptions.selectedToggleProperty().addListener(new ChangeListener<Toggle>(){
+			public void changed(ObservableValue<? extends Toggle> observable, Toggle oldValue, Toggle newValue){
+				RadioButton radioButton = (RadioButton) loadObjectImagesOptions.getSelectedToggle();
+				if (radioButton != null){
+					String selection = radioButton.getText();
+					System.out.println("Radio button selected: " + selection);
+					if (selection.equals("Webcam")){
+						objectImagesDirectoryButton.setDisable(true);
+					} else if (selection.equals("Directory")){
+						objectImagesDirectoryButton.setDisable(false);						
+					}
+				}
+			}
+		});
+		
+		objectImagesDirectoryButton.setOnAction(event -> {
+			File selectedDirectory = directoryChooser.showDialog(stage);
+			if (selectedDirectory != null){
+				OBJECT_IMAGES_DIR = selectedDirectory.getAbsolutePath();
+				System.out.println(OBJECT_IMAGES_DIR);
+				objectImagesDirectoryText.setText(OBJECT_IMAGES_DIR);
 			}
 		});
 	}
@@ -1067,13 +1122,19 @@ public class ObjectReconstructorController {
 		if (calibrationImagesMap.isEmpty()) {
 			Utils.debugNewLine("*** Load calibration images ***", true);
 			// Load calibration images
-			final File folder = new File(calibrationImagesDir);
+			final File folder = new File(CALIBRATION_IMAGES_DIR);
 			List<String> calibrationImageFilenames = Utils.listFilesForFolder(folder);
+			objectImageFilenames = new ArrayList<String>();
 
 			int calIndex = 0;
 			for (String filename : calibrationImageFilenames) {
-				filename = calibrationImagesDir + filename;
-				System.out.println("Filename: " + filename);
+				filename = CALIBRATION_IMAGES_DIR + "/" + filename;
+				String[] splittedName = filename.split("-");
+				String objectImageFilename = "object-" + splittedName[1];
+				
+				System.out.println("Calibration image filename: " + filename);
+				System.out.println("Object image filename: " + objectImageFilename);
+				objectImageFilenames.add(objectImageFilename);
 				Mat image = Utils.loadImage(filename);
 				if (image != null) {
 					calibrationImagesMap.put(calibrationIndices.get(calIndex), image);
@@ -1082,6 +1143,29 @@ public class ObjectReconstructorController {
 			}
 		}
 		projectionGenerator = cameraCalibrator.calibrateMatrices(calibrationImagesMap, true);
+	}
+	
+	@FXML
+	private void loadObjectImagesFromDirectory(){
+		Utils.debugNewLine("*** Loading object images from directory ***", true);
+		if (objectImageFilenames.isEmpty()){
+			System.out.println("There is an error: calibrate the camera again!!");
+		} else {
+			int calIndex = 0;
+			for (String filename : objectImageFilenames) {
+				String fullPathFilename = OBJECT_IMAGES_DIR + "/" + filename;
+				
+				System.out.println("Loading: " + fullPathFilename);
+				Mat image = Utils.loadImage(fullPathFilename);
+				if (image != null) {
+					objectImagesMap.put(calibrationIndices.get(calIndex), image);
+					int threshold = (int) binaryThresholdSlider.getValue();
+					imageThresholdMap.put(calibrationIndices.get(calIndex), threshold);
+					calIndex++;
+
+				}
+			}
+		}
 	}
 
 
@@ -1385,7 +1469,7 @@ public class ObjectReconstructorController {
 		System.out.println("Calibration map size: " + projectionGenerator.effectiveSize());
 
 		// Load object images
-		List<String> objectImageFilenames = new ArrayList<String>();
+		objectImageFilenames = new ArrayList<String>();
 		objectImageFilenames.add(OBJECT_IMAGES_DIR + "object-0.jpg");
 		objectImageFilenames.add(OBJECT_IMAGES_DIR + "object-30.jpg");
 		objectImageFilenames.add(OBJECT_IMAGES_DIR + "object-60.jpg");
