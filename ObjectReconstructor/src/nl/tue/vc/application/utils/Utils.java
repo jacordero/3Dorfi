@@ -87,6 +87,21 @@ public final class Utils
 			return null;
 		}
 	}
+	
+	public static Image mat2Image(Mat frame, double width, double height, boolean preserveRatio){
+		try {
+			MatOfByte buffer = new MatOfByte();
+			// encode the frame in the buffer, according to the PNG format
+			Imgcodecs.imencode(".png", frame, buffer);
+			// build and return an Image created from the image encoded in the
+			// buffer
+			return new Image(new ByteArrayInputStream(buffer.toArray()), width, height, preserveRatio, false);
+		} catch (Exception e){
+			System.err.println("Cannot convert the Mat object:");
+			e.printStackTrace();
+			return null;
+		}
+	}
 
 	/**
 	 * Generic method for putting element running on a non-JavaFX thread on the
