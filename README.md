@@ -8,7 +8,7 @@ The following instructions explain how to install the project dependencies.
 1. Install the JAVA SE Development Kit 8.
 
 2. Install the appropriate Eclipse IDE for Java developers according to your operative system. Instructions for installing Eclipse can be found in the following URL: https://www.eclipse.org/downloads/packages/installer
-3. Install OpenCV for Java following the instructions in this webpage https://opencv-java-tutorials.readthedocs.io/en/latest/01-installing-opencv-for-java.html#install-opencv-3-x-under-windows.
+3. Install OpenCV for Java following this webpage's instructions https://opencv-java-tutorials.readthedocs.io/en/latest/01-installing-opencv-for-java.html#install-opencv-3-x-under-windows.
 
 4. Using git, clone the following repository https://github.com/jacordero/3dorfi.git.
 
