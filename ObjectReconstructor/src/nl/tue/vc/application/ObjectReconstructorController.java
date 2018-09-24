@@ -95,10 +95,6 @@ public class ObjectReconstructorController {
 	@FXML
 	private ImageView imageOperationsFrame;
 
-	// the FXML area for showing the current frame (after calibration)
-	@FXML
-	private ImageView calibrationFrame;
-
 	@FXML
 	private VBox projectedVolumeArea;
 
@@ -120,9 +116,6 @@ public class ObjectReconstructorController {
 	private Label thresholdLabel;
 
 	@FXML
-	private ComboBox<String> segmentationAlgorithm;
-
-	@FXML
 	private ComboBox<String> exampleSelection;
 
 	@FXML
@@ -131,8 +124,6 @@ public class ObjectReconstructorController {
 	@FXML
 	private CheckBox thresholdForAll;
 
-	@FXML
-	private ImageView cameraFrameView;
 
 	@FXML
 	private ImageView binaryFrameView;
@@ -357,7 +348,6 @@ public class ObjectReconstructorController {
 		silhouetteExtractor = new SilhouetteExtractor();
 		cameraController = new CameraController();
 		cameraFrame = new Mat();
-		cameraFrameView = new ImageView();
 		originalFrame = new ImageView();
 		cameraCalibrationDisplayFrame = new ImageView();
 		imageSelectionDisplayFrame = new ImageView();
@@ -365,14 +355,6 @@ public class ObjectReconstructorController {
 		videoTimerActive = false;
 		calibrationTimer = new Timer();
 		cameraCalibrator = new CameraCalibrator();
-
-		/**
-		 * Xbox control DISPLACEMENT_X = -2; DISPLACEMENT_Y = -1; DISPLACEMENT_Z
-		 * = (float) -6.5;
-		 * 
-		 * CUBE_LENGTH_X = 11; CUBE_LENGTH_Y = (float) 6.5; CUBE_LENGTH_Z =
-		 * (float) 14.5;
-		 **/
 
 		DISPLACEMENT_X = -2;
 		DISPLACEMENT_Y = -1;
@@ -462,14 +444,6 @@ public class ObjectReconstructorController {
 			thresholdLabel.setText("Threshold: " + String.format("%.2f", newValue));
 			updateBinaryThreshold(newValue.intValue());
 		});
-
-		// segmentationAlgorithm;
-		segmentationAlgorithm.getItems().add("Watersheed");
-		segmentationAlgorithm.getItems().add("Binarization");
-		segmentationAlgorithm.getItems().add("Equalized");
-		segmentationAlgorithm.setValue("Binarization");
-
-		System.out.println(segmentationAlgorithm.getValue());
 
 		exampleSelection.getItems().add("Charger");
 		exampleSelection.getItems().add("Cup");
@@ -589,6 +563,8 @@ public class ObjectReconstructorController {
 	/**
 	 * Load an image from disk
 	 */
+
+	/**
 	@FXML
 	protected void loadImage() {
 		// imageViews.add(this.originalImage);
@@ -645,6 +621,7 @@ public class ObjectReconstructorController {
 			showImages();
 		}
 	}
+	**/
 
 	public void showImages() {
 
@@ -817,7 +794,7 @@ public class ObjectReconstructorController {
 				Utils.debugNewLine("Extracting Image " + imageKey + " with binary threshold " + binaryThreshold, true);
 
 				silhouetteExtractor.setBinaryThreshold(binaryThreshold);
-				silhouetteExtractor.extract(imageToBinarize, segmentationAlgorithm.getValue());
+				silhouetteExtractor.extract(imageToBinarize, "Binarization");
 				binarizedImagesMap.put(imageKey, silhouetteExtractor.getSegmentedImage());
 
 				try {
@@ -839,7 +816,7 @@ public class ObjectReconstructorController {
 					true);
 
 			silhouetteExtractor.setBinaryThreshold(binaryThreshold);
-			silhouetteExtractor.extract(imageToBinarize, segmentationAlgorithm.getValue());
+			silhouetteExtractor.extract(imageToBinarize, "Binarization");
 			binarizedImagesMap.put(thresholdImageIndex, silhouetteExtractor.getSegmentedImage());
 
 			try {
@@ -990,7 +967,6 @@ public class ObjectReconstructorController {
 			// release the camera
 			this.calibrationCapture.release();
 			// clean the image areas
-			cameraFrameView.setImage(null);
 			calibrationFrame.setImage(null);
 		}
 	}
@@ -1196,13 +1172,6 @@ public class ObjectReconstructorController {
 			}
 		}
 		showLoadedObjectImages();
-	}
-
-	@FXML
-	protected void clearLoadedImages() {
-		objectImagesNames.clear();
-		objectImagesMap.clear();
-		objectImagesDescription.clear();
 	}
 
 	public BoxParameters createRootNodeParameters() {
