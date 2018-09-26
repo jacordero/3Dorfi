@@ -90,6 +90,12 @@ public class ObjectReconstructorController {
 	private Button calibrateExtrinsicParamsButton;
 
 	@FXML
+	private Button calibrationSnapshotButton;
+	
+	@FXML
+	private Button objectSnapshotButton;
+	
+	@FXML
 	private ImageView originalFrame;
 
 	@FXML
@@ -124,6 +130,8 @@ public class ObjectReconstructorController {
 	@FXML
 	private CheckBox thresholdForAll;
 
+	@FXML
+	private CheckBox enableWebcamCameraCalibration;
 
 	@FXML
 	private ImageView binaryFrameView;
@@ -483,8 +491,10 @@ public class ObjectReconstructorController {
 					System.out.println("Radio button selected: " + selection);
 					if (selection.equals("Webcam")) {
 						cameraCalibrationDirectoryButton.setDisable(true);
+						enableWebcamCameraCalibration.setDisable(false);
 					} else if (selection.equals("Directory")) {
 						cameraCalibrationDirectoryButton.setDisable(false);
+						enableWebcamCameraCalibration.setDisable(true);
 					}
 				}
 			}
@@ -499,6 +509,20 @@ public class ObjectReconstructorController {
 			}
 		});
 
+		
+		enableWebcamCameraCalibration.setOnAction((event) -> {
+		    boolean selected = enableWebcamCameraCalibration.isSelected();
+		    if (selected){
+			    System.out.println("Starting video ...");
+			    calibrationSnapshotButton.setDisable(false);
+		    	startVideo();
+		    } else {
+		    	System.out.println("Stopping video ...");
+		    	calibrationSnapshotButton.setDisable(true);
+		    	stopVideo();
+		    }
+		});		
+		
 		loadObjectImagesOptions = new ToggleGroup();
 		loadObjectImagesFromWebcam.setToggleGroup(loadObjectImagesOptions);
 		loadObjectImagesFromDirectory.setToggleGroup(loadObjectImagesOptions);
@@ -546,6 +570,8 @@ public class ObjectReconstructorController {
 		
 		// By default the 3D test model generation button is disabled
     	generateTestModelButton.setDisable(true);
+    	enableWebcamCameraCalibration.setDisable(true);
+    	calibrationSnapshotButton.setDisable(true);
     	exampleSelection.setDisable(true);
 		// Configure ListViews
 	}
@@ -928,11 +954,11 @@ public class ObjectReconstructorController {
 						Platform.runLater(new Runnable() {
 							@Override
 							public void run() {
-								cameraFrameView.setImage(CamStream);
+								//cameraFrameView.setImage(CamStream);
 								// set fixed width
-								cameraFrameView.setFitWidth(100);
+								//cameraFrameView.setFitWidth(100);
 								// preserve image ratio
-								cameraFrameView.setPreserveRatio(true);
+								//cameraFrameView.setPreserveRatio(true);
 								// show the original frames
 								// calibratedFrame.setImage(undistoredImage);
 								// set fixed width
@@ -967,7 +993,7 @@ public class ObjectReconstructorController {
 			// release the camera
 			this.calibrationCapture.release();
 			// clean the image areas
-			calibrationFrame.setImage(null);
+			cameraCalibrationDisplayFrame.setImage(null);
 		}
 	}
 
@@ -1022,30 +1048,21 @@ public class ObjectReconstructorController {
 			@Override
 			public void run() {
 				cameraFrame = cameraController.grabFrame();
-				// System.out.println("Frame grabbed!!");
-				/*
-				 * if (!cameraFrame.empty()) {
-				 * cameraFrameView.setImage(Utils.mat2Image(cameraFrame));
-				 * originalFrame.setFitWidth(100);
-				 * originalFrame.setPreserveRatio(true); }
-				 */
-
 				Platform.runLater(new Runnable() {
 					@Override
 					public void run() {
 						if (!cameraFrame.empty()) {
 							// cameraFrameView.setImage(Utils.mat2Image(cameraFrame));
-							originalFrame.setImage(Utils.mat2Image(cameraFrame));
-							originalFrame.setFitWidth(500);
-							originalFrame.setPreserveRatio(true);
+							// resize to image with width of 500 while preserving its ratio
+							cameraCalibrationDisplayFrame.setImage(Utils.mat2Image(cameraFrame));
+							cameraCalibrationDisplayFrame.setFitWidth(500);
+							cameraCalibrationDisplayFrame.setPreserveRatio(true);
 						}
 					}
 				});
-				// System.out.println("videoTimer is running!");
 			}
 		};
 
-		// System.out.println("Video timer is running!");
 		videoTimer = new Timer();
 		videoTimer.schedule(frameGrabber, 0, 33);
 		videoTimerActive = true;
@@ -1063,31 +1080,29 @@ public class ObjectReconstructorController {
 	 * Take a snapshot to be used for the calibration process
 	 */
 	@FXML
-	protected void takeSnapshot() {
+	protected void takeCalibrationSnapshot() {
 
 		// take snapshots for the camera calibration process
 		TimerTask frameGrabber;
 		frameGrabber = new TimerTask() {
 			@Override
 			public void run() {
-				cameraController.startCamera();
-				// int imagePosition = objectImagesMap.size();
-
+				
+				//cameraController.startCamera();
 				String imageKey = calibrationIndices.get(calibrationImageCounter);
-				Mat image = cameraController.grabFrame();
+				Mat image = cameraFrame;
 				Image resizedImage = Utils.mat2Image(image, 100, 0, true);
-				objectImagesToDisplay.add(resizedImage);
-				objectImagesMap.put(imageKey, image);
-				objectImagesNames.add(imageKey);
-				objectImagesDescription.put(imageKey, objectImagesToDisplay.size() - 1);
-				int threshold = (int) binaryThresholdSlider.getValue();
-				imageThresholdMap.put(imageKey, threshold);
-
+				cameraCalibrationImagesToDisplay.add(resizedImage);
+				calibrationImagesMap.put(imageKey, image);
+				cameraCalibrationImagesNames.add(imageKey);
+				cameraCalibrationImagesDescription.put(imageKey, calibrationImageCounter);
+				
+				
 				calibrationImageCounter += 1;
 				if (calibrationImageCounter > calibrationIndices.size() - 1) {
 					calibrationImageCounter = 0;
 				}
-				showImages();
+				showCameraCalibrationImages();
 			}
 		};
 
@@ -1106,9 +1121,7 @@ public class ObjectReconstructorController {
 		cameraCalibrationImagesNames = FXCollections.observableArrayList();
 		cameraCalibrationImagesDescription = new HashMap<String, Integer>();
 
-		// TODO: remove this conditional to allow for multiple calibrations
-		if (calibrationImagesMap.isEmpty()) {
-
+		if (calibrateCameraFromDirectory.isSelected()){
 			Utils.debugNewLine("*** Load calibration images ***", true);
 			// Load calibration images
 			final File folder = new File(CALIBRATION_IMAGES_DIR);
@@ -1125,10 +1138,6 @@ public class ObjectReconstructorController {
 				System.out.println("Object image filename: " + objectImageFilename);
 				objectImageFilenames.add(objectImageFilename);
 				Mat image = Utils.loadImage(filename);
-				// calibrationImage = this.image;
-				// calibrationFrame.setImage(Utils.mat2Image(calibrationImage));
-				// calibrationFrame.setFitWidth(100);
-				// calibrationFrame.setPreserveRatio(true);
 
 				if (image != null) {
 					String imageIdentifier = calibrationIndices.get(calibrationIndex);
@@ -1139,8 +1148,9 @@ public class ObjectReconstructorController {
 					cameraCalibrationImagesDescription.put(imageIdentifier, calibrationIndex);
 					calibrationIndex++;
 				}
-			}
+			}			
 		}
+		
 		projectionGenerator = cameraCalibrator.calibrateMatrices(calibrationImagesMap, true);
 		showCameraCalibrationImages();
 	}
@@ -1493,21 +1503,6 @@ public class ObjectReconstructorController {
 			}
 		}
 
-		// Load specific values for the threshold map
-		/**
-		 * imageThresholdMap.put(calibrationIndices.get(11), 100);
-		 * imageThresholdMap.put(calibrationIndices.get(4), 85);
-		 * imageThresholdMap.put(calibrationIndices.get(2), 100);
-		 * imageThresholdMap.put(calibrationIndices.get(7), 91);
-		 * imageThresholdMap.put(calibrationIndices.get(10), 94);
-		 * imageThresholdMap.put(calibrationIndices.get(1), 98);
-		 * imageThresholdMap.put(calibrationIndices.get(0), 100);
-		 * imageThresholdMap.put(calibrationIndices.get(6), 98);
-		 * imageThresholdMap.put(calibrationIndices.get(5), 96);
-		 * imageThresholdMap.put(calibrationIndices.get(3), 92);
-		 * imageThresholdMap.put(calibrationIndices.get(9), 95);
-		 * imageThresholdMap.put(calibrationIndices.get(8), 96);
-		 **/
 		showImages();
 	}
 
