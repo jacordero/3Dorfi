@@ -131,7 +131,10 @@ public class ObjectReconstructorController {
 	private CheckBox thresholdForAll;
 
 	@FXML
-	private CheckBox enableWebcamCameraCalibration;
+	private CheckBox enableCameraCalibrationWebcam;
+	
+	@FXML
+	private CheckBox enableObjectWebcam;	
 
 	@FXML
 	private ImageView binaryFrameView;
@@ -181,6 +184,7 @@ public class ObjectReconstructorController {
 	// Image used for calibration of extrinsic parameters
 	private Map<String, Mat> calibrationImagesMap = new HashMap<String, Mat>();
 	private int calibrationImageCounter;
+	private int objectImageCounter;
 	private List<String> calibrationIndices;
 
 	private Mat calibrationImage = null;
@@ -375,6 +379,7 @@ public class ObjectReconstructorController {
 		this.levels = 0;// Integer.parseInt(this.levelsField.getText());
 
 		calibrationImageCounter = 0;
+		objectImageCounter = 0;
 		initCalibrationIndices();
 		initCalibrationIndicesSlowTest();
 		projectionGenerator = null;
@@ -463,8 +468,8 @@ public class ObjectReconstructorController {
 
 	protected void configureGUI() {
 
-		this.objectImageArea.getChildren().add(objectImagesView);
-		objectImagesView.setMaxWidth(140);
+//		this.objectImageArea.getChildren().add(objectImagesView);
+//		objectImagesView.setMaxWidth(140);
 
 		this.imageProcessingArea.getChildren().add(binaryImagesView);
 		binaryImagesView.setMaxWidth(140);
@@ -491,10 +496,12 @@ public class ObjectReconstructorController {
 					System.out.println("Radio button selected: " + selection);
 					if (selection.equals("Webcam")) {
 						cameraCalibrationDirectoryButton.setDisable(true);
-						enableWebcamCameraCalibration.setDisable(false);
+						enableCameraCalibrationWebcam.setDisable(false);
+					    calibrationSnapshotButton.setDisable(false);
 					} else if (selection.equals("Directory")) {
 						cameraCalibrationDirectoryButton.setDisable(false);
-						enableWebcamCameraCalibration.setDisable(true);
+						enableCameraCalibrationWebcam.setDisable(true);
+					    calibrationSnapshotButton.setDisable(true);
 					}
 				}
 			}
@@ -510,12 +517,12 @@ public class ObjectReconstructorController {
 		});
 
 		
-		enableWebcamCameraCalibration.setOnAction((event) -> {
-		    boolean selected = enableWebcamCameraCalibration.isSelected();
+		enableCameraCalibrationWebcam.setOnAction((event) -> {
+		    boolean selected = enableCameraCalibrationWebcam.isSelected();
 		    if (selected){
 			    System.out.println("Starting video ...");
 			    calibrationSnapshotButton.setDisable(false);
-		    	startVideo();
+		    	startVideo(cameraCalibrationDisplayFrame);
 		    } else {
 		    	System.out.println("Stopping video ...");
 		    	calibrationSnapshotButton.setDisable(true);
@@ -536,8 +543,12 @@ public class ObjectReconstructorController {
 					System.out.println("Radio button selected: " + selection);
 					if (selection.equals("Webcam")) {
 						objectImagesDirectoryButton.setDisable(true);
+						enableObjectWebcam.setDisable(false);
+					    objectSnapshotButton.setDisable(false);
 					} else if (selection.equals("Directory")) {
 						objectImagesDirectoryButton.setDisable(false);
+						enableObjectWebcam.setDisable(true);
+					    objectSnapshotButton.setDisable(true);
 					}
 				}
 			}
@@ -552,6 +563,21 @@ public class ObjectReconstructorController {
 			}
 		});
 
+		
+		enableObjectWebcam.setOnAction((event) -> {
+		    boolean selected = enableObjectWebcam.isSelected();
+		    if (selected){
+			    System.out.println("Starting video ...");
+			    objectSnapshotButton.setDisable(false);
+		    	startVideo(imageSelectionDisplayFrame);
+		    } else {
+		    	System.out.println("Stopping video ...");
+		    	objectSnapshotButton.setDisable(true);
+		    	stopVideo();
+		    }
+		});		
+
+		
 		// Configure model generation buttons
 		select3DTestModel.selectedProperty().addListener(new ChangeListener<Boolean>() {
 		    @Override
@@ -568,10 +594,12 @@ public class ObjectReconstructorController {
 		    }
 		 });
 		
-		// By default the 3D test model generation button is disabled
+		// Some elements are disabled by default
     	generateTestModelButton.setDisable(true);
-    	enableWebcamCameraCalibration.setDisable(true);
+    	enableCameraCalibrationWebcam.setDisable(true);
     	calibrationSnapshotButton.setDisable(true);
+    	enableObjectWebcam.setDisable(true);
+    	objectSnapshotButton.setDisable(true);
     	exampleSelection.setDisable(true);
 		// Configure ListViews
 	}
@@ -746,7 +774,7 @@ public class ObjectReconstructorController {
 		cameraCalibrationImageSelectionArea.getChildren().add(cameraCalibrationImageSelectionView);
 	}
 
-	private void showLoadedObjectImages() {
+	private void showObjectImages() {
 		System.out.println("[showLoadedObjectImages()]");
 		System.out.println("names length: " + objectImagesNames.size());
 		objectImagesView.setItems(objectImagesNames);
@@ -761,6 +789,7 @@ public class ObjectReconstructorController {
 						setText(null);
 						setGraphic(null);
 					} else {
+						System.out.println("Name: " + name);
 						int imagePosition = objectImagesDescription.get(name);
 						imageView.setImage(objectImagesToDisplay.get(imagePosition));
 						imageView.setFitWidth(100);
@@ -786,6 +815,7 @@ public class ObjectReconstructorController {
 			return cell;
 		});
 
+		// TODO: Fix this issue using Platform.runLater
 		imageSelectionScrollArea.getChildren().clear();
 		imageSelectionScrollArea.getChildren().add(objectImagesView);
 	}
@@ -1040,7 +1070,7 @@ public class ObjectReconstructorController {
 	}
 
 	// @FXML
-	protected void startVideo() {
+	protected void startVideo(ImageView displayFrame) {
 
 		cameraController.startCamera();
 		TimerTask frameGrabber = new TimerTask() {
@@ -1054,9 +1084,9 @@ public class ObjectReconstructorController {
 						if (!cameraFrame.empty()) {
 							// cameraFrameView.setImage(Utils.mat2Image(cameraFrame));
 							// resize to image with width of 500 while preserving its ratio
-							cameraCalibrationDisplayFrame.setImage(Utils.mat2Image(cameraFrame));
-							cameraCalibrationDisplayFrame.setFitWidth(500);
-							cameraCalibrationDisplayFrame.setPreserveRatio(true);
+							displayFrame.setImage(Utils.mat2Image(cameraFrame));
+							displayFrame.setFitWidth(500);
+							displayFrame.setPreserveRatio(true);
 						}
 					}
 				});
@@ -1110,6 +1140,41 @@ public class ObjectReconstructorController {
 		imageTimer.schedule(frameGrabber, 250);
 	}
 
+	/**
+	 * Take a snapshot to be used for the calibration process
+	 */
+	@FXML
+	protected void takeObjectSnapshot() {
+
+		// take snapshots for the camera calibration process
+		TimerTask frameGrabber;
+		frameGrabber = new TimerTask() {
+			@Override
+			public void run() {
+				
+				//cameraController.startCamera();
+				String imageKey = calibrationIndices.get(objectImageCounter);
+				Mat image = cameraFrame;
+				Image resizedImage = Utils.mat2Image(image, 100, 0, true);
+				objectImagesToDisplay.add(resizedImage);
+				objectImagesMap.put(imageKey, image);
+				objectImagesNames.add(imageKey);
+				objectImagesDescription.put(imageKey, objectImageCounter);
+				
+				
+				objectImageCounter += 1;
+				if (objectImageCounter > calibrationIndices.size() - 1) {
+					objectImageCounter = 0;
+				}
+				showObjectImages();
+			}
+		};
+
+		imageTimer = new Timer();
+		imageTimer.schedule(frameGrabber, 250);
+	}
+
+	
 	@FXML
 	private void calibrateCameraForExtrinsicParams() {
 
@@ -1181,7 +1246,7 @@ public class ObjectReconstructorController {
 				}
 			}
 		}
-		showLoadedObjectImages();
+		showObjectImages();
 	}
 
 	public BoxParameters createRootNodeParameters() {
