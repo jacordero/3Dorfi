@@ -843,12 +843,12 @@ public class ObjectReconstructorController {
 		Utils.debugNewLine("Silhouette extraction for " + thresholdImageIndex, true);
 		if (thresholdImageIndex.equals("ALL_IMAGES") || thresholdForAll.isSelected()) {
 			binarizedImagesMap = new HashMap<String, Mat>();
-
 			for (String imageKey : objectImagesMap.keySet()) {
 				Mat imageToBinarize = objectImagesMap.get(imageKey);
 				int binaryThreshold = imageThresholdMap.get(imageKey);
 				Utils.debugNewLine("Extracting Image " + imageKey + " with binary threshold " + binaryThreshold, true);
 
+				// TODO: Implement a callable interface to compute the segmented image and include the imageKey in the result
 				silhouetteExtractor.setBinaryThreshold(binaryThreshold);
 				silhouetteExtractor.extract(imageToBinarize, "Binarization");
 				binarizedImagesMap.put(imageKey, silhouetteExtractor.getSegmentedImage());
@@ -887,7 +887,6 @@ public class ObjectReconstructorController {
 				binaryImagesNames.add(imageKey);
 				binaryImagesDescription.put(imageKey, binarizedImagesMap.size() - 1);
 			}
-
 		}
 
 		// a

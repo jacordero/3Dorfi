@@ -334,7 +334,7 @@
                      <children>
                         <BorderPane prefHeight="600.0">
                            <top>
-                              <VBox minHeight="-Infinity" minWidth="-Infinity" prefHeight="150.0" prefWidth="950.0" spacing="10.0" BorderPane.alignment="CENTER">
+                              <VBox minHeight="-Infinity" minWidth="-Infinity" prefHeight="110.0" prefWidth="950.0" spacing="10.0" BorderPane.alignment="CENTER">
                                  <children>
                                     <HBox prefWidth="900.0">
                                        <children>
@@ -447,7 +447,7 @@
                                     <Insets bottom="10.0" left="10.0" right="10.0" />
                                  </padding>
                                  <BorderPane.margin>
-                                    <Insets left="10.0" right="60.0" />
+                                    <Insets left="10.0" right="20.0" />
                                  </BorderPane.margin>
                               </VBox>
                            </right>
@@ -462,7 +462,7 @@
                                  	</Button>
                                    </children>
                                  	<padding>
-                                    	<Insets bottom="25.0" left="25.0" right="25.0" top="25.0" />
+                                    	<Insets bottom="25.0" left="300.0" right="25.0" top="25.0" />
                                  	</padding>
                               	</HBox> 
                            </bottom>
