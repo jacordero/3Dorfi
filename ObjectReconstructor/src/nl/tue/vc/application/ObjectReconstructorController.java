@@ -8,6 +8,10 @@ import java.util.List;
 import java.util.Map;
 import java.util.Timer;
 import java.util.TimerTask;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
 
 import org.opencv.core.Mat;
 import org.opencv.imgcodecs.Imgcodecs;
@@ -46,6 +50,8 @@ import nl.tue.vc.application.utils.Utils;
 import nl.tue.vc.application.visual.IntersectionTest;
 import nl.tue.vc.imgproc.CameraCalibrator;
 import nl.tue.vc.imgproc.CameraController;
+import nl.tue.vc.imgproc.ConcurrentSilhouetteExtractor;
+import nl.tue.vc.imgproc.SegmentedImageStruct;
 import nl.tue.vc.imgproc.SilhouetteExtractor;
 import nl.tue.vc.model.BoxParameters;
 import nl.tue.vc.model.Octree;
@@ -54,6 +60,7 @@ import nl.tue.vc.model.VolumeGenerator;
 import nl.tue.vc.model.test.OctreeTest;
 import nl.tue.vc.model.test.VolumeGeneratorTest;
 import nl.tue.vc.projection.ProjectionGenerator;
+import nl.tue.vc.silhouetteExtraction.ImageLoader;
 import nl.tue.vc.voxelengine.CameraPosition;
 import nl.tue.vc.voxelengine.VolumeRenderer;
 
@@ -319,8 +326,6 @@ public class ObjectReconstructorController {
 	private VolumeRenderer volumeRenderer;
 	private VolumeGenerator volumeGenerator;
 
-	private SilhouetteExtractor silhouetteExtractor;
-
 	private CameraController cameraController;
 
 	private CameraCalibrator cameraCalibrator;
@@ -357,7 +362,6 @@ public class ObjectReconstructorController {
 
 	public ObjectReconstructorController() {
 
-		silhouetteExtractor = new SilhouetteExtractor();
 		cameraController = new CameraController();
 		cameraFrame = new Mat();
 		originalFrame = new ImageView();
@@ -841,42 +845,78 @@ public class ObjectReconstructorController {
 		binaryImagesDescription = new HashMap<String, Integer>();
 
 		Utils.debugNewLine("Silhouette extraction for " + thresholdImageIndex, true);
+		String segmentationMethod = "Binarization";
 		if (thresholdImageIndex.equals("ALL_IMAGES") || thresholdForAll.isSelected()) {
 			binarizedImagesMap = new HashMap<String, Mat>();
-			for (String imageKey : objectImagesMap.keySet()) {
-				Mat imageToBinarize = objectImagesMap.get(imageKey);
+
+			
+			List<Future<SegmentedImageStruct>> segmentationImageTasks = new ArrayList<Future<SegmentedImageStruct>>();
+			
+			
+			long lStartTime = System.nanoTime();
+
+
+			ExecutorService executor = Executors.newFixedThreadPool(4);
+			for (String imageKey: objectImagesMap.keySet()){
+				Mat image = objectImagesMap.get(imageKey);
 				int binaryThreshold = imageThresholdMap.get(imageKey);
-				Utils.debugNewLine("Extracting Image " + imageKey + " with binary threshold " + binaryThreshold, true);
+				ConcurrentSilhouetteExtractor cse = new ConcurrentSilhouetteExtractor(image, imageKey, segmentationMethod, binaryThreshold);
+				Future<SegmentedImageStruct> future = executor.submit(cse);
+				segmentationImageTasks.add(future);
+			}
+			
+			// TODO: change this way of checking for completion of all tasks
+			boolean allDone = false;
+			while(!allDone){
+				int finishedTasks = 0;
+				for (Future<SegmentedImageStruct> task: segmentationImageTasks){
+					if (task.isDone()){
+						finishedTasks++;
+					}
+				}	
+				if (finishedTasks >= objectImagesMap.size()){
+					allDone = true;
+				}
+			}
+			
+			// Store results of the segmentation procedure
+			for (Future<SegmentedImageStruct> task: segmentationImageTasks){
+				SegmentedImageStruct struct;
+				try {
+					struct = task.get();
+					binarizedImagesMap.put(struct.getImageName(), struct.getImage());			
+				} catch (InterruptedException | ExecutionException e) {
+					e.printStackTrace();
+				}
+			}
 
-				// TODO: Implement a callable interface to compute the segmented image and include the imageKey in the result
-				silhouetteExtractor.setBinaryThreshold(binaryThreshold);
-				silhouetteExtractor.extract(imageToBinarize, "Binarization");
-				binarizedImagesMap.put(imageKey, silhouetteExtractor.getSegmentedImage());
-
+			
+			for (String imageKey : binarizedImagesMap.keySet()) {
+				Mat binaryImage = binarizedImagesMap.get(imageKey);
 				try {
 					BufferedImage bufImage = IntersectionTest
-							.Mat2BufferedImage(silhouetteExtractor.getSegmentedImage());
+							.Mat2BufferedImage(binaryImage);
 					imagesForDistanceComputation.put(imageKey, bufImage);
 				} catch (Exception e) {
 					System.out.println("Something went really wrong!!!");
 					e.printStackTrace();
 				}
-
 				binaryImagesNames.add(imageKey);
 				binaryImagesDescription.put(imageKey, binarizedImagesMap.size() - 1);
 			}
+			
 		} else {
 			Mat imageToBinarize = objectImagesMap.get(thresholdImageIndex);
 			int binaryThreshold = imageThresholdMap.get(thresholdImageIndex);
 			Utils.debugNewLine("Extracting Image " + thresholdImageIndex + " with binary threshold " + binaryThreshold,
 					true);
 
-			silhouetteExtractor.setBinaryThreshold(binaryThreshold);
-			silhouetteExtractor.extract(imageToBinarize, "Binarization");
-			binarizedImagesMap.put(thresholdImageIndex, silhouetteExtractor.getSegmentedImage());
+			ConcurrentSilhouetteExtractor cse = new ConcurrentSilhouetteExtractor(imageToBinarize, thresholdImageIndex, segmentationMethod, binaryThreshold);
+			Mat binaryImage = cse.segment();
+			binarizedImagesMap.put(thresholdImageIndex, binaryImage);
 
 			try {
-				BufferedImage bufImage = IntersectionTest.Mat2BufferedImage(silhouetteExtractor.getSegmentedImage());
+				BufferedImage bufImage = IntersectionTest.Mat2BufferedImage(binaryImage);
 				imagesForDistanceComputation.put(thresholdImageIndex, bufImage);
 			} catch (Exception e) {
 				System.out.println("Something went really wrong!!!");
