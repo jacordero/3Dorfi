@@ -8,10 +8,12 @@ import java.util.List;
 import java.util.Map;
 import java.util.Timer;
 import java.util.TimerTask;
+import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
+import java.util.stream.Collectors;
 
 import org.opencv.core.Mat;
 import org.opencv.imgcodecs.Imgcodecs;
@@ -823,7 +825,7 @@ public class ObjectReconstructorController {
 		imageSelectionScrollArea.getChildren().clear();
 		imageSelectionScrollArea.getChildren().add(objectImagesView);
 	}
-
+	
 	/**
 	 * The action triggered by pushing the button for apply the dft to the
 	 * loaded image
@@ -849,47 +851,29 @@ public class ObjectReconstructorController {
 		if (thresholdImageIndex.equals("ALL_IMAGES") || thresholdForAll.isSelected()) {
 			binarizedImagesMap = new HashMap<String, Mat>();
 
-			
-			List<Future<SegmentedImageStruct>> segmentationImageTasks = new ArrayList<Future<SegmentedImageStruct>>();
-			
-			
-			long lStartTime = System.nanoTime();
+						
+			int nImages = objectImagesMap.size();
+			List<CompletableFuture<SegmentedImageStruct>> futures = new ArrayList<CompletableFuture<SegmentedImageStruct>>();
 
-
-			ExecutorService executor = Executors.newFixedThreadPool(4);
 			for (String imageKey: objectImagesMap.keySet()){
 				Mat image = objectImagesMap.get(imageKey);
 				int binaryThreshold = imageThresholdMap.get(imageKey);
 				ConcurrentSilhouetteExtractor cse = new ConcurrentSilhouetteExtractor(image, imageKey, segmentationMethod, binaryThreshold);
-				Future<SegmentedImageStruct> future = executor.submit(cse);
-				segmentationImageTasks.add(future);
-			}
-			
-			// TODO: change this way of checking for completion of all tasks
-			boolean allDone = false;
-			while(!allDone){
-				int finishedTasks = 0;
-				for (Future<SegmentedImageStruct> task: segmentationImageTasks){
-					if (task.isDone()){
-						finishedTasks++;
-					}
-				}	
-				if (finishedTasks >= objectImagesMap.size()){
-					allDone = true;
-				}
-			}
-			
-			// Store results of the segmentation procedure
-			for (Future<SegmentedImageStruct> task: segmentationImageTasks){
-				SegmentedImageStruct struct;
-				try {
-					struct = task.get();
-					binarizedImagesMap.put(struct.getImageName(), struct.getImage());			
-				} catch (InterruptedException | ExecutionException e) {
-					e.printStackTrace();
-				}
+				CompletableFuture<SegmentedImageStruct> future = CompletableFuture.supplyAsync(() -> cse.call());
+				futures.add(future);
 			}
 
+			// Using asynchronous method to perform image segmentation tasks
+			CompletableFuture<Map<String, Mat>> combinedFuture = CompletableFuture.allOf(futures.toArray(new CompletableFuture[nImages]))
+					.thenApply(v -> futures.stream()
+					.map(CompletableFuture::join)
+					.collect(Collectors.toMap(x -> x.getImageName(), x -> x.getImage())));
+			
+			try {
+				binarizedImagesMap = combinedFuture.get();
+			} catch (InterruptedException | ExecutionException e) {
+				e.printStackTrace();
+			}
 			
 			for (String imageKey : binarizedImagesMap.keySet()) {
 				Mat binaryImage = binarizedImagesMap.get(imageKey);
@@ -1357,7 +1341,7 @@ public class ObjectReconstructorController {
 		// Create the projected octree images
 
 		int initialLevels = 2;
-		int maxLevels = 7;
+		int maxLevels = 8;
 
 		Utils.debugNewLine("+++++++ Creating octree ++++++++++++", false);
 		BoxParameters volumeBoxParameters = createRootNodeParameters();
@@ -1724,13 +1708,16 @@ public class ObjectReconstructorController {
 	 */
 	@FXML
 	public void generateTestModel() {
+		
+		long lStartTime = System.nanoTime();
 		Utils.debugNewLine("generateTestModel", true);
 		configValuesForExample();
 
-		configValuesForExample();
 		loadDefaultImages();
 		Utils.debugNewLine("ObjectImagesMap size: " + objectImagesMap.size(), true);
 		extractSilhouettes();
+		
+		/**
 		List<String> binaryImageFilenames = new ArrayList<String>();
 		binaryImageFilenames.add(OBJECT_IMAGES_DIR + "bin-object-0.png");
 		binaryImageFilenames.add(OBJECT_IMAGES_DIR + "bin-object-30.png");
@@ -1752,9 +1739,14 @@ public class ObjectReconstructorController {
 			Utils.saveImage(binaryImage, binaryImageFilenames.get(imageFilenameIndex));
 			imageFilenameIndex++;
 		}
+		**/
 
 		constructOctreeModel();
 		visualizeOctreeModel();
+		long lEndTime = System.nanoTime();
+		long output = (lEndTime - lStartTime) / 1000000000;
+		System.out.println("The model was generated in: " + output + " seconds!!!");
+
 	}
 	
 
