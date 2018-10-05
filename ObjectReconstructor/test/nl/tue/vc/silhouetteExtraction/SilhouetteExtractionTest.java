@@ -23,11 +23,7 @@ public class SilhouetteExtractionTest {
 	
 	public void completableFutureTest(){
 		Map<String, Mat> objectImagesMap = ImageLoader.loadObjectImages();
-		Map<String, Mat> segmentedImagesMap = new HashMap<String, Mat>();
-		List<Future<SegmentedImageStruct>> segmentationImageTasks = new ArrayList<Future<SegmentedImageStruct>>();
-		List<Boolean> completedTasks = new ArrayList<Boolean>();
-		
-		
+				
 		long lStartTime = System.nanoTime();
 		
 		int nImages = objectImagesMap.size();
