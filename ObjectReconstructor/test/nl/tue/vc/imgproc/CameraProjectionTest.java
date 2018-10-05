@@ -1,4 +1,4 @@
-package nl.tue.vc.projection;
+package nl.tue.vc.imgproc;
 
 import java.awt.image.BufferedImage;
 import java.io.File;
@@ -201,10 +201,6 @@ public class CameraProjectionTest {
 		    System.out.println("There was an error while saving projected image!!");
 		}
 		
-		//imgToSave.
-		//Imgproc.circle(img, center, radius, color);
-		//Calib3d.drawChessboardCorners(frame, boardSize, imageCorners, found);
-
 	}
 	
 }

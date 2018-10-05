@@ -8,6 +8,7 @@ import java.text.DecimalFormat;
 import java.text.NumberFormat;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 import javax.imageio.ImageIO;
 
@@ -27,6 +28,7 @@ import javafx.scene.shape.Ellipse;
 import javafx.scene.shape.Rectangle;
 import nl.tue.vc.application.utils.Utils;
 import nl.tue.vc.imgproc.CameraCalibrator;
+import nl.tue.vc.projection.ProjectionGenerator;
 
 public class OctreeProjectionTest {
 
@@ -37,7 +39,7 @@ public class OctreeProjectionTest {
 	
 	private static final String CALIBRATION_IMAGE = "images/calibrationImage.png";
 	
-	private Mat calibrationImage;
+	private Map<String, Mat> calibrationImages;
 	
 	private OctreeTest octree;
 	
@@ -46,11 +48,11 @@ public class OctreeProjectionTest {
 	private List<Rectangle> boundingBoxes;
 	
 	public OctreeProjectionTest(){
-		calibrationImage = loadCalibrationImage();
+		calibrationImages = Utils.loadCalibrationImages();
 		octree = generateOctree();
 		System.out.println(octree);
 		cameraCalibrator = new CameraCalibrator();
-		projectionGenerator = cameraCalibrator.calibrate(calibrationImage, true);
+		projectionGenerator = cameraCalibrator.calibrateMatrices(calibrationImages, true);
 		projectedPoints = new ArrayList<Point>();
 		boundingBoxes = new ArrayList<Rectangle>();
 	}
@@ -98,7 +100,7 @@ public class OctreeProjectionTest {
 		rotation.play();
 		**/
 		
-		SubScene subScene = new SubScene(root2D, calibrationImage.cols()/2, calibrationImage.rows()/2, true, SceneAntialiasing.BALANCED);		
+		SubScene subScene = new SubScene(root2D, Utils.IMAGES_WIDTH/2, Utils.IMAGES_WIDTH/2, true, SceneAntialiasing.BALANCED);		
 		
 		PerspectiveCamera perspectiveCamera = new PerspectiveCamera(false);
 		perspectiveCamera.setTranslateX(140);
@@ -123,17 +125,17 @@ public class OctreeProjectionTest {
 		List<Point> projections = encodedProjections.toList();
 		NumberFormat formatter = new DecimalFormat("#0.00"); 
 
-		System.out.println("\n************ Projecting parent ****************");
+		Utils.debugNewLine("\n************ Projecting parent ****************", false);
 		for (int i = 0; i < corners.size(); i++){
 			Point3 corner = corners.get(i);
 			Point projection = projections.get(i);
 			String infoStr = "BoxSize: " + node.getBoxSize();
 			infoStr += "\tCorner: [x: " + formatter.format(corner.x) + ", y: " + formatter.format(corner.y) + ", z: " + formatter.format(corner.z) + "]";
 			infoStr += "\tProjection: [x: " + formatter.format(projection.x) + ", y:" + formatter.format(projection.y) + "]";
-			System.out.println(infoStr);
+			Utils.debugNewLine(infoStr, false);
 		}
 		
-		Rectangle boundingBox = computeBoundingBox(projections, calibrationImage.cols(), calibrationImage.rows(), level);
+		Rectangle boundingBox = computeBoundingBox(projections, Utils.IMAGES_WIDTH, Utils.IMAGES_WIDTH, level);
 		boundingBox.setStroke(Color.BLACK);
 
 		boundingBoxes.add(boundingBox);
@@ -146,7 +148,7 @@ public class OctreeProjectionTest {
 		//projectedPoints.addAll(projections);
 		
 		if (!node.isLeaf()){
-			System.out.println("\n********** Projecting children *************");
+			Utils.debugNewLine("\n********** Projecting children *************", false);
 			for (NodeTest children: node.getChildren()){
 				iterateCubesAux(children, level + 1);				
 			}
@@ -223,11 +225,11 @@ public class OctreeProjectionTest {
 	
 	private OctreeTest generateOctree(){
 		
-		return new OctreeTest(8, 4, 4, 8, 2);
+		return new OctreeTest(8, 4, 4, 4, 2);
 	}
 	
 	public void calibrateCamera(){
-		projectionGenerator = cameraCalibrator.calibrate(calibrationImage, true);
+		projectionGenerator = cameraCalibrator.calibrateMatrices(calibrationImages, true);
 	}
 	
 	public List<Rectangle> getBoundingBoxes(){

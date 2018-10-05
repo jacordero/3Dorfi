@@ -1,4 +1,4 @@
-package nl.tue.vc.projectiontests;
+package nl.tue.vc.projection;
 
 import java.util.ArrayList;
 import java.util.HashMap;

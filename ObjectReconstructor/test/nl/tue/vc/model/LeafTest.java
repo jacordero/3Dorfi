@@ -1,4 +1,4 @@
-package nl.tue.vc.model.test;
+package nl.tue.vc.model;
 
 import javafx.scene.paint.Color;
 import nl.tue.vc.application.utils.Utils;

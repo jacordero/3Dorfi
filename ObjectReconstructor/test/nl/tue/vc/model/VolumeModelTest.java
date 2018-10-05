@@ -1,4 +1,4 @@
-package nl.tue.vc.model.test;
+package nl.tue.vc.model;
 
 import nl.tue.vc.model.BoxParameters;
 import nl.tue.vc.projection.Vector3D;
