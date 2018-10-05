@@ -1,4 +1,4 @@
-package nl.tue.vc.model.test;
+package nl.tue.vc.model;
 
 import javafx.scene.Group;
 import javafx.scene.paint.Color;

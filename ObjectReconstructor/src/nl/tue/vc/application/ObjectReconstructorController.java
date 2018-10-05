@@ -57,9 +57,9 @@ import nl.tue.vc.voxelengine.VolumeRenderer;
 import nl.tue.vc.model.BoxParameters;
 import nl.tue.vc.model.Octree;
 import nl.tue.vc.model.OctreeCubeProjector;
+import nl.tue.vc.model.OctreeTest;
 import nl.tue.vc.model.VolumeGenerator;
-import nl.tue.vc.model.test.OctreeTest;
-import nl.tue.vc.model.test.VolumeGeneratorTest;
+import nl.tue.vc.model.VolumeGeneratorTest;
 
 public class ObjectReconstructorController {
 	// images to show in the view

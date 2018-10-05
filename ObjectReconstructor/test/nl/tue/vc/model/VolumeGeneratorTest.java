@@ -1,4 +1,4 @@
-package nl.tue.vc.model.test;
+package nl.tue.vc.model;
 
 import java.awt.image.BufferedImage;
 import java.util.ArrayList;
