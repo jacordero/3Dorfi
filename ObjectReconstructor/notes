@@ -1,0 +1,4 @@
+Todo list:
+1) Clear loaded images for camera calibration and model generation.
+2) Enable the generation of multiple 3D test models one after another.
+3) Show camera calibration and object images when the test models are generated.

@@ -13,7 +13,175 @@
    <children>
       <TabPane layoutX="30.0" layoutY="30.0" maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="650.0" prefWidth="950.0" tabClosingPolicy="UNAVAILABLE">
          <tabs>
-            <Tab text="Main">
+            <Tab text="Camera Calibration">
+              <content>
+                <AnchorPane minHeight="0.0" minWidth="0.0" prefHeight="180.0" prefWidth="200.0">
+                     <children>
+                        <BorderPane prefHeight="600.0" prefWidth="950.0">
+                           <top>
+                              <HBox fx:id="cameraCalibrationDirectory" prefHeight="50.0" prefWidth="600.0" BorderPane.alignment="CENTER">
+                                 <children>
+                                    <RadioButton fx:id="calibrateCameraFromWebcam" mnemonicParsing="false" text="Webcam">
+                                       <HBox.margin>
+                                          <Insets bottom="10.0" left="10.0" right="10.0" top="10.0" />
+                                       </HBox.margin>
+                                    </RadioButton>
+                                    <CheckBox fx:id="enableCameraCalibrationWebcam" mnemonicParsing="false" text="Enable Webcam">
+                                       <HBox.margin>
+                                          <Insets right="40.0" top="10.0" />
+                                       </HBox.margin>
+                                    </CheckBox>
+                                    <RadioButton fx:id="calibrateCameraFromDirectory" mnemonicParsing="false" text="Directory">
+                                       <HBox.margin>
+                                          <Insets left="20.0" right="10.0" top="10.0" />
+                                       </HBox.margin>
+                                    </RadioButton>
+                                    <TextField fx:id="cameraCalibrationDirectoryText" prefWidth="300.0">
+                                       <HBox.margin>
+                                          <Insets bottom="10.0" right="10.0" top="10.0" />
+                                       </HBox.margin>
+                                    </TextField>
+                                    <Button fx:id="cameraCalibrationDirectoryButton" mnemonicParsing="false" text="Browse">
+                                       <HBox.margin>
+                                          <Insets right="10.0" top="10.0" />
+                                       </HBox.margin>
+                                    </Button>
+                                 </children>
+                              </HBox>
+                           </top>
+                           <bottom>
+                           	<HBox prefHeight="50.0" prefWidth="600.0" BorderPane.alignment="CENTER">
+                              <children>
+                                    <Button fx:id="calibrationSnapshotButton" alignment="CENTER" mnemonicParsing="false" onAction="#takeCalibrationSnapshot" text="Take picture">
+                                       <font>
+                                          <Font name="System Bold" size="13.0" />
+                                       </font>
+                                       <HBox.margin>
+                                          <Insets left="250.0" right="30.0" />
+                                       </HBox.margin>
+                                    </Button>
+                                 <Button fx:id="calibrateExtrinsicParamsButton" mnemonicParsing="false" onAction="#calibrateCameraForExtrinsicParams" text="Calibrate Camera" BorderPane.alignment="TOP_CENTER">
+                                    <BorderPane.margin>
+                                       <Insets bottom="20.0" />
+                                    </BorderPane.margin>
+                                       <font>
+                                          <Font name="System Bold" size="13.0" />
+                                       </font>
+                                 </Button>
+                              </children>
+                                 <BorderPane.margin>
+                                    <Insets />
+                                 </BorderPane.margin>
+                                 <padding>
+                                    <Insets left="10.0" right="10.0" top="10.0" />
+                                 </padding>
+                              </HBox>
+                           </bottom>
+                           <left>
+                              <VBox fx:id="cameraCalibrationImageSelectionArea" prefHeight="480.0" prefWidth="200.0" BorderPane.alignment="CENTER">
+                                 <BorderPane.margin>
+                                    <Insets left="10.0" right="10.0" />
+                                 </BorderPane.margin>
+                              </VBox>
+                           </left>
+                           <center>
+                              <VBox fx:id="cameraCalibrationDisplayArea">
+                                 <BorderPane.margin>
+                                    <Insets left="10.0" />
+                                 </BorderPane.margin>
+                                 <children>
+                                    <ImageView fx:id="cameraCalibrationDisplayFrame" />
+                                 </children>
+                              </VBox>
+                           </center>
+                        </BorderPane>
+                     </children>
+                  </AnchorPane>
+              </content>
+            </Tab>
+            <Tab text="Image Selection">
+              <content>
+                <AnchorPane minHeight="0.0" minWidth="0.0" prefHeight="180.0" prefWidth="200.0">
+                     <children>
+                        <BorderPane prefHeight="600.0" prefWidth="950.0">
+                           <top>
+                              <HBox prefHeight="50.0" prefWidth="600.0" BorderPane.alignment="CENTER">
+                                 <children>
+                                    <RadioButton fx:id="loadObjectImagesFromWebcam" mnemonicParsing="false" text="Webcam">
+                                       <HBox.margin>
+                                          <Insets bottom="10.0" left="10.0" right="10.0" top="10.0" />
+                                       </HBox.margin>
+                                    </RadioButton>
+                                    <CheckBox fx:id="enableObjectWebcam" mnemonicParsing="false" text="Enable Webcam">
+                                       <HBox.margin>
+                                          <Insets right="40.0" top="10.0" />
+                                       </HBox.margin>
+                                    </CheckBox>
+                                    <RadioButton fx:id="loadObjectImagesFromDirectory" mnemonicParsing="false" text="Directory">
+                                       <HBox.margin>
+                                          <Insets left="20.0" right="10.0" top="10.0" />
+                                       </HBox.margin>
+                                    </RadioButton>
+                                    <TextField fx:id="objectImagesDirectoryText" prefWidth="300.0">
+                                       <HBox.margin>
+                                          <Insets bottom="10.0" right="10.0" top="10.0" />
+                                       </HBox.margin>
+                                    </TextField>
+                                    <Button fx:id="objectImagesDirectoryButton" mnemonicParsing="false" text="Browse">
+                                       <HBox.margin>
+                                          <Insets right="10.0" top="10.0" />
+                                       </HBox.margin>
+                                    </Button>
+                                 </children>
+                              </HBox>
+                           </top>
+                           <bottom>
+                           	<HBox prefHeight="50.0" prefWidth="600.0" BorderPane.alignment="CENTER">
+                              <children>
+                                    <Button fx:id="objectSnapshotButton" mnemonicParsing="false" onAction="#takeObjectSnapshot" text="Take picture">
+                                       <font>
+                                          <Font name="System Bold" size="13.0" />
+                                       </font>
+                                       <HBox.margin>
+                                          <Insets left="250.0" right="30.0" />
+                                       </HBox.margin>
+                                    </Button>
+                                 <Button fx:id="loadObjectImagesButton" mnemonicParsing="false" onAction="#loadObjectImagesFromDirectory" text="Load Object Images" BorderPane.alignment="CENTER">
+                                    <BorderPane.margin>
+                                       <Insets bottom="20.0" />
+                                    </BorderPane.margin>
+                                       <font>
+                                          <Font name="System Bold" size="13.0" />
+                                       </font>
+                                 </Button>
+                              </children>
+                                 <BorderPane.margin>
+                                    <Insets />
+                                 </BorderPane.margin>
+                                 <padding>
+                                    <Insets top="10.0" />
+                                 </padding>
+                              </HBox>
+                           </bottom>
+                           <left>
+                              <VBox fx:id="imageSelectionScrollArea" prefHeight="480.0" prefWidth="200.0" BorderPane.alignment="CENTER">
+                                 <BorderPane.margin>
+                                    <Insets left="10.0" right="10.0" />
+                                 </BorderPane.margin>
+                              </VBox>
+                           </left>
+                           <center>
+                              <VBox fx:id="imageSelectionDisplayArea" BorderPane.alignment="CENTER">
+                                 <children>
+                                    <ImageView fx:id="imageSelectionDisplayFrame" pickOnBounds="true" preserveRatio="true" />
+                                 </children>
+                              </VBox>
+                           </center>
+                        </BorderPane>
+                     </children></AnchorPane>
+              </content>
+            </Tab>
+            <Tab text="Model Rendering">
                <content>
                   <AnchorPane minHeight="0.0" minWidth="0.0" prefHeight="600.0" prefWidth="1000.0">
                      <children>
@@ -21,11 +189,14 @@
                            <bottom>
                               <HBox alignment="CENTER" spacing="10" BorderPane.alignment="CENTER">
                                  <children>
-                                    <Button fx:id="snapshotButton" alignment="center" onAction="#takeSnapshot" text="Take snapshot" />
-                                    <Button fx:id="constructButton" mnemonicParsing="false" onAction="#constructModel" text="Construct 3D Model" />
-                                    <Button fx:id="visualizeButton" mnemonicParsing="false" onAction="#visualizeModel" text="Visualize Model" />
-                                    <Button fx:id="modelGenerationTestButton" mnemonicParsing="false" onAction="#modelGenerationTest" text="Test" />
-                                    <Button fx:id="modelGenerationSlowTestButton" mnemonicParsing="false" onAction="#modelGenerationSlowTest" text="Slow Test" />
+                                    <Button fx:id="generate3DModelButton" mnemonicParsing="false" onAction="#generate3DModel" text="Generate 3D Model">
+                                       <font>
+                                          <Font name="System Bold" size="13.0" />
+                                       </font></Button>
+                                    <Button fx:id="generateTestModelButton" mnemonicParsing="false" onAction="#generateTestModel" text="Generate 3D Test Model">
+                                       <font>
+                                          <Font name="System Bold" size="13.0" />
+                                       </font></Button>
                   
                                  </children>
                                  <padding>
@@ -48,30 +219,22 @@
                                  <children>
                                     <HBox alignment="CENTER" spacing="10">
                                        <children>
-                                          <CheckBox fx:id="turnOnCamera" mnemonicParsing="false" text="Start cam" />
-                                          <CheckBox fx:id="enableCameraCalibration" mnemonicParsing="false" text="Calibrate" />
                                           <Label text="Camera distance:">
-                                             <HBox.margin>
-                                                <Insets left="10.0" right="5.0" />
-                                             </HBox.margin>
-                                          </Label>
-                                          <Slider fx:id="cameraDistanceSlider" max="600.0" min="10.0" value="300.0">
-                                            <HBox.margin>
-                                                <Insets right="20.0" top="5.0" />
-                                             </HBox.margin>
-                                          </Slider>
-                                          <ComboBox fx:id="exampleSelection" prefWidth="150.0">
-                                             <HBox.margin>
-                                                <Insets right="20.0" top="5.0" />
-                                             </HBox.margin>
-                                          </ComboBox>
-                                          
-                                          <Button fx:id="applyButton" alignment="center" onAction="#updateSettings" text="Apply" />
-                                          <Button fx:id="calibrateExtrinsicParamsButton" mnemonicParsing="false" onAction="#calibrateCameraForExtrinsicParams" text="Calibrate">
                                              <HBox.margin>
                                                 <Insets left="10.0" />
                                              </HBox.margin>
-                                          </Button>
+                                          </Label>
+                                          <Slider fx:id="cameraDistanceSlider" max="600.0" min="10.0" prefWidth="250.0" value="300.0">
+                                            <HBox.margin>
+                                                <Insets right="40.0" top="5.0" />
+                                             </HBox.margin>
+                                          </Slider>
+                                          <RadioButton fx:id="select3DTestModel" mnemonicParsing="false" text="Select 3D Test Model" />
+                                          <ComboBox fx:id="exampleSelection" prefWidth="150.0">
+                                             <HBox.margin>
+                                                <Insets right="5.0" top="5.0" />
+                                             </HBox.margin>
+                                          </ComboBox>
                                        </children>
                                        <padding>
                                           <Insets bottom="10" top="10" />
@@ -83,9 +246,6 @@
                            </top>
                            <right>
                               <VBox fx:id="vboxRightMain" alignment="CENTER" spacing="10" BorderPane.alignment="CENTER">
-                                 <children>
-                                    <ImageView fx:id="calibrationFrame" />
-                                 </children>
                                  <padding>
                                     <Insets left="10" right="10" />
                                  </padding>
@@ -93,13 +253,6 @@
                            </right>
                            <left>
                               <VBox fx:id="objectImageArea" alignment="CENTER" BorderPane.alignment="TOP_CENTER">
-                                 <children>
-                                    <ImageView fx:id="cameraFrameView" fitHeight="140.0" fitWidth="120.0" pickOnBounds="true" preserveRatio="true">
-                                       <VBox.margin>
-                                          <Insets bottom="10.0" top="10.0" />
-                                       </VBox.margin>
-                                    </ImageView>
-                                 </children>
                                  <padding>
                                     <Insets left="10" right="10" />
                                  </padding>
@@ -110,7 +263,7 @@
                   </AnchorPane>
                </content>
             </Tab>
-            <Tab text="Image Operations">
+            <Tab text="Silhouettes Config">
                <content>
                   <AnchorPane minHeight="0.0" minWidth="0.0" prefHeight="180.0" prefWidth="200.0">
                      <children>
@@ -123,27 +276,17 @@
                                           <Insets bottom="10" top="10" />
                                        </padding>
                                        <children>
-                                          <Label text="Segmentation alg:">
+                                          <Label fx:id="thresholdLabel" text="Binary threshold: ">
                                              <HBox.margin>
                                                 <Insets left="10.0" right="5.0" top="5.0" />
                                              </HBox.margin>
                                           </Label>
-                                          <ComboBox fx:id="segmentationAlgorithm" prefWidth="150.0">
-                                             <HBox.margin>
-                                                <Insets right="20.0" top="5.0" />
-                                             </HBox.margin>
-                                          </ComboBox>
-                                          <Label fx:id="thresholdLabel" text="Threshold: ">
-                                             <HBox.margin>
-                                                <Insets left="10.0" right="5.0" top="5.0" />
-                                             </HBox.margin>
-                                          </Label>
-                                          <Slider fx:id="binaryThresholdSlider" blockIncrement="5.0" max="255.0" value="105.0">
+                                          <Slider fx:id="binaryThresholdSlider" blockIncrement="5.0" max="255.0" prefWidth="300.0" value="105.0">
                                              <HBox.margin>
                                                 <Insets right="20.0" top="5.0" />
                                              </HBox.margin>
                                           </Slider>
-                                          <CheckBox fx:id="thresholdForAll" mnemonicParsing="false" text="Apply to all" />
+                                          <CheckBox fx:id="thresholdForAll" mnemonicParsing="false" text="Apply to all images" />
                                        </children>
                                     </HBox>
                                     <Separator prefWidth="200.0" />
@@ -151,10 +294,10 @@
                               </VBox>
                            </top>
                            <right>
-                              <VBox fx:id="imageProcessingArea" alignment="CENTER" spacing="10" BorderPane.alignment="CENTER">
-                                 <padding>
-                                    <Insets left="10" right="10" />
-                                 </padding>
+                              <VBox fx:id="imageProcessingArea" alignment="CENTER" prefHeight="480.0" prefWidth="200.0" spacing="10" BorderPane.alignment="CENTER">
+                                 <BorderPane.margin>
+                                    <Insets left="10.0" right="10.0" />
+                                 </BorderPane.margin>
                               </VBox>
                            </right>
                            <center>
@@ -170,13 +313,10 @@
                            <bottom>
                               <HBox alignment="CENTER" spacing="10" BorderPane.alignment="CENTER">
                                  <children>
-                                    <Button alignment="center" onAction="#loadImage" text="Load Images" />
-                                    <Button fx:id="refreshButton" mnemonicParsing="false" onAction="#clearLoadedImages" text="Refresh">
-                                       <HBox.margin>
-                                          <Insets />
-                                       </HBox.margin>
-                                    </Button>
-                                    <Button fx:id="extractButton1" alignment="center" onAction="#extractSilhouettes" text="Extract Silhouettes" />
+                                    <Button fx:id="extractButton" alignment="center" onAction="#extractSilhouettes" text="Extract Silhouettes">
+                                       <font>
+                                          <Font name="System Bold" size="13.0" />
+                                       </font></Button>
                                  </children>
                                  <padding>
                                     <Insets bottom="25" left="25" right="25" top="25" />
@@ -188,45 +328,48 @@
                   </AnchorPane>
                </content>
             </Tab>
-            <Tab text="Rendering Operations">
+            <Tab text="Model Config">
                <content>
                   <AnchorPane minHeight="0.0" minWidth="0.0" prefHeight="180.0" prefWidth="200.0">
                      <children>
-                        <BorderPane minHeight="-Infinity" minWidth="-Infinity" prefHeight="600.0" prefWidth="1000.0">
+                        <BorderPane prefHeight="600.0">
                            <top>
-                              <VBox minHeight="-Infinity" minWidth="-Infinity" prefHeight="150.0" prefWidth="1000.0" spacing="10.0" BorderPane.alignment="CENTER">
+                              <VBox minHeight="-Infinity" minWidth="-Infinity" prefHeight="110.0" prefWidth="950.0" spacing="10.0" BorderPane.alignment="CENTER">
                                  <children>
                                     <HBox prefWidth="900.0">
                                        <children>
                                                                               
                                           <Label text="Octree Length X:">
                                              <HBox.margin>
-                                                <Insets right="10.0" />
+                                                <Insets left="10.0" right="5.0" />
                                              </HBox.margin>
+                                             <padding>
+                                                <Insets top="5.0" />
+                                             </padding>
                                           </Label>
-                                          <TextField fx:id="textFieldOctreeLengthX" maxWidth="40" text="12">
+                                          <TextField fx:id="textFieldOctreeLengthX" maxWidth="80.0" text="12">
                                              <HBox.margin>
-                                                <Insets right="10.0" />
+                                                <Insets right="30.0" />
                                              </HBox.margin>
                                           </TextField>
 
                                           <Label text="Octree Length Y:">
                                              <HBox.margin>
-                                                <Insets right="10.0" />
+                                                <Insets right="5.0" top="5.0" />
                                              </HBox.margin>
                                           </Label>
-                                          <TextField fx:id="textFieldOctreeLengthY" maxWidth="40" text="8">
+                                          <TextField fx:id="textFieldOctreeLengthY" maxWidth="80.0" text="8">
                                              <HBox.margin>
-                                                <Insets right="10.0" />
+                                                <Insets right="30.0" />
                                              </HBox.margin>
                                           </TextField>
 
                                           <Label text="Octree Length Z:">
                                              <HBox.margin>
-                                                <Insets right="10.0" />
+                                                <Insets right="5.0" top="5.0" />
                                              </HBox.margin>
                                           </Label>
-                                          <TextField fx:id="textFieldOctreeLengthZ" maxWidth="40" text="10">
+                                          <TextField fx:id="textFieldOctreeLengthZ" maxWidth="80.0" text="10">
                                              <HBox.margin>
                                                 <Insets right="10.0" />
                                              </HBox.margin>
@@ -239,21 +382,21 @@
                                        <children>
                                           <Label text="Displacement X:">
                                              <HBox.margin>
-                                                <Insets right="10.0" />
+                                                <Insets left="10.0" right="5.0" top="5.0" />
                                              </HBox.margin>
                                           </Label>
-                                          <TextField fx:id="textFieldOctreeDisplacementX" maxWidth="40" text="-2">
+                                          <TextField fx:id="textFieldOctreeDisplacementX" maxWidth="80.0" text="-2">
                                              <HBox.margin>
-                                                <Insets right="10.0" />
+                                                <Insets right="30.0" />
                                              </HBox.margin>
                                           </TextField>
 
                                           <Label text="Displacement Y:">
                                              <HBox.margin>
-                                                <Insets right="10.0" />
+                                                <Insets right="5.0" top="5.0" />
                                              </HBox.margin>
                                           </Label>
-                                          <TextField fx:id="textFieldOctreeDisplacementY" maxWidth="40" text="-1">
+                                          <TextField fx:id="textFieldOctreeDisplacementY" maxWidth="80.0" text="-1">
                                              <HBox.margin>
                                                 <Insets right="10.0" />
                                              </HBox.margin>
@@ -261,20 +404,14 @@
 
                                           <Label text="Displacement Z:">
                                              <HBox.margin>
-                                                <Insets right="10.0" />
+                                                <Insets right="5.0" top="5.0" />
                                              </HBox.margin>
                                           </Label>
-                                          <TextField fx:id="textFieldOctreeDisplacementZ" maxWidth="40" text="-2">
+                                          <TextField fx:id="textFieldOctreeDisplacementZ" maxWidth="80.0" text="-2">
                                              <HBox.margin>
                                                 <Insets right="10.0" />
                                              </HBox.margin>
                                           </TextField>
-
-                                          <Button fx:id="update3dModelButton" alignment="center" onAction="#update3DModel" text="Update Model">
-                                             <HBox.margin>
-                                                <Insets left="10.0" />
-                                             </HBox.margin>
-                                          </Button>
                                        </children>
                                     </HBox>
                                     <Separator prefWidth="200.0" />
@@ -298,19 +435,37 @@
                               </VBox>
                            </center>
                            <right>
-                              <VBox fx:id="projectionImagesArea" alignment="CENTER" BorderPane.alignment="TOP_CENTER">
+                              <VBox fx:id="projectionImagesArea" alignment="CENTER" prefHeight="480.0" prefWidth="200.0" BorderPane.alignment="TOP_CENTER">
                                  <children>
-                                    <ImageView fx:id="projectedImagesView" fitHeight="140.0" fitWidth="120.0" pickOnBounds="true" preserveRatio="true">
+                                    <ImageView fx:id="projectedImagesView" pickOnBounds="true" preserveRatio="true">
                                        <VBox.margin>
                                           <Insets bottom="10.0" top="10.0" />
                                        </VBox.margin>
                                     </ImageView>
                                  </children>
                                  <padding>
-                                    <Insets left="10" right="10" />
+                                    <Insets bottom="10.0" left="10.0" right="10.0" />
                                  </padding>
+                                 <BorderPane.margin>
+                                    <Insets left="10.0" right="20.0" />
+                                 </BorderPane.margin>
                               </VBox>
                            </right>
+                           <bottom>
+                               <HBox spacing="10.0" BorderPane.alignment="CENTER">
+                                   <children>
+   
+                                 	<Button fx:id="update3dModelButton" alignment="center" onAction="#update3DModel" text="Update Model Configuration" BorderPane.alignment="CENTER">
+                                    <font>
+                                       <Font name="System Bold" size="13.0" />
+                                    </font>
+                                 	</Button>
+                                   </children>
+                                 	<padding>
+                                    	<Insets bottom="25.0" left="300.0" right="25.0" top="25.0" />
+                                 	</padding>
+                              	</HBox> 
+                           </bottom>
                        </BorderPane>
                      </children>
                   </AnchorPane>
