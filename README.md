@@ -24,6 +24,6 @@ After the project is loaded, the project's build path is configured to add the p
 ![Buil Path Conf](/docs_images/BuildPathConf.png)
 
 ## Project usage
-To run the project, run the *nl.tue.vc.application.ObjectReconstructor.java* as a Java application. To see examples of 3D models, select *Charger*, *Cup* or *Hexagon* from the dropdown menu in the right top of the Main tab and click the button *Test*.
+To use the application, run the *nl.tue.vc.application.ObjectReconstructor.java* as a Java application. To see examples of 3D models, first enable the **Select 3D Test Model** button, then select **Charger**, **Cup** or **Hexagon** from the dropdown menu next to the checkbox button, and finally click the "Generate 3D Test Model" button.
 
 ![Object Reconstructor](/docs_images/ObjectReconstructor.png)
