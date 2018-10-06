@@ -90,7 +90,7 @@
                                     <Insets left="10.0" />
                                  </BorderPane.margin>
                                  <children>
-                                    <ImageView fx:id="cameraCalibrationDisplayFrame" />
+                                    <ImageView fx:id="cameraCalibrationDisplayView" />
                                  </children>
                               </VBox>
                            </center>

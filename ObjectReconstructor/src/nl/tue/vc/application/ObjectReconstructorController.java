@@ -13,7 +13,6 @@ import java.util.concurrent.ExecutionException;
 import java.util.stream.Collectors;
 
 import org.opencv.core.Mat;
-import org.opencv.videoio.VideoCapture;
 
 import javafx.application.Platform;
 import javafx.beans.value.ChangeListener;
@@ -42,15 +41,14 @@ import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.VBox;
 import javafx.scene.shape.Box;
 import javafx.stage.DirectoryChooser;
-import javafx.stage.FileChooser;
 import javafx.stage.Stage;
 import nl.tue.vc.application.utils.Utils;
 import nl.tue.vc.application.visual.IntersectionTest;
+import nl.tue.vc.gui.SidePanelImageSelector;
 import nl.tue.vc.imgproc.CameraCalibrator;
 import nl.tue.vc.imgproc.CameraController;
 import nl.tue.vc.imgproc.ConcurrentSilhouetteExtractor;
 import nl.tue.vc.imgproc.SegmentedImageStruct;
-import nl.tue.vc.imgproc.SilhouetteExtractor;
 import nl.tue.vc.projection.ProjectionGenerator;
 import nl.tue.vc.voxelengine.CameraPosition;
 import nl.tue.vc.voxelengine.VolumeRenderer;
@@ -95,10 +93,10 @@ public class ObjectReconstructorController {
 
 	@FXML
 	private Button calibrationSnapshotButton;
-	
+
 	@FXML
 	private Button objectSnapshotButton;
-	
+
 	@FXML
 	private ImageView originalFrame;
 
@@ -136,9 +134,9 @@ public class ObjectReconstructorController {
 
 	@FXML
 	private CheckBox enableCameraCalibrationWebcam;
-	
+
 	@FXML
-	private CheckBox enableObjectWebcam;	
+	private CheckBox enableObjectWebcam;
 
 	@FXML
 	private ImageView binaryFrameView;
@@ -172,18 +170,7 @@ public class ObjectReconstructorController {
 
 	private int fieldOfView;
 
-	// old timer
-	private Timer calibrationTimer;
-
 	private Timer imageTimer;
-	// the OpenCV object that performs the video capture
-	private VideoCapture calibrationCapture;
-	// a flag to change the button behavior
-	private boolean cameraActive;
-	// the saved chessboard image
-	private Mat savedImage;
-	// the calibrated camera frame
-	private Image CamStream;
 
 	// Image used for calibration of extrinsic parameters
 	private Map<String, Mat> calibrationImagesMap = new HashMap<String, Mat>();
@@ -191,26 +178,28 @@ public class ObjectReconstructorController {
 	private int objectImageCounter;
 	private List<String> calibrationIndices;
 
-	private Mat calibrationImage = null;
-
 	private int OCTREE_LEVELS = 7;
 
 	private String thresholdImageIndex = "ALL_IMAGES";
 	Map<String, Integer> imageThresholdMap = new HashMap<String, Integer>();
 	private Map<String, Mat> objectImagesMap = new HashMap<String, Mat>();
+
+	private ListView<String> objectImagesView = new ListView<>();
 	private List<Image> objectImagesToDisplay = new ArrayList<Image>();
 	private ObservableList<String> objectImagesNames = FXCollections.observableArrayList();
-	private ListView<String> objectImagesView = new ListView<>();
 	private Map<String, Integer> objectImagesDescription = new HashMap<>();
 
 	// camera calibration images to display
-	private List<Image> cameraCalibrationImagesToDisplay = new ArrayList<Image>();
 	private ListView<String> cameraCalibrationImageSelectionView = new ListView<>();
-	private ObservableList<String> cameraCalibrationImagesNames = FXCollections.observableArrayList();
-	private Map<String, Integer> cameraCalibrationImagesDescription = new HashMap<>();
+	private SidePanelImageSelector cameraCalibrationImagesPanel;
+	// private List<Image> cameraCalibrationImagesToDisplay = new
+	// ArrayList<Image>();
+	// private ObservableList<String> cameraCalibrationImagesNames =
+	// FXCollections.observableArrayList();
+	// private Map<String, Integer> cameraCalibrationImagesDescription = new
+	// HashMap<>();
 
 	// object images to display
-
 	private Map<String, Mat> binarizedImagesMap = new HashMap<String, Mat>();
 	private List<Mat> binaryImagesToDisplay = new ArrayList<Mat>();
 	private ObservableList<String> binaryImagesNames = FXCollections.observableArrayList();
@@ -229,12 +218,8 @@ public class ObjectReconstructorController {
 	// the main stage
 	private Stage stage;
 	// the JavaFX file chooser
-	private FileChooser fileChooser;
+	// private FileChooser fileChooser;
 	private DirectoryChooser directoryChooser;
-	// support variables
-	private Mat image;
-	private List<Mat> planes;
-	private double calibrationResult = 0;
 
 	// The rootGroup
 	private AnchorPane rootGroup;
@@ -248,7 +233,7 @@ public class ObjectReconstructorController {
 	@FXML
 	private VBox cameraCalibrationDisplayArea;
 	@FXML
-	private ImageView cameraCalibrationDisplayFrame;
+	private ImageView cameraCalibrationDisplayView;
 
 	private Tab imageSelectionTab;
 	private AnchorPane imageSelectionAnchorPane;
@@ -311,8 +296,7 @@ public class ObjectReconstructorController {
 
 	@FXML
 	private RadioButton select3DTestModel;
-	
-	
+
 	private VolumeRenderer volumeRenderer;
 	private VolumeGenerator volumeGenerator;
 
@@ -330,7 +314,6 @@ public class ObjectReconstructorController {
 
 	public static int SNAPSHOT_DELAY = 250;
 	public static final boolean TEST_PROJECTIONS = true;
-	private int levels;
 
 	private float DISPLACEMENT_X;
 	private float DISPLACEMENT_Y;
@@ -355,11 +338,10 @@ public class ObjectReconstructorController {
 		cameraController = new CameraController();
 		cameraFrame = new Mat();
 		originalFrame = new ImageView();
-		cameraCalibrationDisplayFrame = new ImageView();
+		cameraCalibrationDisplayView = new ImageView();
 		imageSelectionDisplayFrame = new ImageView();
 		videoTimer = new Timer();
 		videoTimerActive = false;
-		calibrationTimer = new Timer();
 		cameraCalibrator = new CameraCalibrator();
 
 		DISPLACEMENT_X = -2;
@@ -369,8 +351,6 @@ public class ObjectReconstructorController {
 		CUBE_LENGTH_X = 12;
 		CUBE_LENGTH_Y = (float) 8;
 		CUBE_LENGTH_Z = (float) 10;
-
-		this.levels = 0;// Integer.parseInt(this.levelsField.getText());
 
 		calibrationImageCounter = 0;
 		objectImageCounter = 0;
@@ -425,8 +405,13 @@ public class ObjectReconstructorController {
 		calibrationIndices.add("deg-345");
 	}
 
+	// Method called to initialize all FXML variables
 	@FXML
 	private void initialize() {
+		configureGUI();
+	}
+
+	protected void configureGUI() {
 
 		cameraDistanceSlider.valueProperty().addListener((observable, oldValue, newValue) -> {
 			System.out.println("Camera distance changed (newValue: " + newValue.intValue() + ")");
@@ -455,11 +440,6 @@ public class ObjectReconstructorController {
 		exampleSelection.getItems().add("Hexagon");
 		exampleSelection.setValue("Charger");
 
-		configureGUI();
-	}
-
-	protected void configureGUI() {
-
 		this.imageProcessingArea.getChildren().add(binaryImagesView);
 		binaryImagesView.setMaxWidth(140);
 
@@ -486,11 +466,11 @@ public class ObjectReconstructorController {
 					if (selection.equals("Webcam")) {
 						cameraCalibrationDirectoryButton.setDisable(true);
 						enableCameraCalibrationWebcam.setDisable(false);
-					    calibrationSnapshotButton.setDisable(false);
+						calibrationSnapshotButton.setDisable(false);
 					} else if (selection.equals("Directory")) {
 						cameraCalibrationDirectoryButton.setDisable(false);
 						enableCameraCalibrationWebcam.setDisable(true);
-					    calibrationSnapshotButton.setDisable(true);
+						calibrationSnapshotButton.setDisable(true);
 					}
 				}
 			}
@@ -505,20 +485,19 @@ public class ObjectReconstructorController {
 			}
 		});
 
-		
 		enableCameraCalibrationWebcam.setOnAction((event) -> {
-		    boolean selected = enableCameraCalibrationWebcam.isSelected();
-		    if (selected){
-			    System.out.println("Starting video ...");
-			    calibrationSnapshotButton.setDisable(false);
-		    	startVideo(cameraCalibrationDisplayFrame);
-		    } else {
-		    	System.out.println("Stopping video ...");
-		    	calibrationSnapshotButton.setDisable(true);
-		    	stopVideo();
-		    }
-		});		
-		
+			boolean selected = enableCameraCalibrationWebcam.isSelected();
+			if (selected) {
+				System.out.println("Starting video ...");
+				calibrationSnapshotButton.setDisable(false);
+				startVideo(cameraCalibrationDisplayView);
+			} else {
+				System.out.println("Stopping video ...");
+				calibrationSnapshotButton.setDisable(true);
+				stopVideo();
+			}
+		});
+
 		loadObjectImagesOptions = new ToggleGroup();
 		loadObjectImagesFromWebcam.setToggleGroup(loadObjectImagesOptions);
 		loadObjectImagesFromDirectory.setToggleGroup(loadObjectImagesOptions);
@@ -533,11 +512,11 @@ public class ObjectReconstructorController {
 					if (selection.equals("Webcam")) {
 						objectImagesDirectoryButton.setDisable(true);
 						enableObjectWebcam.setDisable(false);
-					    objectSnapshotButton.setDisable(false);
+						objectSnapshotButton.setDisable(false);
 					} else if (selection.equals("Directory")) {
 						objectImagesDirectoryButton.setDisable(false);
 						enableObjectWebcam.setDisable(true);
-					    objectSnapshotButton.setDisable(true);
+						objectSnapshotButton.setDisable(true);
 					}
 				}
 			}
@@ -552,57 +531,51 @@ public class ObjectReconstructorController {
 			}
 		});
 
-		
 		enableObjectWebcam.setOnAction((event) -> {
-		    boolean selected = enableObjectWebcam.isSelected();
-		    if (selected){
-			    System.out.println("Starting video ...");
-			    objectSnapshotButton.setDisable(false);
-		    	startVideo(imageSelectionDisplayFrame);
-		    } else {
-		    	System.out.println("Stopping video ...");
-		    	objectSnapshotButton.setDisable(true);
-		    	stopVideo();
-		    }
-		});		
+			boolean selected = enableObjectWebcam.isSelected();
+			if (selected) {
+				System.out.println("Starting video ...");
+				objectSnapshotButton.setDisable(false);
+				startVideo(imageSelectionDisplayFrame);
+			} else {
+				System.out.println("Stopping video ...");
+				objectSnapshotButton.setDisable(true);
+				stopVideo();
+			}
+		});
 
-		
 		// Configure model generation buttons
 		select3DTestModel.selectedProperty().addListener(new ChangeListener<Boolean>() {
-		    @Override
-		    public void changed(ObservableValue<? extends Boolean> obs, Boolean wasPreviouslySelected, Boolean isNowSelected) {
-		        if (isNowSelected) { 
-		        	generate3DModelButton.setDisable(true);
-		        	generateTestModelButton.setDisable(false);
-		        	exampleSelection.setDisable(false);
-		        } else {
-		        	generate3DModelButton.setDisable(false);
-		        	generateTestModelButton.setDisable(true);
-		        	exampleSelection.setDisable(true);
-		        }
-		    }
-		 });
-		
+			@Override
+			public void changed(ObservableValue<? extends Boolean> obs, Boolean wasPreviouslySelected,
+					Boolean isNowSelected) {
+				if (isNowSelected) {
+					generate3DModelButton.setDisable(true);
+					generateTestModelButton.setDisable(false);
+					exampleSelection.setDisable(false);
+				} else {
+					generate3DModelButton.setDisable(false);
+					generateTestModelButton.setDisable(true);
+					exampleSelection.setDisable(true);
+				}
+			}
+		});
+
 		// Some elements are disabled by default
-    	generateTestModelButton.setDisable(true);
-    	enableCameraCalibrationWebcam.setDisable(true);
-    	calibrationSnapshotButton.setDisable(true);
-    	enableObjectWebcam.setDisable(true);
-    	objectSnapshotButton.setDisable(true);
-    	exampleSelection.setDisable(true);
-		// Configure ListViews
+		generateTestModelButton.setDisable(true);
+		enableCameraCalibrationWebcam.setDisable(true);
+		calibrationSnapshotButton.setDisable(true);
+		enableObjectWebcam.setDisable(true);
+		objectSnapshotButton.setDisable(true);
+		exampleSelection.setDisable(true);
+
+		// Initialize side panel image selectors
+		cameraCalibrationImagesPanel = new SidePanelImageSelector(cameraCalibrationImageSelectionView, cameraCalibrationDisplayView);
 	}
 
 	protected void init() {
-		this.fileChooser = new FileChooser();
 		directoryChooser = new DirectoryChooser();
-		this.image = new Mat();
-		this.planes = new ArrayList<>();
-		this.calibrationCapture = new VideoCapture();
-		this.cameraActive = false;
-		this.savedImage = new Mat();
 	}
-
 
 	public void showImages() {
 
@@ -626,11 +599,6 @@ public class ObjectReconstructorController {
 						imageView.setPreserveRatio(true);
 						setText(name);
 						setGraphic(imageView);
-
-						/**
-						 * if (imageOperationsFrame.getImage() == null) {
-						 * setImageOperationFrameImage(imageView.getImage()); }
-						 **/
 					}
 				}
 			};
@@ -646,59 +614,41 @@ public class ObjectReconstructorController {
 
 			return cell;
 		});
-
-		// objectImagesView.setMaxWidth(140);
-		// objectImagesView.refresh();
 	}
 
-	private void showCameraCalibrationImages() {
-		System.out.println("[showCameraCalibrationImages()]");
-		System.out.println("names length: " + cameraCalibrationImagesNames.size());
-		cameraCalibrationImageSelectionView.setItems(cameraCalibrationImagesNames);
-		cameraCalibrationImageSelectionView.setCellFactory(param -> {
-			System.out.println("setCellFactory");
-			ListCell<String> cell = new ListCell<String>() {
-				private ImageView imageView = new ImageView();
-
-				@Override
-				public void updateItem(String name, boolean empty) {
-					System.out.println("Updating item!!");
-					super.updateItem(name, empty);
-					if (empty) {
-						System.out.println("Is empty!!");
-						setText(null);
-						setGraphic(null);
-					} else {
-						System.out.println("Name: " + name);
-						int imagePosition = cameraCalibrationImagesDescription.get(name);
-						System.out.println("Image position: " + imagePosition);
-						imageView.setImage(cameraCalibrationImagesToDisplay.get(imagePosition));
-						imageView.setFitWidth(100);
-						imageView.setPreserveRatio(true);
-						setText(name);
-						setGraphic(imageView);
-
-						if (cameraCalibrationDisplayFrame.getImage() == null) {
-							Mat selectedImage = calibrationImagesMap.get(name);
-							setCameraCalibrationSelectedImage(Utils.mat2Image(selectedImage));
-						}
-					}
-				}
-			};
-
-			cell.setOnMouseClicked(e -> {
-				if (cell.getItem() != null) {
-					String imageName = cell.getText();
-					Mat selectedImage = calibrationImagesMap.get(imageName);
-					setCameraCalibrationSelectedImage(Utils.mat2Image(selectedImage));
-				}
-			});
-			return cell;
-		});
-
-		cameraCalibrationImageSelectionArea.getChildren().clear();
-		cameraCalibrationImageSelectionArea.getChildren().add(cameraCalibrationImageSelectionView);
-	}
+	/**
+	 * private void showCameraCalibrationImages() {
+	 * cameraCalibrationImageSelectionView.setItems(cameraCalibrationImagesNames);
+	 * cameraCalibrationImageSelectionView.setCellFactory(param -> {
+	 * System.out.println("setCellFactory"); ListCell<String> cell = new
+	 * ListCell<String>() { private ImageView imageView = new ImageView();
+	 * 
+	 * @Override public void updateItem(String name, boolean empty) {
+	 *           System.out.println("Updating item!!"); super.updateItem(name,
+	 *           empty); if (empty) { System.out.println("Is empty!!");
+	 *           setText(null); setGraphic(null); } else {
+	 *           System.out.println("Name: " + name); int imagePosition =
+	 *           cameraCalibrationImagesDescription.get(name);
+	 *           System.out.println("Image position: " + imagePosition);
+	 *           imageView.setImage(cameraCalibrationImagesToDisplay.get(imagePosition));
+	 *           imageView.setFitWidth(100); imageView.setPreserveRatio(true);
+	 *           setText(name); setGraphic(imageView);
+	 * 
+	 *           if (cameraCalibrationDisplayFrame.getImage() == null) { Mat
+	 *           selectedImage = calibrationImagesMap.get(name);
+	 *           setCameraCalibrationSelectedImage(Utils.mat2Image(selectedImage));
+	 *           } } } };
+	 * 
+	 *           cell.setOnMouseClicked(e -> { if (cell.getItem() != null) {
+	 *           String imageName = cell.getText(); Mat selectedImage =
+	 *           calibrationImagesMap.get(imageName);
+	 *           setCameraCalibrationSelectedImage(Utils.mat2Image(selectedImage));
+	 *           } }); return cell; });
+	 * 
+	 *           cameraCalibrationImageSelectionArea.getChildren().clear();
+	 *           cameraCalibrationImageSelectionArea.getChildren().add(cameraCalibrationImageSelectionView);
+	 *           }
+	 **/
 
 	private void showObjectImages() {
 		System.out.println("[showLoadedObjectImages()]");
@@ -745,7 +695,7 @@ public class ObjectReconstructorController {
 		imageSelectionScrollArea.getChildren().clear();
 		imageSelectionScrollArea.getChildren().add(objectImagesView);
 	}
-	
+
 	/**
 	 * The action triggered by pushing the button for apply the dft to the
 	 * loaded image
@@ -771,35 +721,34 @@ public class ObjectReconstructorController {
 		if (thresholdImageIndex.equals("ALL_IMAGES") || thresholdForAll.isSelected()) {
 			binarizedImagesMap = new HashMap<String, Mat>();
 
-						
 			int nImages = objectImagesMap.size();
 			List<CompletableFuture<SegmentedImageStruct>> futures = new ArrayList<CompletableFuture<SegmentedImageStruct>>();
 
-			for (String imageKey: objectImagesMap.keySet()){
+			for (String imageKey : objectImagesMap.keySet()) {
 				Mat image = objectImagesMap.get(imageKey);
 				int binaryThreshold = imageThresholdMap.get(imageKey);
-				ConcurrentSilhouetteExtractor cse = new ConcurrentSilhouetteExtractor(image, imageKey, segmentationMethod, binaryThreshold);
+				ConcurrentSilhouetteExtractor cse = new ConcurrentSilhouetteExtractor(image, imageKey,
+						segmentationMethod, binaryThreshold);
 				CompletableFuture<SegmentedImageStruct> future = CompletableFuture.supplyAsync(() -> cse.call());
 				futures.add(future);
 			}
 
 			// Using asynchronous method to perform image segmentation tasks
-			CompletableFuture<Map<String, Mat>> combinedFuture = CompletableFuture.allOf(futures.toArray(new CompletableFuture[nImages]))
-					.thenApply(v -> futures.stream()
-					.map(CompletableFuture::join)
-					.collect(Collectors.toMap(x -> x.getImageName(), x -> x.getImage())));
-			
+			CompletableFuture<Map<String, Mat>> combinedFuture = CompletableFuture
+					.allOf(futures.toArray(new CompletableFuture[nImages]))
+					.thenApply(v -> futures.stream().map(CompletableFuture::join)
+							.collect(Collectors.toMap(x -> x.getImageName(), x -> x.getImage())));
+
 			try {
 				binarizedImagesMap = combinedFuture.get();
 			} catch (InterruptedException | ExecutionException e) {
 				e.printStackTrace();
 			}
-			
+
 			for (String imageKey : binarizedImagesMap.keySet()) {
 				Mat binaryImage = binarizedImagesMap.get(imageKey);
 				try {
-					BufferedImage bufImage = IntersectionTest
-							.Mat2BufferedImage(binaryImage);
+					BufferedImage bufImage = IntersectionTest.Mat2BufferedImage(binaryImage);
 					imagesForDistanceComputation.put(imageKey, bufImage);
 				} catch (Exception e) {
 					System.out.println("Something went really wrong!!!");
@@ -808,14 +757,15 @@ public class ObjectReconstructorController {
 				binaryImagesNames.add(imageKey);
 				binaryImagesDescription.put(imageKey, binarizedImagesMap.size() - 1);
 			}
-			
+
 		} else {
 			Mat imageToBinarize = objectImagesMap.get(thresholdImageIndex);
 			int binaryThreshold = imageThresholdMap.get(thresholdImageIndex);
 			Utils.debugNewLine("Extracting Image " + thresholdImageIndex + " with binary threshold " + binaryThreshold,
 					true);
 
-			ConcurrentSilhouetteExtractor cse = new ConcurrentSilhouetteExtractor(imageToBinarize, thresholdImageIndex, segmentationMethod, binaryThreshold);
+			ConcurrentSilhouetteExtractor cse = new ConcurrentSilhouetteExtractor(imageToBinarize, thresholdImageIndex,
+					segmentationMethod, binaryThreshold);
 			Mat binaryImage = cse.segment();
 			binarizedImagesMap.put(thresholdImageIndex, binaryImage);
 
@@ -898,8 +848,6 @@ public class ObjectReconstructorController {
 		DISPLACEMENT_Y = (float) Double.parseDouble(textFieldOctreeDisplacementY.getText());
 		DISPLACEMENT_Z = (float) Double.parseDouble(textFieldOctreeDisplacementZ.getText());
 		createOctreeProjections();
-		// constructModel();
-		// renderModel();
 	}
 
 	/**
@@ -909,8 +857,6 @@ public class ObjectReconstructorController {
 	protected void startCamera() {
 
 	}
-
-
 
 	// @FXML
 	protected void startVideo(ImageView displayFrame) {
@@ -926,7 +872,8 @@ public class ObjectReconstructorController {
 					public void run() {
 						if (!cameraFrame.empty()) {
 							// cameraFrameView.setImage(Utils.mat2Image(cameraFrame));
-							// resize to image with width of 500 while preserving its ratio
+							// resize to image with width of 500 while
+							// preserving its ratio
 							displayFrame.setImage(Utils.mat2Image(cameraFrame));
 							displayFrame.setFitWidth(500);
 							displayFrame.setPreserveRatio(true);
@@ -960,22 +907,24 @@ public class ObjectReconstructorController {
 		frameGrabber = new TimerTask() {
 			@Override
 			public void run() {
-				
-				//cameraController.startCamera();
+
+				// cameraController.startCamera();
 				String imageKey = calibrationIndices.get(calibrationImageCounter);
 				Mat image = cameraFrame;
-				Image resizedImage = Utils.mat2Image(image, 100, 0, true);
-				cameraCalibrationImagesToDisplay.add(resizedImage);
+				Image resizedImage = Utils.mat2Image(image);
 				calibrationImagesMap.put(imageKey, image);
-				cameraCalibrationImagesNames.add(imageKey);
-				cameraCalibrationImagesDescription.put(imageKey, calibrationImageCounter);
-				
-				
+				cameraCalibrationImagesPanel.addImageInfo(resizedImage, imageKey, calibrationImageCounter);
+
 				calibrationImageCounter += 1;
 				if (calibrationImageCounter > calibrationIndices.size() - 1) {
 					calibrationImageCounter = 0;
 				}
-				showCameraCalibrationImages();
+				// TODO: show the image corresponding to the main frame
+				cameraCalibrationImagesPanel.showImagesForSelection(cameraCalibrationImageSelectionArea);
+				// cameraCalibrationImageSelectionArea.getChildren().clear();
+				// cameraCalibrationImageSelectionArea.getChildren().add(cameraCalibrationImageSelectionView);
+
+				// showCameraCalibrationImages();
 			}
 		};
 
@@ -994,8 +943,8 @@ public class ObjectReconstructorController {
 		frameGrabber = new TimerTask() {
 			@Override
 			public void run() {
-				
-				//cameraController.startCamera();
+
+				// cameraController.startCamera();
 				String imageKey = calibrationIndices.get(objectImageCounter);
 				Mat image = cameraFrame;
 				Image resizedImage = Utils.mat2Image(image, 100, 0, true);
@@ -1003,8 +952,7 @@ public class ObjectReconstructorController {
 				objectImagesMap.put(imageKey, image);
 				objectImagesNames.add(imageKey);
 				objectImagesDescription.put(imageKey, objectImageCounter);
-				
-				
+
 				objectImageCounter += 1;
 				if (objectImageCounter > calibrationIndices.size() - 1) {
 					objectImageCounter = 0;
@@ -1017,19 +965,21 @@ public class ObjectReconstructorController {
 		imageTimer.schedule(frameGrabber, 250);
 	}
 
-	
 	@FXML
 	private void calibrateCameraForExtrinsicParams() {
 
 		Utils.debugNewLine("*** Calibrating camera to find extrinsic parameters ***", true);
 		Utils.debugNewLine("Calibration images Map size: " + calibrationImagesMap.size(), true);
 
-		cameraCalibrationImageSelectionView = new ListView<String>();
 		calibrationImagesMap = new HashMap<String, Mat>();
-		cameraCalibrationImagesNames = FXCollections.observableArrayList();
-		cameraCalibrationImagesDescription = new HashMap<String, Integer>();
+		cameraCalibrationImageSelectionView = new ListView<String>();
+		cameraCalibrationImagesPanel.clearImages(cameraCalibrationImageSelectionView);
 
-		if (calibrateCameraFromDirectory.isSelected()){
+		// cameraCalibrationImageSelectionView = new ListView<String>();
+		// cameraCalibrationImagesNames = FXCollections.observableArrayList();
+		// cameraCalibrationImagesDescription = new HashMap<String, Integer>();
+
+		if (calibrateCameraFromDirectory.isSelected()) {
 			Utils.debugNewLine("*** Load calibration images ***", true);
 			// Load calibration images
 			final File folder = new File(CALIBRATION_IMAGES_DIR);
@@ -1051,16 +1001,17 @@ public class ObjectReconstructorController {
 					String imageIdentifier = calibrationIndices.get(calibrationIndex);
 					calibrationImagesMap.put(calibrationIndices.get(calibrationIndex), image);
 					Image scrollingImage = Utils.mat2Image(image, 100, 0, true);
-					cameraCalibrationImagesToDisplay.add(scrollingImage);
-					cameraCalibrationImagesNames.add(imageIdentifier);
-					cameraCalibrationImagesDescription.put(imageIdentifier, calibrationIndex);
+					cameraCalibrationImagesPanel.addImageInfo(scrollingImage, imageIdentifier, calibrationIndex);
 					calibrationIndex++;
 				}
-			}			
+			}
 		}
-		
+
 		projectionGenerator = cameraCalibrator.calibrateMatrices(calibrationImagesMap, true);
-		showCameraCalibrationImages();
+
+		// TODO: move this part to another class
+		// cameraCalibrationSidePanel.showImages(cameraCalibrationDisplayArea);
+		cameraCalibrationImagesPanel.showImagesForSelection(cameraCalibrationImageSelectionArea);
 	}
 
 	@FXML
@@ -1500,20 +1451,19 @@ public class ObjectReconstructorController {
 		showImages();
 	}
 
-	
 	@FXML
-	public void generate3DModel(){
+	public void generate3DModel() {
 		extractSilhouettes();
 		constructOctreeModel();
 		visualizeOctreeModel();
 	}
-	
+
 	/**
 	 * Button used to test the generation of the model using predefined images
 	 */
 	@FXML
 	public void generateTestModel() {
-		
+
 		long lStartTime = System.nanoTime();
 		Utils.debugNewLine("generateTestModel", true);
 		configValuesForExample();
@@ -1521,14 +1471,14 @@ public class ObjectReconstructorController {
 		loadDefaultImages();
 		Utils.debugNewLine("ObjectImagesMap size: " + objectImagesMap.size(), true);
 		extractSilhouettes();
-		
+
 		constructOctreeModel();
 		visualizeOctreeModel();
 		long lEndTime = System.nanoTime();
 		long output = (lEndTime - lStartTime) / 1000000000;
 		System.out.println("The model was generated in: " + output + " seconds!!!");
 	}
-	
+
 	public void generateModelMultipleOctrees(int octreeLevels) {
 		Utils.debugNewLine("generateModelTest", true);
 
@@ -1657,13 +1607,6 @@ public class ObjectReconstructorController {
 		cameraCalibrationAnchorPane = (AnchorPane) cameraCalibrationTab.getContent();
 		cameraCalibrationBorderPane = (BorderPane) cameraCalibrationAnchorPane.getChildren().get(0);
 		cameraCalibrationBorderPane.setCenter(imageSubScene);
-	}
-
-	public void setCameraCalibrationSelectedImage(Image image) {
-		System.out.println("[setCameracalibrationSelectedImage]");
-		cameraCalibrationDisplayFrame.setImage(image);
-		cameraCalibrationDisplayFrame.setFitWidth(500);
-		cameraCalibrationDisplayFrame.setPreserveRatio(true);
 	}
 
 	public void setImageSelectionSubScene(SubScene imageSubScene) {
