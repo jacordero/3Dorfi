@@ -164,16 +164,16 @@
                               </HBox>
                            </bottom>
                            <left>
-                              <VBox fx:id="imageSelectionScrollArea" prefHeight="480.0" prefWidth="200.0" BorderPane.alignment="CENTER">
+                              <VBox fx:id="objectImagesSelectionArea" prefHeight="480.0" prefWidth="200.0" BorderPane.alignment="CENTER">
                                  <BorderPane.margin>
                                     <Insets left="10.0" right="10.0" />
                                  </BorderPane.margin>
                               </VBox>
                            </left>
                            <center>
-                              <VBox fx:id="imageSelectionDisplayArea" BorderPane.alignment="CENTER">
+                              <VBox fx:id="objectImagesDisplayArea" BorderPane.alignment="CENTER">
                                  <children>
-                                    <ImageView fx:id="imageSelectionDisplayFrame" pickOnBounds="true" preserveRatio="true" />
+                                    <ImageView fx:id="objectImagesDisplayView" pickOnBounds="true" preserveRatio="true" />
                                  </children>
                               </VBox>
                            </center>
@@ -293,15 +293,8 @@
                                  </children>
                               </VBox>
                            </top>
-                           <right>
-                              <VBox fx:id="imageProcessingArea" alignment="CENTER" prefHeight="480.0" prefWidth="200.0" spacing="10" BorderPane.alignment="CENTER">
-                                 <BorderPane.margin>
-                                    <Insets left="10.0" right="10.0" />
-                                 </BorderPane.margin>
-                              </VBox>
-                           </right>
                            <center>
-                              <VBox alignment="CENTER" minHeight="-Infinity" minWidth="-Infinity" prefHeight="400.0" prefWidth="500.0" BorderPane.alignment="CENTER">
+                              <VBox fx:id="binaryImagesDisplayArea" alignment="CENTER" minHeight="-Infinity" minWidth="-Infinity" prefHeight="400.0" prefWidth="500.0" BorderPane.alignment="CENTER">
                                  <children>
                                     <ImageView fx:id="imageOperationsFrame" />
                                  </children>
@@ -323,6 +316,13 @@
                                  </padding>
                               </HBox>
                            </bottom>
+                           <left>
+                              <VBox fx:id="binaryImagesSelectionArea" alignment="CENTER" prefHeight="480.0" prefWidth="200.0" spacing="10" BorderPane.alignment="CENTER">
+                                 <BorderPane.margin>
+                                    <Insets left="10.0" right="10.0" />
+                                 </BorderPane.margin>
+                              </VBox>
+                           </left>
                         </BorderPane>
                      </children>
                   </AnchorPane>
