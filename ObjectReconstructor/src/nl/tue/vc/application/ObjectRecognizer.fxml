@@ -85,7 +85,7 @@
                               </VBox>
                            </left>
                            <center>
-                              <VBox fx:id="cameraCalibrationDisplayArea">
+                              <VBox fx:id="cameraCalibrationDisplayArea" minHeight="-Infinity" minWidth="-Infinity" prefHeight="400.0" prefWidth="500.0" BorderPane.alignment="CENTER">
                                  <BorderPane.margin>
                                     <Insets left="10.0" />
                                  </BorderPane.margin>
@@ -171,10 +171,13 @@
                               </VBox>
                            </left>
                            <center>
-                              <VBox fx:id="objectImagesDisplayArea" BorderPane.alignment="CENTER">
+                              <VBox fx:id="objectImagesDisplayArea" minHeight="-Infinity" minWidth="-Infinity" prefHeight="400.0" prefWidth="500.0" BorderPane.alignment="CENTER">
                                  <children>
                                     <ImageView fx:id="objectImagesDisplayView" pickOnBounds="true" preserveRatio="true" />
                                  </children>
+                                 <padding>
+                                    <Insets left="10.0" right="10.0" />
+                                 </padding>
                               </VBox>
                            </center>
                         </BorderPane>
@@ -296,7 +299,7 @@
                            <center>
                               <VBox fx:id="binaryImagesDisplayArea" alignment="CENTER" minHeight="-Infinity" minWidth="-Infinity" prefHeight="400.0" prefWidth="500.0" BorderPane.alignment="CENTER">
                                  <children>
-                                    <ImageView fx:id="imageOperationsFrame" />
+                                    <ImageView fx:id="binaryImagesDisplayView" />
                                  </children>
                                  <padding>
                                     <Insets left="10" right="10" />
@@ -317,10 +320,13 @@
                               </HBox>
                            </bottom>
                            <left>
-                              <VBox fx:id="binaryImagesSelectionArea" alignment="CENTER" prefHeight="480.0" prefWidth="200.0" spacing="10" BorderPane.alignment="CENTER">
+                              <VBox fx:id="binaryImagesSelectionArea" alignment="CENTER" prefHeight="480.0" prefWidth="200.0" BorderPane.alignment="CENTER">
                                  <BorderPane.margin>
-                                    <Insets left="10.0" right="10.0" />
+                                    <Insets left="10.0" right="20.0" />
                                  </BorderPane.margin>
+                                 <padding>
+                                    <Insets bottom="10.0" left="10.0" right="10.0" />
+                                 </padding>
                               </VBox>
                            </left>
                         </BorderPane>
@@ -425,32 +431,15 @@
                               </VBox>
                            </top>
                            <center>
-                              <VBox fx:id="projectedVolumeArea" alignment="CENTER" minHeight="-Infinity" minWidth="-Infinity" prefHeight="400.0" prefWidth="500.0" BorderPane.alignment="CENTER">
+                              <VBox fx:id="projectedVolumesDisplayArea" alignment="CENTER" minHeight="-Infinity" minWidth="-Infinity" prefHeight="400.0" prefWidth="500.0" BorderPane.alignment="CENTER">
                                  <children>
-                                    <ImageView fx:id="projectedVolumeView" />
+                                    <ImageView fx:id="projectedVolumesDisplayView" />
                                  </children>
                                  <padding>
                                     <Insets left="10" right="10" />
                                  </padding>
                               </VBox>
                            </center>
-                           <right>
-                              <VBox fx:id="projectionImagesArea" alignment="CENTER" prefHeight="480.0" prefWidth="200.0" BorderPane.alignment="TOP_CENTER">
-                                 <children>
-                                    <ImageView fx:id="projectedImagesView" pickOnBounds="true" preserveRatio="true">
-                                       <VBox.margin>
-                                          <Insets bottom="10.0" top="10.0" />
-                                       </VBox.margin>
-                                    </ImageView>
-                                 </children>
-                                 <padding>
-                                    <Insets bottom="10.0" left="10.0" right="10.0" />
-                                 </padding>
-                                 <BorderPane.margin>
-                                    <Insets left="10.0" right="20.0" />
-                                 </BorderPane.margin>
-                              </VBox>
-                           </right>
                            <bottom>
                                <HBox spacing="10.0" BorderPane.alignment="CENTER">
                                    <children>
@@ -466,6 +455,16 @@
                                  	</padding>
                               	</HBox> 
                            </bottom>
+                           <left>
+                              <VBox fx:id="projectedVolumesSelectionArea" alignment="CENTER" prefHeight="480.0" prefWidth="200.0" BorderPane.alignment="CENTER">
+                                 <padding>
+                                    <Insets bottom="10.0" left="10.0" right="10.0" />
+                                 </padding>
+                                 <BorderPane.margin>
+                                    <Insets left="10.0" right="20.0" />
+                                 </BorderPane.margin>
+                              </VBox>
+                           </left>
                        </BorderPane>
                      </children>
                   </AnchorPane>
