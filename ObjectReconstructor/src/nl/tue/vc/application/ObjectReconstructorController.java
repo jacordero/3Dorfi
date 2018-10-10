@@ -814,7 +814,6 @@ public class ObjectReconstructorController {
 		// If there is no octree, create one. Otherwise, update the current one
 		Utils.debugNewLine("++++++++++++++++++++++++ Updating octree", false);
 		BoxParameters volumeBoxParameters = createRootNodeParameters();
-		octree.setBoxParameters(volumeBoxParameters);
 		octree.splitNodes(octreeLevels);
 
 		if (octree == null) {
@@ -843,6 +842,7 @@ public class ObjectReconstructorController {
 	@FXML
 	protected void constructOctreeModel() {
 
+		// TODO: make this block of code a concurrent operation
 		for (String imageKey : imagesForDistanceComputation.keySet()) {
 			BufferedImage image = imagesForDistanceComputation.get(imageKey);
 			int[][] sourceArray = IntersectionTest.getBinaryArray(image);
@@ -855,7 +855,6 @@ public class ObjectReconstructorController {
 		}
 
 		// Create the projected octree images
-
 		Utils.debugNewLine("+++++++ Creating octree ++++++++++++", false);
 		BoxParameters volumeBoxParameters = createRootNodeParameters();
 		octree = new Octree(volumeBoxParameters, INITIAL_OCTREE_LEVELS);

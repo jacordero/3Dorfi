@@ -9,7 +9,7 @@ import nl.tue.vc.voxelengine.DeltaStruct;
 
 public abstract class Node {
 
-	protected Color color;
+	protected NodeColor color;
 	
 	protected double sizeX;
 	
@@ -45,11 +45,11 @@ public abstract class Node {
 		this.boxParameters = boxParameters;
 	}
 
-	public Color getColor() {
+	public NodeColor getColor() {
 		return color;
 	}
 	
-	public void setColor(Color newColor) {
+	public void setColor(NodeColor newColor) {
 		color = newColor;
 	}
 	
@@ -195,11 +195,11 @@ public abstract class Node {
 	@Override
 	public String toString() {
 		String str = "{sizeX: " + sizeX + ", sizeY: " + sizeY + ", sizeZ: " + sizeZ + ", centerX: " + positionCenterX + ", centerY: " + positionCenterY + ", centerZ: " + positionCenterZ + ", Color: ";
-		if (color == Color.BLACK){
+		if (color == NodeColor.BLACK){
 			str += " black}";
-		} else if (color == Color.GRAY){
+		} else if (color == NodeColor.GRAY){
 			str += " gray}";
-		} else if (color == Color.WHITE){
+		} else if (color == NodeColor.WHITE){
 			str += " white}";
 		}
 		return str;

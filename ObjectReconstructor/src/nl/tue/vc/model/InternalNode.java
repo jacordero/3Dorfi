@@ -1,7 +1,6 @@
 package nl.tue.vc.model;
 
 import javafx.scene.paint.Color;
-import nl.tue.vc.application.utils.Utils;
 import nl.tue.vc.model.BoxParameters;
 import nl.tue.vc.voxelengine.DeltaStruct;
 
@@ -9,12 +8,8 @@ public class InternalNode extends Node{
 
 	private Node[] children;
 	
-	// this is here for testing purposes
-	//private NodeColor[] colors = {NodeColor.BLACK, NodeColor.BLACK, NodeColor.BLACK, NodeColor.WHITE,
-	//		NodeColor.BLACK, NodeColor.BLACK, NodeColor.BLACK, NodeColor.WHITE};
 	
-	public InternalNode(Color color, double sizeX, double sizeY, double sizeZ, double parentCenterX, double parentCenterY, double parentCenterZ, int octreeHeight, int nodeDepth) {
-		//Utils.debugNewLine("[InternalNodeTest] -> octreeHeight: " + octreeHeight, true);
+	public InternalNode(NodeColor color, double sizeX, double sizeY, double sizeZ, double centerX, double centerY, double centerZ, int octreeHeight, int nodeDepth) {
 		
 		this.color = color;
 		children = new Node[8];	
@@ -23,17 +18,18 @@ public class InternalNode extends Node{
 		this.sizeZ = sizeZ;
 		this.depth = nodeDepth;
 		
-		positionCenterX = parentCenterX;
-		positionCenterY = parentCenterY;
-		positionCenterZ = parentCenterZ;
+		positionCenterX = centerX;
+		positionCenterY = centerY;
+		positionCenterZ = centerZ;
 		
+		// TODO: remove box parameters?
 		this.boxParameters = new BoxParameters();		
 		this.boxParameters.setSizeX(sizeX);
 		this.boxParameters.setSizeY(sizeY);
 		this.boxParameters.setSizeZ(sizeZ);
-		this.boxParameters.setCenterX(parentCenterX);
-		this.boxParameters.setCenterY(parentCenterY);
-		this.boxParameters.setCenterZ(parentCenterZ);
+		this.boxParameters.setCenterX(centerX);
+		this.boxParameters.setCenterY(centerY);
+		this.boxParameters.setCenterZ(centerZ);
 
 		if (octreeHeight < 0){
 			children = null;
@@ -47,30 +43,21 @@ public class InternalNode extends Node{
 				double displacementY = childrenSizeY / 2;
 				double displacementZ = childrenSizeZ / 2;
 				
-				//compute center of each children
-				double newParentCenterX = parentCenterX + (displacementDirections.deltaX * displacementX);
-				double newParentCenterY = parentCenterY + (displacementDirections.deltaY * displacementY);
-				double newParentCenterZ = parentCenterZ + (displacementDirections.deltaZ * displacementZ);
-				
-				//positionCenterX = newParentCenter;
-				
-				/**
-				Utils.debugNewLine("Parent center: [" + parentCenterX + ", " + parentCenterY + ", " + parentCenterZ + "]", false);
-				Utils.debugNewLine("Node center: [" + newParentCenterX + ", " + newParentCenterY + ", " + newParentCenterZ + "]",  false);
-				**/
-				
+				//compute new center for each child
+				double childCenterX = centerX + (displacementDirections.deltaX * displacementX);
+				double childCenterY = centerY + (displacementDirections.deltaY * displacementY);
+				double childCenterZ = centerZ + (displacementDirections.deltaZ * displacementZ);
+								
 				if (octreeHeight > 1){
-					children[i] = new InternalNode(Color.BLACK, childrenSizeX, childrenSizeY, childrenSizeZ, newParentCenterX, newParentCenterY, newParentCenterZ, octreeHeight - 1, nodeDepth + 1);
+					children[i] = new InternalNode(NodeColor.BLACK, childrenSizeX, childrenSizeY, childrenSizeZ, childCenterX, childCenterY, childCenterZ, octreeHeight - 1, nodeDepth + 1);
 				} else {
-					children[i] = new Leaf(Color.BLACK, childrenSizeX, childrenSizeY, childrenSizeZ, newParentCenterX, newParentCenterY, newParentCenterZ, nodeDepth + 1);
+					children[i] = new Leaf(NodeColor.BLACK, childrenSizeX, childrenSizeY, childrenSizeZ, childCenterX, childCenterY, childCenterZ, nodeDepth + 1);
 				} 
 			}			
 		}
-		
-		//initializeChildren();
 	}
 
-	public InternalNode(Color color, double sizeX, double sizeY, double sizeZ) {
+	public InternalNode(NodeColor color, double sizeX, double sizeY, double sizeZ) {
 		this.color = color;
 		children = new Node[8];	
 		this.sizeX = sizeX;
@@ -116,7 +103,7 @@ public class InternalNode extends Node{
 		builder.append("Internal node -> " + super.toString() + "\n");
 		if (children != null){
 			for(int i = 0; i < children.length; i++) {
-				//builder.append(children[i].toString() + "\n");
+				builder.append(children[i].toString() + "\n");
 			}			
 		}
 		return builder.toString();
@@ -129,13 +116,12 @@ public class InternalNode extends Node{
 	public Node splitNode(int deltaHeight, int maxDepth){
 		
 		if (deltaHeight > 0){
-			//Utils.debugNewLine("++++++++++ split internal node with depth " + depth, true);
 			Node[] splittedChildren = new Node[8];
 			if (children != null){
 				for (int i = 0; i < children.length; i++){
-					if (children[i] != null && children[i].getColor() == Color.BLACK && children[i].getDepth() < maxDepth){
+					if (children[i] != null && children[i].getColor() == NodeColor.BLACK && children[i].getDepth() < maxDepth){
 						splittedChildren[i] = children[i].splitNode(deltaHeight, maxDepth);
-					} else if (children[i] != null && children[i].getColor() == Color.GRAY){
+					} else if (children[i] != null && children[i].getColor() == NodeColor.GRAY){
 						splittedChildren[i] = children[i].splitNode(deltaHeight, maxDepth);
 					} else {
 						splittedChildren[i] = children[i];

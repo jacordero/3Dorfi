@@ -23,7 +23,6 @@ import javafx.scene.paint.PhongMaterial;
 import javafx.scene.shape.Box;
 import javafx.scene.shape.Ellipse;
 import javafx.scene.shape.Rectangle;
-import nl.tue.vc.application.utils.OctreeVisualUtils;
 import nl.tue.vc.application.utils.Utils;
 import nl.tue.vc.imgproc.CameraCalibrator;
 import nl.tue.vc.projection.BoundingBox;
@@ -92,34 +91,6 @@ public class VolumeGenerator {
 	public void setProjectionGenerator(ProjectionGenerator projectionGenerator) {
 		this.projectionGenerator = projectionGenerator;
 	}
-
-	// TODO: make the calibration matrices id values be automatically detected
-
-	public void generateTestVoxels(Octree octree){
-			Utils.debugNewLine("[VolumeGenerator.generateTestVoxels]", true);
-			voxels = new ArrayList<Box>();
-			
-			Node root = octree.getRoot();
-			BoxParameters rootBoxParameters = octree.getBoxParameters();
-			//this.octree.setRoot(root);
-			
-			int scaleFactor = 10;
-			BoxParameters scaledBoxParameters = new BoxParameters();
-			scaledBoxParameters.setCenterX(0);
-			scaledBoxParameters.setCenterY(0);
-			scaledBoxParameters.setCenterZ(0);
-			scaledBoxParameters.setSizeX(rootBoxParameters.getSizeX()*scaleFactor);
-			scaledBoxParameters.setSizeY(rootBoxParameters.getSizeY()*scaleFactor);
-			scaledBoxParameters.setSizeZ(rootBoxParameters.getSizeZ()*scaleFactor);
-			
-			DeltaStruct rootDeltas = new DeltaStruct();
-			rootDeltas.deltaX = 0;
-			rootDeltas.deltaY = 0;
-			rootDeltas.deltaZ = 0;
-			rootDeltas.index = 0;
-			
-			voxels = OctreeVisualUtils.colorForDebug(root, scaledBoxParameters, rootDeltas);
-	}
 	
 	public void generateOctreeVoxels(int octreeDepth){
 		Utils.debugNewLine("[VolumeGenerator.generateOctreeVoxels]", true);
@@ -131,7 +102,7 @@ public class VolumeGenerator {
 		Node root = octree.getRoot();
 		
 		Utils.debugNewLine("Octree height: "  + octree.getOctreeHeight(), false);
-		if (octree.getInternalNode().isLeaf()) {
+		if (root.isLeaf()) {
 			Utils.debugNewLine("Octree children: 1", false);
 		} else {
 			Utils.debugNewLine("Octree children: " + root.getChildren().length, false);
@@ -173,7 +144,7 @@ public class VolumeGenerator {
 		List<Box> voxels = new ArrayList<Box>();
 		// System.out.println("========================== generateVolumeAux: " +
 		// currentNode + "| " + currentParameters.getBoxSize());
-		if (currentNode == null || currentNode.getColor() == Color.WHITE) {
+		if (currentNode == null || currentNode.getColor() == NodeColor.WHITE) {
 			//Utils.debugNewLine("Current color is white", true);
 			return voxels;
 		}
@@ -242,7 +213,7 @@ public class VolumeGenerator {
 				//Utils.debugNewLine("########## Testing against image " + (j + 1) + " ##########", false);
 				//Color boxColor = Color.GRAY;
 				IntersectionStatus testResult = testIntersection(copyNode, imageKey);
-				Color boxColor = computeColor(copyNode.getColor(), testResult);
+				NodeColor boxColor = computeColor(copyNode.getColor(), testResult);
 				
 				/**
 				if (status == IntersectionStatus.INSIDE) {
@@ -254,25 +225,25 @@ public class VolumeGenerator {
 				}**/
 				
 
-				if (boxColor == Color.WHITE){
+				if (boxColor == NodeColor.WHITE){
 					whiteCounter++;
 					break;
-				} else if (boxColor == Color.BLACK){
+				} else if (boxColor == NodeColor.BLACK){
 					blackCounter++;
-				} else if (boxColor == Color.GRAY){
+				} else if (boxColor == NodeColor.GRAY){
 					grayCounter++;
 				}
 			}
 			
 			if (whiteCounter > 0 ){
-				currentNode.setColor(Color.WHITE);
+				currentNode.setColor(NodeColor.WHITE);
 			} else if (blackCounter > 0 && grayCounter == 0){
-				currentNode.setColor(Color.BLACK);
+				currentNode.setColor(NodeColor.BLACK);
 			} else if (grayCounter > 0){
-				currentNode.setColor(Color.GRAY);
+				currentNode.setColor(NodeColor.GRAY);
 			}			
 		} else {
-			if (currentNode.getColor() == Color.GRAY || (currentNode.getColor() == Color.BLACK && currentNode.getDepth() < octreeDepth)) {
+			if (currentNode.getColor() == NodeColor.GRAY || (currentNode.getColor() == NodeColor.BLACK && currentNode.getDepth() < octreeDepth)) {
 				Node[] children = currentNode.getChildren();
 				for (int i = 0; i < children.length; i++) {
 					Node childNode = children[i];
@@ -283,187 +254,7 @@ public class VolumeGenerator {
 				}
 			}
 		}
-
 		return currentNode;
-
-		// //Utils.debugNewLine("#################### Intersection test for node: " +
-		// currentNode, false);
-		// //Utils.debugNewLine("########## Testing against image " + (j + 1) + "
-		// ##########", false);
-		// if (currentNode.isLeaf()) {
-		// for (int j = 0; j < this.bufferedImagesForTest.size(); j++) {
-		//
-		// NodeColor boxColor = Color.GRAY;
-		// IntersectionStatus status = testIntersection(currentNode, j);
-		// if (status == IntersectionStatus.INSIDE) {
-		// boxColor = getPaintColor(currentNode.getColor(), Color.BLACK);
-		// } else if (status == IntersectionStatus.PARTIAL) {
-		// boxColor = getPaintColor(currentNode.getColor(), Color.GRAY);
-		// } else {
-		// boxColor = getPaintColor(currentNode.getColor(), Color.WHITE);
-		//
-		// }
-		// currentNode.setColor(boxColor);
-		// // No need to test for the rest of the images because the node
-		// // will be black
-		//
-		//
-		// if (currentNode.getColor() == Color.BLACK) {
-		// break;
-		// }
-		//
-		// }
-		// } else if ((currentNode.getColor() != Color.WHITE) && (currentNode.getColor()
-		// != Color.BLACK)){
-		// Node[] children = currentNode.getChildren();
-		// //boolean paintAsBlack = true;
-		// for (int i = 0; i < children.length; i++) {
-		// Node childNode = children[i];
-		// if (childNode != null && (childNode.getColor() != Color.BLACK &&
-		// childNode.getColor() != Color.WHITE)) {
-		// childNode = getTestedNodeAux(childNode);
-		// currentNode.setChildNode(childNode, i);
-		// /**
-		// if (Color.BLACK != childNode.getColor()){
-		// paintAsBlack = false;
-		// }
-		// **/
-		// }
-		// }
-		//
-		// // all children are black or white
-		// /**
-		// if (paintAsBlack){
-		// currentNode.setColor(Color.BLACK);
-		// }
-		// **/
-		// }
-		//
-		// return currentNode;
-	}
-
-	/**
-	 * private Node getTestedNodeAux(Node currentNode) {
-	 * 
-	 * //Utils.debugNewLine("#################### Intersection test for node: " +
-	 * currentNode, false); for (int j = 0; j < this.bufferedImagesForTest.size();
-	 * j++) { //Utils.debugNewLine("########## Testing against image " + (j + 1) + "
-	 * ##########", false); if (currentNode.isLeaf()) { NodeColor boxColor =
-	 * Color.GRAY; IntersectionStatus status = testIntersection(currentNode, j); if
-	 * (status == IntersectionStatus.INSIDE) { boxColor =
-	 * getPaintColor(currentNode.getColor(), Color.BLACK); } else if (status ==
-	 * IntersectionStatus.PARTIAL) { boxColor =
-	 * getPaintColor(currentNode.getColor(), Color.GRAY); } else { boxColor =
-	 * getPaintColor(currentNode.getColor(), Color.WHITE);
-	 * 
-	 * } currentNode.setColor(boxColor); } else if ((currentNode.getColor() !=
-	 * Color.WHITE) && (currentNode.getColor() != Color.BLACK)){ Node[] children =
-	 * currentNode.getChildren(); boolean paintAsBlack = true; for (int i = 0; i <
-	 * children.length; i++) { Node childNode = children[i]; if (childNode != null
-	 * && (childNode.getColor() != Color.BLACK && childNode.getColor() !=
-	 * Color.WHITE)) { childNode = getTestedNodeAux(childNode);
-	 * currentNode.setChildNode(childNode, i); if (Color.BLACK !=
-	 * childNode.getColor()){ paintAsBlack = false; } } }
-	 * 
-	 * // all children are black or white if (paintAsBlack){
-	 * currentNode.setColor(Color.BLACK); } }
-	 * 
-	 * // No need to test for the rest of the images because the node will be black
-	 * if (currentNode.getColor() == Color.BLACK){ break; } } return currentNode; }
-	 **/
-
-	private List<Box> generateTestedVolume(Node currentNode, BoxParameters currentParameters,
-			DeltaStruct currentDeltas) {
-		List<Box> voxels = new ArrayList<Box>();
-
-		if (currentNode == null) {
-			return voxels;
-		}
-
-		if (currentNode.isLeaf()) {
-			currentNode.setBoxParameters(currentParameters);
-			currentNode.setDisplacementDirection(currentDeltas);
-			Box box = new Box();
-			Color boxColor = Color.GRAY;
-			Color finalColor = Color.WHITE;
-			for (String key: distanceArrays.keySet()){
-			//for (int i = 0; i < this.transformedArrays.size(); i++) {
-				
-				
-				IntersectionStatus status = testIntersection(currentNode, key);
-				if (status == IntersectionStatus.INSIDE) {
-					boxColor = Color.BLACK;// getPaintColor(currentNode.getColor(), Color.BLACK);
-					finalColor = boxColor;
-				} else if (status == IntersectionStatus.PARTIAL) {
-					boxColor = getPaintColor(currentNode.getColor(), Color.GRAY);
-					if (finalColor != Color.BLACK) {
-						finalColor = boxColor;
-					}
-				} else {
-					boxColor = getPaintColor(currentNode.getColor(), Color.WHITE);
-					if (finalColor != Color.BLACK) {
-						finalColor = boxColor;
-					}
-				}
-
-			}
-
-			box = generateVoxel(currentParameters, currentDeltas, finalColor);
-			voxels.add(box);
-			//Utils.debugNewLine("Root is leaf", false);
-		} else {
-			//Utils.debugNewLine("Root is Node", false);
-			Node[] children = currentNode.getChildren();
-			//double newBoxSize = currentParameters.getBoxSize() / 2;
-			double newSizeX = currentParameters.getSizeX() / 2;
-			double newSizeY = currentParameters.getSizeY() / 2;
-			double newSizeZ = currentParameters.getSizeZ() / 2;
-			BoxParameters newParameters = new BoxParameters();
-			//newParameters.setBoxSize(newBoxSize);
-			newParameters.setSizeX(newSizeX);
-			newParameters.setSizeY(newSizeY);
-			newParameters.setSizeZ(newSizeZ);
-			newParameters.setCenterX(currentParameters.getCenterX() + (currentDeltas.deltaX * newSizeX));
-			newParameters.setCenterY(currentParameters.getCenterY() + (currentDeltas.deltaY * newSizeY));
-			newParameters.setCenterZ(currentParameters.getCenterZ() + (currentDeltas.deltaZ * newSizeZ));
-
-			for (int i = 0; i < children.length; i++) {
-				// compute deltaX, deltaY, and deltaZ for new voxels
-				Node childNode = children[i];
-				if (childNode != null) {
-					childNode.setBoxParameters(newParameters);
-					DeltaStruct displacementDirections = OctreeUtils.computeDisplacementDirections(i);
-					childNode.setDisplacementDirection(displacementDirections);
-					// Box box = new Box();
-					Color boxColor = Color.GRAY;
-					Color finalColor = Color.WHITE;
-					for (String imageKey: imagesForDistanceComputation.keySet()) {
-						IntersectionStatus status = testIntersection(currentNode, imageKey);
-						if (status == IntersectionStatus.INSIDE) {
-							boxColor = Color.BLACK;// getPaintColor(currentNode.getColor(), Color.BLACK);
-							finalColor = boxColor;
-						} else if (status == IntersectionStatus.PARTIAL) {
-							boxColor = getPaintColor(currentNode.getColor(), Color.GRAY);
-							if (finalColor != Color.BLACK) {
-								finalColor = boxColor;
-							}
-						} else {
-							boxColor = getPaintColor(currentNode.getColor(), Color.WHITE);
-							if (finalColor != Color.BLACK) {
-								finalColor = boxColor;
-							}
-						}
-
-					}
-
-					// box = generateVoxel(newParameters, displacementDirections, finalColor);
-					List<Box> innerBoxes = generateTestedVolume(childNode, newParameters, displacementDirections);
-					voxels.addAll(innerBoxes);
-					// voxels.add(box);
-				}
-			}
-		}
-		return voxels;
 	}
 
 	public Group getImageProjections(String index) {
@@ -534,11 +325,6 @@ public class VolumeGenerator {
 			determiningValue = (int) boundingRectangle.getHeight();
 		}
 
-//		Utils.debugNewLine("transformedValue: " + transformedValue + ", projected box size: " + determiningValue, true);
-//		Utils.debugNewLine(
-//				"transformedInvertedValue: " + transformedInvertedValue + ", projected box size: " + determiningValue,
-//				true);
-
 		if (determiningValue <= transformedValue && transformedInvertedValue == 0) {
 			//Utils.debugNewLine( "++++ INSIDE +++++", true);
 //			Utils.debugNewLine(
@@ -554,21 +340,7 @@ public class VolumeGenerator {
 //					true);
 
 			status = IntersectionStatus.OUTSIDE;
-		}
-		/**else if (checkForPartial(determiningValue, transformedInvertedValue, xVal, yVal, arrayCols, arrayRows,
-				(int) boundingRectangle.getWidth(), (int) boundingRectangle.getHeight())) {
-			//Utils.debugNewLine( "++++ C-PARTIALLY INSIDE +++++", true);
-
-			status = IntersectionStatus.PARTIAL;
-		} else if (checkForOutsideInCorners(determiningValue, transformedValue, transformedInvertedValue, xVal, yVal,
-				arrayCols)) {
-
-			//Utils.debugNewLine( "++++ C-OUTSIDE +++++", true);
-//			Utils.debugNewLine("Projection out of bounds but totally outside oooooooooooooooooooooooooooooooooo", true);
-
-			status = IntersectionStatus.OUTSIDE;
-		} 
-		**/else {
+		} else {
 			//Utils.debugNewLine( "++++ PARTIALLY INSIDE +++++", true);
 //			Utils.debugNewLine(
 //					"Projection is partially inside ====================================================================================",
@@ -584,11 +356,6 @@ public class VolumeGenerator {
 		boolean result = false;
 
 		// check for the top boundary
-		/**
-		System.out.println("[boundingSize: " + boundingSize + ", transformedSquareSize: " + transformedSquareSize);
-		System.out.println(", invertedSquareSize: " + invertedSquareSize + ", xPos: " + xPos + ", yPos: " + yPos + ", width: " + width);
-		**/
-		
 		// If the bounding size is too big we may be getting errors by using octrees with too few subdivisions
 		if (boundingSize < 100){
 			if ((boundingSize > yPos) && (invertedSquareSize > 0) && (boundingSize > invertedSquareSize)) {
@@ -619,16 +386,14 @@ public class VolumeGenerator {
 	}
 
 	
-	private Box generateVoxelAux(BoxParameters boxParameters, DeltaStruct deltas, Color nodeColor){
+	private Box generateVoxelAux(BoxParameters boxParameters, DeltaStruct deltas, NodeColor nodeColor){
 		Box box = new Box(boxParameters.getSizeX(), boxParameters.getSizeY(), boxParameters.getSizeZ());
 		box.setTranslateX(boxParameters.getCenterX());
 		box.setTranslateY(boxParameters.getCenterY());
 		box.setTranslateZ(boxParameters.getCenterZ());
 		PhongMaterial textureMaterial = new PhongMaterial();
-
-		Color diffuseColor = nodeColor;
 		 
-		 diffuseColor = nodeColor == Color.BLACK ? nodeColor : Color.TRANSPARENT;
+		 Color diffuseColor = nodeColor == NodeColor.BLACK ? Color.BLACK : Color.TRANSPARENT;
 		 //diffuseColor = nodeColor;
 		 //diffuseColor = nodeColor == Color.WHITE ? Color.TRANSPARENT: nodeColor;
 		
@@ -985,24 +750,24 @@ public class VolumeGenerator {
 		return result;
 	}
 
-	public Color computeColor(Color oldColor, IntersectionStatus testResult){
+	public NodeColor computeColor(NodeColor oldColor, IntersectionStatus testResult){
 		// Color is white by default unless previous color is white or gray
-		Color newColor = Color.WHITE;
-		if (oldColor.equals(Color.BLACK)){
+		NodeColor newColor = NodeColor.WHITE;
+		if (oldColor.equals(NodeColor.BLACK)){
 			if (testResult == IntersectionStatus.INSIDE){
-				newColor = Color.BLACK;
+				newColor = NodeColor.BLACK;
 			} else if (testResult == IntersectionStatus.PARTIAL){
-				newColor = Color.GRAY;
+				newColor = NodeColor.GRAY;
 			} else {
-				newColor = Color.WHITE;
+				newColor = NodeColor.WHITE;
 			}
-		} else if (oldColor.equals(Color.GRAY)){
+		} else if (oldColor.equals(NodeColor.GRAY)){
 			if (testResult == IntersectionStatus.INSIDE){
-				newColor = Color.GRAY;
+				newColor = NodeColor.GRAY;
 			} else if (testResult == IntersectionStatus.PARTIAL){
-				newColor = Color.GRAY;
+				newColor = NodeColor.GRAY;
 			} else {
-				newColor = Color.WHITE;
+				newColor = NodeColor.WHITE;
 			}
 		}
 		

@@ -1,15 +1,12 @@
 package nl.tue.vc.model;
 
 import javafx.scene.paint.Color;
-import nl.tue.vc.application.utils.Utils;
 import nl.tue.vc.model.BoxParameters;
 
 public class Leaf extends Node{
 
-	
-	
-	public Leaf(Color color, double sizeX, double sizeY, double sizeZ, double centerX, double centerY, double centerZ, int nodeDepth) {
-		//Utils.debugNewLine("******************* Leaf with depth: " + nodeDepth, true);
+		
+	public Leaf(NodeColor color, double sizeX, double sizeY, double sizeZ, double centerX, double centerY, double centerZ, int nodeDepth) {
 		this.sizeX = sizeX;
 		this.sizeY = sizeY;
 		this.sizeZ = sizeZ;
@@ -27,7 +24,7 @@ public class Leaf extends Node{
 		this.depth = nodeDepth;
 	}
 	
-	public Leaf(Color color, double sizeX, double sizeY, double sizeZ) {
+	public Leaf(NodeColor color, double sizeX, double sizeY, double sizeZ) {
 		this.sizeX = sizeX;
 		this.sizeY = sizeY;
 		this.sizeZ = sizeZ;
@@ -46,7 +43,6 @@ public class Leaf extends Node{
 	
 	@Override
 	public boolean isLeaf() {
-		// TODO Auto-generated method stub
 		return true;
 	}
 
@@ -61,11 +57,8 @@ public class Leaf extends Node{
 	
 	@Override
 	public Node splitNode(int deltaHeight, int maxDepth){
-		//Utils.debugNewLine("@@@@@@@@@@@@@ Try to split leaft ", true);		
-		if (deltaHeight > 0 && color == Color.GRAY){
-		//if (color == Color.GRAY){	
-			//Utils.debugNewLine("@@@@@@@@@@@@@ Leaf splitted up to " + deltaHeight + " levels", true);
-			return new InternalNode(Color.BLACK, sizeX, sizeY, sizeZ, positionCenterX, positionCenterY, positionCenterZ, deltaHeight, depth);
+		if (deltaHeight > 0 && color == NodeColor.GRAY){
+			return new InternalNode(NodeColor.BLACK, sizeX, sizeY, sizeZ, positionCenterX, positionCenterY, positionCenterZ, deltaHeight, depth);
 		}
 		return this;
 	}
