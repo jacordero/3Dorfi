@@ -28,7 +28,7 @@
                                     </RadioButton>
                                     <CheckBox fx:id="enableCameraCalibrationWebcam" mnemonicParsing="false" text="Enable Webcam">
                                        <HBox.margin>
-                                          <Insets right="40.0" top="10.0" />
+                                          <Insets right="10.0" top="10.0" />
                                        </HBox.margin>
                                     </CheckBox>
                                     <RadioButton fx:id="calibrateCameraFromDirectory" mnemonicParsing="false" text="Directory">
@@ -52,12 +52,12 @@
                            <bottom>
                            	<HBox prefHeight="50.0" prefWidth="600.0" BorderPane.alignment="CENTER">
                               <children>
-                                    <Button fx:id="calibrationSnapshotButton" alignment="CENTER" mnemonicParsing="false" onAction="#takeCalibrationSnapshot" text="Take picture">
+                                    <Button fx:id="calibrationSnapshotButton" alignment="CENTER" mnemonicParsing="false" onAction="#takeCalibrationSnapshot" text="Take Picture">
                                        <font>
                                           <Font name="System Bold" size="13.0" />
                                        </font>
                                        <HBox.margin>
-                                          <Insets left="250.0" right="30.0" />
+                                          <Insets left="250.0" right="20.0" />
                                        </HBox.margin>
                                     </Button>
                                  <Button fx:id="calibrateExtrinsicParamsButton" mnemonicParsing="false" onAction="#calibrateCameraForExtrinsicParams" text="Calibrate Camera" BorderPane.alignment="TOP_CENTER">
@@ -67,7 +67,18 @@
                                        <font>
                                           <Font name="System Bold" size="13.0" />
                                        </font>
+                                       <HBox.margin>
+                                          <Insets right="20.0" />
+                                       </HBox.margin>
                                  </Button>
+                                    <Button mnemonicParsing="false" onAction="#deleteCameraCalibrationImages" text="Delete Pictures">
+                                       <HBox.margin>
+                                          <Insets right="20.0" />
+                                       </HBox.margin>
+                                       <font>
+                                          <Font name="System Bold" size="13.0" />
+                                       </font>
+                                    </Button>
                               </children>
                                  <BorderPane.margin>
                                     <Insets />
@@ -114,7 +125,7 @@
                                     </RadioButton>
                                     <CheckBox fx:id="enableObjectWebcam" mnemonicParsing="false" text="Enable Webcam">
                                        <HBox.margin>
-                                          <Insets right="40.0" top="10.0" />
+                                          <Insets bottom="10.0" left="10.0" right="10.0" top="10.0" />
                                        </HBox.margin>
                                     </CheckBox>
                                     <RadioButton fx:id="loadObjectImagesFromDirectory" mnemonicParsing="false" text="Directory">
@@ -138,22 +149,30 @@
                            <bottom>
                            	<HBox prefHeight="50.0" prefWidth="600.0" BorderPane.alignment="CENTER">
                               <children>
-                                    <Button fx:id="objectSnapshotButton" mnemonicParsing="false" onAction="#takeObjectSnapshot" text="Take picture">
+                                    <Button fx:id="objectSnapshotButton" mnemonicParsing="false" onAction="#takeObjectSnapshot" text="Take Picture">
                                        <font>
                                           <Font name="System Bold" size="13.0" />
                                        </font>
                                        <HBox.margin>
-                                          <Insets left="250.0" right="30.0" />
+                                          <Insets left="250.0" right="20.0" />
                                        </HBox.margin>
                                     </Button>
-                                 <Button fx:id="loadObjectImagesButton" mnemonicParsing="false" onAction="#loadObjectImagesFromDirectory" text="Load Object Images" BorderPane.alignment="CENTER">
+                                 <Button fx:id="loadObjectImagesButton" mnemonicParsing="false" onAction="#loadObjectImagesFromDirectory" text="Load Object Pictures" BorderPane.alignment="CENTER">
                                     <BorderPane.margin>
                                        <Insets bottom="20.0" />
                                     </BorderPane.margin>
                                        <font>
                                           <Font name="System Bold" size="13.0" />
                                        </font>
+                                       <HBox.margin>
+                                          <Insets right="20.0" />
+                                       </HBox.margin>
                                  </Button>
+                                    <Button mnemonicParsing="false" onAction="#deleteObjectImages" text="Delete Pictures">
+                                       <font>
+                                          <Font name="System Bold" size="13.0" />
+                                       </font>
+                                    </Button>
                               </children>
                                  <BorderPane.margin>
                                     <Insets />

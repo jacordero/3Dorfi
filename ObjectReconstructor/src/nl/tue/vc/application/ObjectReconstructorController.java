@@ -680,7 +680,6 @@ public class ObjectReconstructorController {
 				if (calibrationImageCounter > calibrationIndices.size() - 1) {
 					calibrationImageCounter = 0;
 				}
-				// TODO: show the image corresponding to the main frame
 				cameraCalibrationImagesPanel.showImagesForSelection(cameraCalibrationImageSelectionArea);
 			}
 		};
@@ -728,12 +727,9 @@ public class ObjectReconstructorController {
 		Utils.debugNewLine("*** Calibrating camera to find extrinsic parameters ***", true);
 		Utils.debugNewLine("Calibration images Map size: " + calibrationImagesMap.size(), true);
 
-		calibrationImagesMap = new HashMap<String, Mat>();
-		cameraCalibrationImageSelectionView = new ListView<String>();
-		cameraCalibrationImagesPanel.clearImages(cameraCalibrationImageSelectionView);
-
 		if (calibrateCameraFromDirectory.isSelected()) {
 			Utils.debugNewLine("*** Load calibration images ***", true);
+			deleteCameraCalibrationImages();
 			// Load calibration images
 			final File folder = new File(CALIBRATION_IMAGES_DIR);
 			List<String> calibrationImageFilenames = Utils.listFilesForFolder(folder);
@@ -773,8 +769,7 @@ public class ObjectReconstructorController {
 		if (objectImageFilenames.isEmpty()) {
 			System.out.println("There is an error: calibrate the camera again!!");
 		} else {
-			objectImagesSelectionView = new ListView<String>();
-			objectImagesPanel.clearImages(objectImagesSelectionView);
+			deleteObjectImages();
 			int calibrationIndex = 0;
 			for (String filename : objectImageFilenames) {
 				String fullPathFilename = OBJECT_IMAGES_DIR + "/" + filename;
@@ -1155,6 +1150,24 @@ public class ObjectReconstructorController {
 
 	public void saveCalibrationImages(String imageKey, Mat calibrationImage) {
 		Utils.saveImage(calibrationImage, calibrationImagesDir + imageKey + ".jpg");
+	}
+	
+	@FXML
+	public void deleteCameraCalibrationImages(){
+		calibrationImagesMap = new HashMap<String, Mat>();
+		cameraCalibrationImageSelectionView = new ListView<String>();
+		cameraCalibrationImagesPanel.clearImages(cameraCalibrationImageSelectionView);
+		cameraCalibrationImagesPanel.showImagesForSelection(cameraCalibrationImageSelectionArea);
+		cameraCalibrationImagesPanel.showSelectedImage(null);
+	}
+	
+	@FXML
+	public void deleteObjectImages(){
+		objectImagesMap = new HashMap<String, Mat>();
+		objectImagesSelectionView = new ListView<String>();
+		objectImagesPanel.clearImages(objectImagesSelectionView);		
+		objectImagesPanel.showImagesForSelection(objectImagesSelectionArea);
+		objectImagesPanel.showSelectedImage(null);
 	}
 
 }
