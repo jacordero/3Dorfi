@@ -55,6 +55,7 @@ import nl.tue.vc.voxelengine.VolumeRenderer;
 import nl.tue.vc.model.BoxParameters;
 import nl.tue.vc.model.Octree;
 import nl.tue.vc.model.OctreeCubeProjector;
+import nl.tue.vc.model.OctreeModelGenerator;
 import nl.tue.vc.model.OctreeTest;
 import nl.tue.vc.model.VolumeGenerator;
 import nl.tue.vc.model.VolumeGeneratorTest;
@@ -280,6 +281,8 @@ public class ObjectReconstructorController {
 	private String OBJECT_IMAGES_DIR = "examples/laptopCharger/";
 	private String CALIBRATION_IMAGES_DIR = "examples/laptopCharger/calibrationImages/";
 	List<String> objectImageFilenames;
+	
+	private OctreeModelGenerator octreeModelGenerator;
 
 	public ObjectReconstructorController() {
 
@@ -811,9 +814,7 @@ public class ObjectReconstructorController {
 	public void constructOctreeModelAux(int octreeLevels) {
 		Utils.debugNewLine("ObjectRecognizerController.constructModelAux(" + octreeLevels + ")", true);
 
-		// If there is no octree, create one. Otherwise, update the current one
 		Utils.debugNewLine("++++++++++++++++++++++++ Updating octree", false);
-		BoxParameters volumeBoxParameters = createRootNodeParameters();
 		octree.splitNodes(octreeLevels);
 
 		if (octree == null) {
@@ -821,18 +822,15 @@ public class ObjectReconstructorController {
 		}
 
 		// TODO: Maybe this generator could be a builder
-		octree = updateOctreeLeafs(octree, volumeBoxParameters, octreeLevels);// volumeGenerator.getOctree();
+		octree = updateOctreeLeafs(octree, octreeLevels);// volumeGenerator.getOctree();
 	}
 
-	public Octree updateOctreeLeafs(Octree octree, BoxParameters volumeBoxParameters, int octreeDepth) {
-		volumeGenerator = new VolumeGenerator(octree, volumeBoxParameters, distanceArrays, invertedDistanceArrays,
-				octreeDepth);
-		volumeGenerator.setImagesForDistanceComputation(this.imagesForDistanceComputation);
-		volumeGenerator.setDistanceArrays(distanceArrays);
-		volumeGenerator.setInvertedDistanceArrays(invertedDistanceArrays);
-		volumeGenerator.setProjectionGenerator(projectionGenerator);
-		volumeGenerator.generateOctreeVoxels(octreeDepth);
-		return volumeGenerator.getOctree();
+	public Octree updateOctreeLeafs(Octree octree, int octreeDepth) {
+		// why do we want the octreeDepth here?
+		
+		octreeModelGenerator = new OctreeModelGenerator(octree, distanceArrays, invertedDistanceArrays, projectionGenerator);
+		octreeModelGenerator.refineOctreeModel(octreeDepth);
+		return octreeModelGenerator.getOctree();		
 	}
 
 	/**
@@ -858,14 +856,17 @@ public class ObjectReconstructorController {
 		Utils.debugNewLine("+++++++ Creating octree ++++++++++++", false);
 		BoxParameters volumeBoxParameters = createRootNodeParameters();
 		octree = new Octree(volumeBoxParameters, INITIAL_OCTREE_LEVELS);
-		octree = updateOctreeLeafs(octree, volumeBoxParameters, INITIAL_OCTREE_LEVELS);
+		octree = updateOctreeLeafs(octree, INITIAL_OCTREE_LEVELS);
 		Utils.debugNewLine(octree.toString(), false);
 
 		for (int i = INITIAL_OCTREE_LEVELS + 1; i <= MAX_OCTREE_LEVELS; i++) {
 			Utils.debugNewLine("+++++ Update octree to depth: " + i + " +++++++", true);
 			constructOctreeModelAux(i);
 		}
-
+		
+		// Generate 3D model volume
+		volumeGenerator = new VolumeGenerator();
+		volumeGenerator.generateVolume(octree, volumeBoxParameters);
 		System.out.println("+++++++ Model is ready ++++++++++");
 	}
 
@@ -899,13 +900,15 @@ public class ObjectReconstructorController {
 	 */
 	@FXML
 	protected void visualizeOctreeModel() {
-		octree = null;
 		renderModel();
+		octree = null;
+
 		Utils.debugNewLine("+++ Model visualization is ready!", true);
 	}
 
 	public void renderModel() {
 		volumeRenderer = new VolumeRenderer(cameraDistance);
+		
 		volumeRenderer.generateVolumeScene(volumeGenerator.getVoxels());
 		setModelRenderingSubScene(volumeRenderer.getSubScene());
 		// The octree is update with the modified version in volume generator
