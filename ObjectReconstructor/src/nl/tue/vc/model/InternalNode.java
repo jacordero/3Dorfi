@@ -98,6 +98,19 @@ public class InternalNode extends Node{
 	}
 
 	@Override
+	public String printContent(String space){
+		StringBuilder builder = new StringBuilder();
+		builder.append(space + "Internal node -> " + super.toString() + "\n");
+		if (children != null){
+			for(int i = 0; i < children.length; i++) {
+				builder.append(space + children[i].printContent(space + "\t") + "\n");
+			}			
+		}
+		return builder.toString();
+	}
+
+	
+	@Override
 	public String toString() {
 		StringBuilder builder = new StringBuilder();
 		builder.append("Internal node -> " + super.toString() + "\n");
@@ -119,9 +132,16 @@ public class InternalNode extends Node{
 			Node[] splittedChildren = new Node[8];
 			if (children != null){
 				for (int i = 0; i < children.length; i++){
+					/**
 					if (children[i] != null && children[i].getColor() == NodeColor.BLACK && children[i].getDepth() < maxDepth){
 						splittedChildren[i] = children[i].splitNode(deltaHeight, maxDepth);
 					} else if (children[i] != null && children[i].getColor() == NodeColor.GRAY){
+						splittedChildren[i] = children[i].splitNode(deltaHeight, maxDepth);
+					} else {
+						splittedChildren[i] = children[i];
+					}
+					**/
+					if (children[i] != null && children[i].getColor() == NodeColor.GRAY){
 						splittedChildren[i] = children[i].splitNode(deltaHeight, maxDepth);
 					} else {
 						splittedChildren[i] = children[i];

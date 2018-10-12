@@ -58,9 +58,14 @@ public class Leaf extends Node{
 	@Override
 	public Node splitNode(int deltaHeight, int maxDepth){
 		if (deltaHeight > 0 && color == NodeColor.GRAY){
-			return new InternalNode(NodeColor.BLACK, sizeX, sizeY, sizeZ, positionCenterX, positionCenterY, positionCenterZ, deltaHeight, depth);
+			return new InternalNode(NodeColor.GRAY, sizeX, sizeY, sizeZ, positionCenterX, positionCenterY, positionCenterZ, deltaHeight, depth);
 		}
 		return this;
+	}
+	
+	@Override
+	public String printContent(String space){
+		return space + "Leaf -> " + super.toString();
 	}
 	
 	@Override

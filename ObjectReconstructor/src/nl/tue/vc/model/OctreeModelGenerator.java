@@ -30,7 +30,7 @@ public class OctreeModelGenerator {
 	}
 	
 	
-	public void refineOctreeModel(int octreeDepth){
+	public void refineOctreeModel(){
 				
 		Node root = octree.getRoot();
 		
@@ -40,11 +40,11 @@ public class OctreeModelGenerator {
 		} else {
 			Utils.debugNewLine("Octree children: " + root.getChildren().length, false);
 		}
-		root = refineOctreeModelAux(root, octreeDepth);
+		root = refineOctreeModelAux(root);
 		octree.setRoot(root);
 	}
 	
-	private Node refineOctreeModelAux(Node currentNode, int octreeDepth){
+	private Node refineOctreeModelAux(Node currentNode){
 
 		if (currentNode.isLeaf()) {
 			int blackCounter = 0;
@@ -77,20 +77,120 @@ public class OctreeModelGenerator {
 				currentNode.setColor(NodeColor.GRAY);
 			}			
 		} else {
-			if (currentNode.getColor() == NodeColor.GRAY || (currentNode.getColor() == NodeColor.BLACK && currentNode.getDepth() < octreeDepth)) {
+//			if (currentNode.getColor() == NodeColor.GRAY || (currentNode.getColor() == NodeColor.BLACK && currentNode.getDepth() < octreeDepth)) {
+			if (currentNode.getColor() == NodeColor.GRAY) {
 				Node[] children = currentNode.getChildren();
 				for (int i = 0; i < children.length; i++) {
 					Node childNode = children[i];
 					if (childNode != null) {
-						childNode = refineOctreeModelAux(childNode, octreeDepth);
+						childNode = refineOctreeModelAux(childNode);
 						currentNode.setChildNode(childNode, i);
 					}
 				}
+				
+				// update current node's color
+				NodeColor parentColor = computeParentColor(children);
+				currentNode.setColor(parentColor);
+
 			}
 		}
 		return currentNode;
-
 	}
+	
+
+	public void refineInitialOctreeModel(){		
+		Node root = octree.getRoot();
+		root = refineInitialOctreeModelAux(root);
+		octree.setRoot(root);
+	}
+
+	
+	private Node refineInitialOctreeModelAux(Node currentNode){
+		if (currentNode.isLeaf()) {
+			int blackCounter = 0;
+			int grayCounter = 0;
+			int whiteCounter = 0;
+			
+			for (String imageKey: distanceArrays.keySet()){
+				Leaf copyNode = new Leaf(currentNode.getColor(), currentNode.getSizeX(), 
+						currentNode.getSizeY(), currentNode.getSizeZ(), currentNode.getPositionCenterX(), 
+						currentNode.getPositionCenterY(), currentNode.getPositionCenterZ(), currentNode.getDepth());
+				
+				IntersectionStatus testResult = computeIntersectionStatus(copyNode, imageKey);
+				NodeColor boxColor = computeColor(copyNode.getColor(), testResult);
+								
+				if (boxColor == NodeColor.WHITE){
+					whiteCounter++;
+					break;
+				} else if (boxColor == NodeColor.BLACK){
+					blackCounter++;
+				} else if (boxColor == NodeColor.GRAY){
+					grayCounter++;
+				}
+			}
+			
+			if (whiteCounter > 0 ){
+				currentNode.setColor(NodeColor.WHITE);
+			} else if (blackCounter > 0 && grayCounter == 0){
+				currentNode.setColor(NodeColor.BLACK);
+			} else if (grayCounter > 0){
+				currentNode.setColor(NodeColor.GRAY);
+			}			
+		} else {
+			// update children's color
+			Node[] children = currentNode.getChildren();
+			for (int i = 0; i < children.length; i++) {
+				Node childNode = children[i];
+				if (childNode != null) {
+					childNode = refineInitialOctreeModelAux(childNode);
+					currentNode.setChildNode(childNode, i);
+				}
+			}
+			
+			// update current node's color
+			NodeColor parentColor = computeParentColor(children);
+			currentNode.setColor(parentColor);
+
+		}
+		return currentNode;
+	}
+	
+	private NodeColor computeParentColor(Node[] children){
+		int whiteChildren = 0;
+		int blackChildren = 0;
+		int grayChildren = 0;
+		
+		for (int i = 0; i < children.length; i++){
+			Node childNode = children[i];
+			if (childNode != null){
+				if (childNode.getColor() == NodeColor.GRAY){
+					grayChildren++;
+					break;
+				} else if (childNode.getColor() == NodeColor.WHITE){
+					whiteChildren++;
+				} else {
+					blackChildren++;
+				}
+				
+				if (whiteChildren > 0 && blackChildren > 0){
+					break;
+				}
+			}
+		}
+		
+		NodeColor color;
+		if (whiteChildren == 8){
+			color = NodeColor.WHITE;
+		} else if (blackChildren == 8){
+			color = NodeColor.BLACK;
+		} else {
+			color = NodeColor.GRAY;
+		}
+		return color;
+	}
+
+	
+	
 	
 	public IntersectionStatus computeIntersectionStatus(Node node, String imgIndex) {
 
@@ -177,7 +277,7 @@ public class OctreeModelGenerator {
 
 	
 	public NodeColor computeColor(NodeColor oldColor, IntersectionStatus testResult){
-		// Color is white by default unless previous color is white or gray
+		// Color is white by default unless previous color is black or gray
 		NodeColor newColor = NodeColor.WHITE;
 		if (oldColor.equals(NodeColor.BLACK)){
 			if (testResult == IntersectionStatus.INSIDE){

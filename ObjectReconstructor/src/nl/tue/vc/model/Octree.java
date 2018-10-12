@@ -93,7 +93,7 @@ public class Octree {
 
 	@Override
 	public String toString(){
-		return root.toString();
+		return root.printContent("");
 	}
 
 	public int getOctreeHeight() {

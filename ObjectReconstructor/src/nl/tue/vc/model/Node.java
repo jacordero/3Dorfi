@@ -190,11 +190,13 @@ public abstract class Node {
 	
 	abstract public Node splitNode(int levels, int maxDepth);
 	
-
+	abstract public String printContent(String space);
+	
 	
 	@Override
 	public String toString() {
-		String str = "{sizeX: " + sizeX + ", sizeY: " + sizeY + ", sizeZ: " + sizeZ + ", centerX: " + positionCenterX + ", centerY: " + positionCenterY + ", centerZ: " + positionCenterZ + ", Color: ";
+		String str = "{Color: ";
+		//String str = "{sizeX: " + sizeX + ", sizeY: " + sizeY + ", sizeZ: " + sizeZ + ", centerX: " + positionCenterX + ", centerY: " + positionCenterY + ", centerZ: " + positionCenterZ + ", Color: ";
 		if (color == NodeColor.BLACK){
 			str += " black}";
 		} else if (color == NodeColor.GRAY){

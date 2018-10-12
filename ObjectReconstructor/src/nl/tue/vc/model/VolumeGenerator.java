@@ -65,8 +65,6 @@ public class VolumeGenerator {
 		voxels = generateVolumeAux(refinedOctree.getRoot(), scaledBoxParameters, rootDeltas);
 	}
 	
-
-	
 	
 	private List<Box> generateVolumeAux(Node currentNode, BoxParameters currentParameters, DeltaStruct currentDeltas) {
 
@@ -132,6 +130,19 @@ public class VolumeGenerator {
 		PhongMaterial textureMaterial = new PhongMaterial();
 		 
 		 Color diffuseColor = nodeColor == NodeColor.BLACK ? Color.BLACK : Color.TRANSPARENT;
+		 
+		 /**
+		 Color diffuseColor;
+		 if (nodeColor == NodeColor.WHITE){
+			 diffuseColor = Color.TRANSPARENT;
+		 } else if (nodeColor == NodeColor.BLACK){
+			 diffuseColor = Color.BLACK;
+		 } else {
+			 diffuseColor = Color.GRAY;
+		 }
+		 **/
+		 //Color diffuseColor = nodeColor == NodeColor.WHITE ? Color.BLACK : Color.TRANSPARENT;
+
 		 //diffuseColor = nodeColor;
 		 //diffuseColor = nodeColor == Color.WHITE ? Color.TRANSPARENT: nodeColor;
 		

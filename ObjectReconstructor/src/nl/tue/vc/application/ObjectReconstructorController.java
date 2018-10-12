@@ -816,20 +816,30 @@ public class ObjectReconstructorController {
 
 		Utils.debugNewLine("++++++++++++++++++++++++ Updating octree", false);
 		octree.splitNodes(octreeLevels);
-
+		//Utils.debugNewLine(octree.toString(), true);
+		
 		if (octree == null) {
 			Utils.debugNewLine("***************** something weird happened here", true);
 		}
 
 		// TODO: Maybe this generator could be a builder
-		octree = updateOctreeLeafs(octree, octreeLevels);// volumeGenerator.getOctree();
+		octree = updateOctreeLeafs(octree);// volumeGenerator.getOctree();
+		Utils.debugNewLine("++++++++++++++++++++++++ Octree updated", false);
+		//Utils.debugNewLine(octree.toString(), true);
+		
 	}
 
-	public Octree updateOctreeLeafs(Octree octree, int octreeDepth) {
+	private Octree updateInitialOctree(Octree octree){
+		octreeModelGenerator = new OctreeModelGenerator(octree, distanceArrays, invertedDistanceArrays, projectionGenerator);
+		octreeModelGenerator.refineInitialOctreeModel();
+		return octreeModelGenerator.getOctree();
+	}
+	
+	public Octree updateOctreeLeafs(Octree octree) {
 		// why do we want the octreeDepth here?
 		
 		octreeModelGenerator = new OctreeModelGenerator(octree, distanceArrays, invertedDistanceArrays, projectionGenerator);
-		octreeModelGenerator.refineOctreeModel(octreeDepth);
+		octreeModelGenerator.refineOctreeModel();
 		return octreeModelGenerator.getOctree();		
 	}
 
@@ -856,13 +866,17 @@ public class ObjectReconstructorController {
 		Utils.debugNewLine("+++++++ Creating octree ++++++++++++", false);
 		BoxParameters volumeBoxParameters = createRootNodeParameters();
 		octree = new Octree(volumeBoxParameters, INITIAL_OCTREE_LEVELS);
-		octree = updateOctreeLeafs(octree, INITIAL_OCTREE_LEVELS);
-		Utils.debugNewLine(octree.toString(), false);
+		octree = updateInitialOctree(octree);
+		//octree = updateOctreeLeafs(octree, INITIAL_OCTREE_LEVELS);
+		//Utils.debugNewLine(octree.toString(), false);
 
+		
 		for (int i = INITIAL_OCTREE_LEVELS + 1; i <= MAX_OCTREE_LEVELS; i++) {
 			Utils.debugNewLine("+++++ Update octree to depth: " + i + " +++++++", true);
 			constructOctreeModelAux(i);
 		}
+		
+		//Utils.debugNewLine(octree.toString(), true);
 		
 		// Generate 3D model volume
 		volumeGenerator = new VolumeGenerator();
