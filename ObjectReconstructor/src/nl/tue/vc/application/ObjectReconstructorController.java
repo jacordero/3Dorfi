@@ -17,15 +17,12 @@ import org.opencv.core.Mat;
 import javafx.application.Platform;
 import javafx.beans.value.ChangeListener;
 import javafx.beans.value.ObservableValue;
-import javafx.collections.FXCollections;
-import javafx.collections.ObservableList;
 import javafx.fxml.FXML;
 import javafx.scene.SubScene;
 import javafx.scene.control.Button;
 import javafx.scene.control.CheckBox;
 import javafx.scene.control.ComboBox;
 import javafx.scene.control.Label;
-import javafx.scene.control.ListCell;
 import javafx.scene.control.ListView;
 import javafx.scene.control.RadioButton;
 import javafx.scene.control.Slider;
@@ -44,6 +41,9 @@ import javafx.stage.DirectoryChooser;
 import javafx.stage.Stage;
 import nl.tue.vc.application.utils.Utils;
 import nl.tue.vc.application.visual.IntersectionTest;
+import nl.tue.vc.application.visual.OctreeCubeProjector;
+import nl.tue.vc.application.visual.SolidBoxGenerator;
+import nl.tue.vc.application.visual.VolumeGenerator;
 import nl.tue.vc.gui.SidePanelImageSelector;
 import nl.tue.vc.imgproc.CameraCalibrator;
 import nl.tue.vc.imgproc.CameraController;
@@ -53,11 +53,8 @@ import nl.tue.vc.projection.ProjectionGenerator;
 import nl.tue.vc.voxelengine.CameraPosition;
 import nl.tue.vc.voxelengine.VolumeRenderer;
 import nl.tue.vc.model.BoxParameters;
-import nl.tue.vc.model.Octree;
-import nl.tue.vc.model.OctreeCubeProjector;
 import nl.tue.vc.model.OctreeModelGenerator;
 import nl.tue.vc.model.OctreeTest;
-import nl.tue.vc.model.VolumeGenerator;
 import nl.tue.vc.model.VolumeGeneratorTest;
 
 public class ObjectReconstructorController {
@@ -520,9 +517,6 @@ public class ObjectReconstructorController {
 		}
 
 		System.out.println("Extract silhouettes method was called...");
-
-		// First, clear the previous content. Then, load the new content
-		
 		
 		binaryImagesSelectionView = new ListView<String>();
 		binaryImagesPanel.clearImages(binaryImagesSelectionView);		
@@ -835,7 +829,7 @@ public class ObjectReconstructorController {
 		octreeModelGenerator.generateFinalModel(INITIAL_OCTREE_LEVELS + 1, MAX_OCTREE_LEVELS);
 
 		// Generate 3D model volume
-		volumeGenerator = new VolumeGenerator();
+		volumeGenerator = new VolumeGenerator(new SolidBoxGenerator(), true);
 		volumeGenerator.generateVolume(octreeModelGenerator.getOctree(), volumeBoxParameters);
 		System.out.println("+++++++ Model is ready ++++++++++");
 	}

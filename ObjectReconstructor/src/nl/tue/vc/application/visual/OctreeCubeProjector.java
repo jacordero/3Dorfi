@@ -1,4 +1,4 @@
-package nl.tue.vc.model;
+package nl.tue.vc.application.visual;
 
 import java.util.ArrayList;
 import java.util.List;
