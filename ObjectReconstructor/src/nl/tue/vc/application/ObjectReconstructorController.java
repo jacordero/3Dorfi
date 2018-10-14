@@ -21,6 +21,7 @@ import javafx.fxml.FXML;
 import javafx.scene.SubScene;
 import javafx.scene.control.Button;
 import javafx.scene.control.CheckBox;
+import javafx.scene.control.ChoiceBox;
 import javafx.scene.control.ComboBox;
 import javafx.scene.control.Label;
 import javafx.scene.control.ListView;
@@ -36,11 +37,12 @@ import javafx.scene.image.ImageView;
 import javafx.scene.layout.AnchorPane;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.VBox;
-import javafx.scene.shape.Box;
 import javafx.stage.DirectoryChooser;
 import javafx.stage.Stage;
 import nl.tue.vc.application.utils.Utils;
+import nl.tue.vc.application.visual.ColoredBoxGenerator;
 import nl.tue.vc.application.visual.IntersectionTest;
+import nl.tue.vc.application.visual.LineBoxGenerator;
 import nl.tue.vc.application.visual.OctreeCubeProjector;
 import nl.tue.vc.application.visual.SolidBoxGenerator;
 import nl.tue.vc.application.visual.VolumeGenerator;
@@ -50,12 +52,9 @@ import nl.tue.vc.imgproc.CameraController;
 import nl.tue.vc.imgproc.ConcurrentSilhouetteExtractor;
 import nl.tue.vc.imgproc.SegmentedImageStruct;
 import nl.tue.vc.projection.ProjectionGenerator;
-import nl.tue.vc.voxelengine.CameraPosition;
 import nl.tue.vc.voxelengine.VolumeRenderer;
 import nl.tue.vc.model.BoxParameters;
 import nl.tue.vc.model.OctreeModelGenerator;
-import nl.tue.vc.model.OctreeTest;
-import nl.tue.vc.model.VolumeGeneratorTest;
 
 public class ObjectReconstructorController {
 
@@ -139,8 +138,12 @@ public class ObjectReconstructorController {
 	@FXML
 	private Button generateTestModelButton;
 
-	private int fieldOfView;
-
+	@FXML
+	private ComboBox<String> voxelTypeSelection;
+	
+	@FXML
+	private ComboBox<String> octreeLevelsSelection;
+	
 	private Timer imageTimer;
 
 	// Image used for calibration of extrinsic parameters
@@ -149,7 +152,7 @@ public class ObjectReconstructorController {
 	private int objectImageCounter;
 	private List<String> calibrationIndices;
 
-	private int MAX_OCTREE_LEVELS = 7;
+	private int MAX_OCTREE_LEVELS = 8;
 	private int INITIAL_OCTREE_LEVELS = 2;
 	
 	private String thresholdImageIndex = "ALL_IMAGES";
@@ -292,20 +295,12 @@ public class ObjectReconstructorController {
 		videoTimer = new Timer();
 		videoTimerActive = false;
 		cameraCalibrator = new CameraCalibrator();
-
-		DISPLACEMENT_X = -2;
-		DISPLACEMENT_Y = -1;
-		DISPLACEMENT_Z = (float) -2;
-
-		CUBE_LENGTH_X = 12;
-		CUBE_LENGTH_Y = (float) 8;
-		CUBE_LENGTH_Z = (float) 10;
-
 		calibrationImageCounter = 0;
 		objectImageCounter = 0;
-		initCalibrationIndices();
 		projectionGenerator = null;
 		cameraDistance = 300;
+		directoryChooser = new DirectoryChooser();
+		initCalibrationIndices();
 	}
 
 	// TODO: generate these indices automatically
@@ -360,6 +355,24 @@ public class ObjectReconstructorController {
 		exampleSelection.getItems().add("Cup");
 		exampleSelection.getItems().add("Hexagon");
 		exampleSelection.setValue("Charger");
+		configValuesForExample();
+		
+
+		voxelTypeSelection.getItems().add("Black blocks");
+		voxelTypeSelection.getItems().add("Black and gray blocks");
+		voxelTypeSelection.getItems().add("Transparent blocks");
+		voxelTypeSelection.getItems().add("Randomly colored blocks");		
+		voxelTypeSelection.setValue("Black blocks");
+		
+		octreeLevelsSelection.getItems().add("Model with 2 levels");
+		octreeLevelsSelection.getItems().add("Model with 3 levels");
+		octreeLevelsSelection.getItems().add("Model with 4 levels");
+		octreeLevelsSelection.getItems().add("Model with 5 levels");
+		octreeLevelsSelection.getItems().add("Model with 6 levels");
+		octreeLevelsSelection.getItems().add("Model with 7 levels");
+		octreeLevelsSelection.getItems().add("Model with 8 levels");
+		octreeLevelsSelection.setValue("Model with 7 levels");
+		
 
 		binaryImagesSelectionArea.getChildren().add(binaryImagesSelectionView);
 		binaryImagesSelectionView.setMaxWidth(140);
@@ -498,10 +511,6 @@ public class ObjectReconstructorController {
 		projectedVolumesPanel = new SidePanelImageSelector(projectedVolumesSelectionView, projectedVolumesDisplayView, "projectedVolumes");
 	}
 
-	protected void init() {
-		directoryChooser = new DirectoryChooser();
-	}
-
 
 	/**
 	 * The action triggered by pushing the button for apply the dft to the
@@ -609,14 +618,6 @@ public class ObjectReconstructorController {
 		createOctreeProjections();
 	}
 
-	/**
-	 * The action triggered by pushing the button on the GUI
-	 */
-	@FXML
-	protected void startCamera() {
-
-	}
-
 	// @FXML
 	protected void startVideo(ImageView displayFrame) {
 
@@ -664,7 +665,6 @@ public class ObjectReconstructorController {
 			@Override
 			public void run() {
 
-				// cameraController.startCamera();
 				String imageKey = calibrationIndices.get(calibrationImageCounter);
 				Mat image = cameraFrame;
 				Image resizedImage = Utils.mat2Image(image);
@@ -695,7 +695,6 @@ public class ObjectReconstructorController {
 			@Override
 			public void run() {
 
-				// cameraController.startCamera();
 				String imageKey = calibrationIndices.get(objectImageCounter);
 				Mat image = cameraFrame;
 				Image resizedImage = Utils.mat2Image(image, 100, 0, true);
@@ -829,7 +828,7 @@ public class ObjectReconstructorController {
 		octreeModelGenerator.generateFinalModel(INITIAL_OCTREE_LEVELS + 1, MAX_OCTREE_LEVELS);
 
 		// Generate 3D model volume
-		volumeGenerator = new VolumeGenerator(new SolidBoxGenerator(), true);
+		volumeGenerator = new VolumeGenerator(new SolidBoxGenerator(), true, MAX_OCTREE_LEVELS-3);
 		volumeGenerator.generateVolume(octreeModelGenerator.getOctree(), volumeBoxParameters);
 		System.out.println("+++++++ Model is ready ++++++++++");
 	}
@@ -870,10 +869,8 @@ public class ObjectReconstructorController {
 
 	public void renderModel() {
 		volumeRenderer = new VolumeRenderer(cameraDistance);
-		
 		volumeRenderer.generateVolumeScene(volumeGenerator.getVoxels());
 		setModelRenderingSubScene(volumeRenderer.getSubScene());
-		// The octree is update with the modified version in volume generator
 	}
 
 	private void updateCameraDistance(int cameraDistance) {
@@ -894,10 +891,6 @@ public class ObjectReconstructorController {
 				imageThresholdMap.put(thresholdImageIndex, binaryThreshold);
 			}
 		}
-	}
-
-	public void updateCameraPosition(CameraPosition cameraPosition) {
-		System.out.println("Do nothing!");
 	}
 
 	private void configValuesForExample() {
@@ -1061,19 +1054,6 @@ public class ObjectReconstructorController {
 	}
 
 
-	public List<Box> generateVolumeForOctree(OctreeTest octree, BoxParameters volumeBoxParameters,
-			Map<String, int[][]> distanceArrays, Map<String, int[][]> invertedDistanceArrays, int octreeHeight) {
-		VolumeGeneratorTest volumeGenerator = new VolumeGeneratorTest(octree, volumeBoxParameters, distanceArrays,
-				invertedDistanceArrays, octreeHeight);
-		volumeGenerator.setImagesForDistanceComputation(this.imagesForDistanceComputation);
-		volumeGenerator.setDistanceArrays(distanceArrays);
-		volumeGenerator.setInvertedDistanceArrays(invertedDistanceArrays);
-		volumeGenerator.setFieldOfView(this.fieldOfView);
-		volumeGenerator.setProjectionGenerator(projectionGenerator);
-
-		return volumeGenerator.generateOctreeVoxels();
-	}
-
 	/**
 	 * Set the current stage (needed for the FileChooser modal window)
 	 *
@@ -1086,10 +1066,6 @@ public class ObjectReconstructorController {
 
 	public void setRootGroup(AnchorPane rootGroup) {
 		this.rootGroup = rootGroup;
-	}
-
-	public void setVolumeRenderer(VolumeRenderer volumeRenderer) {
-		this.volumeRenderer = volumeRenderer;
 	}
 
 	/**

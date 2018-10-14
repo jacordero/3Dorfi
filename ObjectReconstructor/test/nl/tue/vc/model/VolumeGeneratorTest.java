@@ -52,7 +52,6 @@ public class VolumeGeneratorTest {
 	private Map<String, BufferedImage> imagesForDistanceComputation;
 	private TransformMatrices transformMatrices;
 	private int fieldOfView;
-	private int octreeHeight;
 
 	public VolumeGeneratorTest(OctreeTest octree, BoxParameters boxParameters) {
 		this.octree = octree;
@@ -64,7 +63,6 @@ public class VolumeGeneratorTest {
 		System.out.println(octree);
 		projectedPoints = new ArrayList<ProjectedPoint>();
 		boundingBoxes = new ArrayList<BoundingBox>();
-		octreeHeight = -1;
 		projectionGenerator = null;
 	}
 
@@ -82,7 +80,6 @@ public class VolumeGeneratorTest {
 		projectionGenerator = null;// cameraCalibrator.calibrateMultipleMatrices(calibrationImages, true);
 		projectedPoints = new ArrayList<ProjectedPoint>();
 		boundingBoxes = new ArrayList<BoundingBox>();
-		this.octreeHeight = octreeHeight;
 		projectionGenerator = null;
 	}
 
@@ -364,91 +361,8 @@ public class VolumeGeneratorTest {
 
 		return currentNode;
 
-		// //Utils.debugNewLine("#################### Intersection test for node: " +
-		// currentNode, false);
-		// //Utils.debugNewLine("########## Testing against image " + (j + 1) + "
-		// ##########", false);
-		// if (currentNode.isLeaf()) {
-		// for (int j = 0; j < this.bufferedImagesForTest.size(); j++) {
-		//
-		// NodeColor boxColor = Color.GRAY;
-		// IntersectionStatus status = testIntersection(currentNode, j);
-		// if (status == IntersectionStatus.INSIDE) {
-		// boxColor = getPaintColor(currentNode.getColor(), Color.BLACK);
-		// } else if (status == IntersectionStatus.PARTIAL) {
-		// boxColor = getPaintColor(currentNode.getColor(), Color.GRAY);
-		// } else {
-		// boxColor = getPaintColor(currentNode.getColor(), Color.WHITE);
-		//
-		// }
-		// currentNode.setColor(boxColor);
-		// // No need to test for the rest of the images because the node
-		// // will be black
-		//
-		//
-		// if (currentNode.getColor() == Color.BLACK) {
-		// break;
-		// }
-		//
-		// }
-		// } else if ((currentNode.getColor() != Color.WHITE) && (currentNode.getColor()
-		// != Color.BLACK)){
-		// Node[] children = currentNode.getChildren();
-		// //boolean paintAsBlack = true;
-		// for (int i = 0; i < children.length; i++) {
-		// Node childNode = children[i];
-		// if (childNode != null && (childNode.getColor() != Color.BLACK &&
-		// childNode.getColor() != Color.WHITE)) {
-		// childNode = getTestedNodeAux(childNode);
-		// currentNode.setChildNode(childNode, i);
-		// /**
-		// if (Color.BLACK != childNode.getColor()){
-		// paintAsBlack = false;
-		// }
-		// **/
-		// }
-		// }
-		//
-		// // all children are black or white
-		// /**
-		// if (paintAsBlack){
-		// currentNode.setColor(Color.BLACK);
-		// }
-		// **/
-		// }
-		//
-		// return currentNode;
 	}
 
-	/**
-	 * private Node getTestedNodeAux(Node currentNode) {
-	 * 
-	 * //Utils.debugNewLine("#################### Intersection test for node: " +
-	 * currentNode, false); for (int j = 0; j < this.bufferedImagesForTest.size();
-	 * j++) { //Utils.debugNewLine("########## Testing against image " + (j + 1) + "
-	 * ##########", false); if (currentNode.isLeaf()) { NodeColor boxColor =
-	 * Color.GRAY; IntersectionStatus status = testIntersection(currentNode, j); if
-	 * (status == IntersectionStatus.INSIDE) { boxColor =
-	 * getPaintColor(currentNode.getColor(), Color.BLACK); } else if (status ==
-	 * IntersectionStatus.PARTIAL) { boxColor =
-	 * getPaintColor(currentNode.getColor(), Color.GRAY); } else { boxColor =
-	 * getPaintColor(currentNode.getColor(), Color.WHITE);
-	 * 
-	 * } currentNode.setColor(boxColor); } else if ((currentNode.getColor() !=
-	 * Color.WHITE) && (currentNode.getColor() != Color.BLACK)){ Node[] children =
-	 * currentNode.getChildren(); boolean paintAsBlack = true; for (int i = 0; i <
-	 * children.length; i++) { Node childNode = children[i]; if (childNode != null
-	 * && (childNode.getColor() != Color.BLACK && childNode.getColor() !=
-	 * Color.WHITE)) { childNode = getTestedNodeAux(childNode);
-	 * currentNode.setChildNode(childNode, i); if (Color.BLACK !=
-	 * childNode.getColor()){ paintAsBlack = false; } } }
-	 * 
-	 * // all children are black or white if (paintAsBlack){
-	 * currentNode.setColor(Color.BLACK); } }
-	 * 
-	 * // No need to test for the rest of the images because the node will be black
-	 * if (currentNode.getColor() == Color.BLACK){ break; } } return currentNode; }
-	 **/
 
 	private List<Box> generateTestedVolume(NodeTest currentNode, BoxParameters currentParameters,
 			DeltaStruct currentDeltas) {

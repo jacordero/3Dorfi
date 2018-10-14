@@ -23,13 +23,15 @@ public class VolumeGenerator {
 	private VoxelGenerator voxelGenerator;
 	private static final int SCALE_FACTOR = 10;
 	private boolean debugMode;
+	private int maximumDepth;
 	
-	public VolumeGenerator(VoxelGenerator voxelGenerator, boolean debugMode) {
+	public VolumeGenerator(VoxelGenerator voxelGenerator, boolean debugMode, int maximumDepth) {
 		this.voxelGenerator = voxelGenerator;
 		this.debugMode = debugMode;
 		projectedPoints = new ArrayList<ProjectedPoint>();
 		boundingBoxes = new ArrayList<BoundingBox>();
 		voxels = new ArrayList<Box>();
+		this.maximumDepth = maximumDepth;
 	}
 	
 	public void generateVolume(Octree octree, BoxParameters volumeBoxParameters){
@@ -47,15 +49,15 @@ public class VolumeGenerator {
 		rootDeltas.deltaY = 0;
 		rootDeltas.deltaZ = 0;
 		rootDeltas.index = 0;
-		
-		voxels = generateVolumeAux(octree.getRoot(), scaledBoxParameters, rootDeltas);
+
+		voxels = generateVolumeAux(octree.getRoot(), scaledBoxParameters, rootDeltas, 0);
 	}
 	
 	
-	private List<Box> generateVolumeAux(Node currentNode, BoxParameters currentParameters, DeltaStruct currentDeltas) {
+	private List<Box> generateVolumeAux(Node currentNode, BoxParameters currentParameters, DeltaStruct currentDeltas, int depth) {
 
 		List<Box> voxels = new ArrayList<Box>();
-		if (currentNode == null || currentNode.getColor() == NodeColor.WHITE) {
+		if (currentNode == null || depth > maximumDepth || currentNode.getColor() == NodeColor.WHITE) {
 			return voxels;
 		}
 
@@ -88,7 +90,7 @@ public class VolumeGenerator {
 					childrenParameters.setCenterY(currentParameters.getCenterY() + displacementY);
 					childrenParameters.setCenterZ(currentParameters.getCenterZ() + displacementZ);
 					
-					List<Box> innerBoxes = generateVolumeAux(childNode, childrenParameters, displacementDirections);
+					List<Box> innerBoxes = generateVolumeAux(childNode, childrenParameters, displacementDirections, depth+1);
 					voxels.addAll(innerBoxes);
 				}
 			}

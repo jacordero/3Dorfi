@@ -215,7 +215,7 @@
                                        <font>
                                           <Font name="System Bold" size="13.0" />
                                        </font></Button>
-                                    <Button fx:id="generateTestModelButton" mnemonicParsing="false" onAction="#generateTestModel" text="Generate 3D Test Model">
+                                    <Button fx:id="generateTestModelButton" mnemonicParsing="false" onAction="#generateTestModel" text="Generate Example Model">
                                        <font>
                                           <Font name="System Bold" size="13.0" />
                                        </font></Button>
@@ -241,22 +241,20 @@
                                  <children>
                                     <HBox alignment="CENTER" spacing="10">
                                        <children>
-                                          <Label text="Camera distance:">
-                                             <HBox.margin>
-                                                <Insets left="10.0" />
-                                             </HBox.margin>
-                                          </Label>
-                                          <Slider fx:id="cameraDistanceSlider" max="600.0" min="10.0" prefWidth="250.0" value="300.0">
-                                            <HBox.margin>
-                                                <Insets right="40.0" top="5.0" />
-                                             </HBox.margin>
-                                          </Slider>
-                                          <RadioButton fx:id="select3DTestModel" mnemonicParsing="false" text="Select 3D Test Model" />
+                                          <RadioButton fx:id="select3DTestModel" mnemonicParsing="false" text="Use example" />
                                           <ComboBox fx:id="exampleSelection" prefWidth="150.0">
                                              <HBox.margin>
                                                 <Insets right="5.0" top="5.0" />
                                              </HBox.margin>
                                           </ComboBox>
+                                          <ComboBox fx:id="voxelTypeSelection" prefWidth="150.0" />
+                                          <ComboBox fx:id="octreeLevelsSelection" prefWidth="150.0" />
+                                          <Label text="Camera distance:">
+                                             <HBox.margin>
+                                                <Insets left="10.0" />
+                                             </HBox.margin>
+                                          </Label>
+                                          <Slider fx:id="cameraDistanceSlider" max="600.0" min="10.0" prefWidth="150.0" value="300.0" />
                                        </children>
                                        <padding>
                                           <Insets bottom="10" top="10" />

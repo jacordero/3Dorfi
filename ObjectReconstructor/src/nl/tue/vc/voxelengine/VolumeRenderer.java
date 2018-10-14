@@ -304,15 +304,7 @@ public class VolumeRenderer {
 	        });
 	    }
 
-	
-	public void generateVolumeScene() {
-		Utils.debugNewLine("generateVolumeScene", true);
-		// add the camera and the shapes
-		//System.out.println(octree.getRoot().toString());
-		//volumeGenerator = new VolumeGenerator(octree, volumeBoxParameters);
-		initConfig();
-	}
-	
+		
 	public void generateVolumeScene(Group root3D) {
 		Utils.debugNewLine("generateVolumeScene", true);
 
@@ -328,17 +320,7 @@ public class VolumeRenderer {
 	    }
 	    volumeGroup.getChildren().add(volumeXform);
 	    world.getChildren().addAll(volumeGroup); 
-	 	
-	 	/**
-		for (Box voxel: volumeVoxels){
-			String msg = "[X: " + voxel.getWidth() + ", Y: " + voxel.getHeight() + ", Z: " + voxel.getDepth();
-			msg = msg + ", CenterX: " + voxel.getTranslateX() + ", CenterY: " + voxel.getTranslateY() + ", CenterZ: " + voxel.getTranslateZ() + "]";
-			System.out.println("Adding voxel: " + msg);
-			
-			root.getChildren().add(voxel);
-		}
-		**/
-		
+	 		
 	}
 	
 	public void generateVolumeScene(List<Box> volumeVoxels){
