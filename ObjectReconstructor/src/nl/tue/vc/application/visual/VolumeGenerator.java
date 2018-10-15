@@ -22,12 +22,10 @@ public class VolumeGenerator {
 	private Group octreeVolume;
 	private VoxelGenerator voxelGenerator;
 	private static final int SCALE_FACTOR = 10;
-	private boolean debugMode;
 	private int maximumDepth;
 	
-	public VolumeGenerator(VoxelGenerator voxelGenerator, boolean debugMode, int maximumDepth) {
+	public VolumeGenerator(VoxelGenerator voxelGenerator, int maximumDepth) {
 		this.voxelGenerator = voxelGenerator;
-		this.debugMode = debugMode;
 		projectedPoints = new ArrayList<ProjectedPoint>();
 		boundingBoxes = new ArrayList<BoundingBox>();
 		voxels = new ArrayList<Box>();
@@ -61,8 +59,8 @@ public class VolumeGenerator {
 			return voxels;
 		}
 
-		if (currentNode.isLeaf() || currentNode.getColor() == NodeColor.BLACK) {
-			Box box = voxelGenerator.generateVoxel(currentParameters, currentDeltas, currentNode.getColor(), debugMode);
+		if (currentNode.isLeaf() || depth == maximumDepth || currentNode.getColor() == NodeColor.BLACK) {
+			Box box = voxelGenerator.generateVoxel(currentParameters, currentDeltas, currentNode.getColor());
 			voxels.add(box);
 		} else {
 			Node[] children = currentNode.getChildren();
@@ -113,5 +111,4 @@ public class VolumeGenerator {
 	public List<Box> getVoxels(){
 		return voxels;
 	}
-	
 }

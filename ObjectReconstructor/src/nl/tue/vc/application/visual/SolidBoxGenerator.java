@@ -8,8 +8,14 @@ import nl.tue.vc.model.NodeColor;
 import nl.tue.vc.voxelengine.DeltaStruct;
 
 public class SolidBoxGenerator implements VoxelGenerator {
+	
+	private boolean renderGrayVoxels;
+	
+	public SolidBoxGenerator(boolean renderGrayVoxels){
+		this.renderGrayVoxels = renderGrayVoxels;
+	}
 
-	public Box generateVoxel(BoxParameters boxParameters, DeltaStruct deltas, NodeColor nodeColor, boolean debugMode){
+	public Box generateVoxel(BoxParameters boxParameters, DeltaStruct deltas, NodeColor nodeColor){
 		Box box = new Box(boxParameters.getSizeX(), boxParameters.getSizeY(), boxParameters.getSizeZ());
 		box.setTranslateX(boxParameters.getCenterX());
 		box.setTranslateY(boxParameters.getCenterY());
@@ -17,7 +23,7 @@ public class SolidBoxGenerator implements VoxelGenerator {
 		PhongMaterial textureMaterial = new PhongMaterial();
 		 
 		Color diffuseColor;
-		if (debugMode){
+		if (renderGrayVoxels){
 			 if (nodeColor == NodeColor.WHITE){
 				 diffuseColor = Color.TRANSPARENT;
 			 } else if (nodeColor == NodeColor.BLACK){

@@ -8,12 +8,14 @@ import nl.tue.vc.voxelengine.DeltaStruct;
 
 public class LineBoxGenerator implements VoxelGenerator {
 
-	public Box generateVoxel(BoxParameters boxParameters, DeltaStruct deltas, NodeColor nodeColor, boolean debugMode){
+	public Box generateVoxel(BoxParameters boxParameters, DeltaStruct deltas, NodeColor nodeColor){
+		
 		Box box = new Box(boxParameters.getSizeX(), boxParameters.getSizeY(), boxParameters.getSizeZ());
 		box.setTranslateX(boxParameters.getCenterX());
 		box.setTranslateY(boxParameters.getCenterY());
 		box.setTranslateZ(boxParameters.getCenterZ());
 		box.setDrawMode(DrawMode.LINE);
+
 		return box;
 	}
 

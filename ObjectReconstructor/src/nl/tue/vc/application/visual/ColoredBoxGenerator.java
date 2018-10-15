@@ -14,7 +14,7 @@ public class ColoredBoxGenerator implements VoxelGenerator {
 	private static final Color[] colors = { Color.AQUA, Color.BLACK, Color.BLUE, Color.BLUEVIOLET, Color.CHOCOLATE,
 			Color.DARKGREEN, Color.DARKMAGENTA, Color.LIMEGREEN, Color.RED };
 
-	public Box generateVoxel(BoxParameters boxParameters, DeltaStruct deltas, NodeColor nodeColor, boolean debugMode) {
+	public Box generateVoxel(BoxParameters boxParameters, DeltaStruct deltas, NodeColor nodeColor) {
 		Box box = new Box(boxParameters.getSizeX(), boxParameters.getSizeY(), boxParameters.getSizeZ());
 		box.setTranslateX(boxParameters.getCenterX());
 		box.setTranslateY(boxParameters.getCenterY());
@@ -22,24 +22,12 @@ public class ColoredBoxGenerator implements VoxelGenerator {
 		PhongMaterial textureMaterial = new PhongMaterial();
 
 		Color diffuseColor;
-		if (debugMode) {
-			if (nodeColor == NodeColor.WHITE) {
-				diffuseColor = Color.TRANSPARENT;
-			} else if (nodeColor == NodeColor.GRAY) {
-				diffuseColor = Color.GRAY;
-			} else {
-				Random rn = new Random();
-				int index = rn.nextInt(colors.length);
-				diffuseColor = colors[index];
-			}
+		if (nodeColor == NodeColor.BLACK) {
+			Random rn = new Random();
+			int index = rn.nextInt(colors.length);
+			diffuseColor = colors[index];
 		} else {
-			if (nodeColor == NodeColor.BLACK){
-				Random rn = new Random();
-				int index = rn.nextInt(colors.length);
-				diffuseColor = colors[index];				
-			} else {
-				diffuseColor = Color.TRANSPARENT;
-			}
+			diffuseColor = Color.TRANSPARENT;
 		}
 
 		textureMaterial.setDiffuseColor(diffuseColor);

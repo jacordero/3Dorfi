@@ -6,5 +6,5 @@ import nl.tue.vc.model.NodeColor;
 import nl.tue.vc.voxelengine.DeltaStruct;
 
 public interface VoxelGenerator {
-	public Box generateVoxel(BoxParameters boxParameters, DeltaStruct deltas, NodeColor nodeColor, boolean debugMode);
+	public Box generateVoxel(BoxParameters boxParameters, DeltaStruct deltas, NodeColor nodeColor);
 }

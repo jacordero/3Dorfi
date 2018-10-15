@@ -261,7 +261,7 @@
                                        </padding>
                                     </HBox>
                                     <Separator prefWidth="200.0" />
-                                 </children>
+                                 </children>	
                               </VBox>
                            </top>
                            <right>
