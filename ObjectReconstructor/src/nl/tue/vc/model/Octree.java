@@ -1,7 +1,11 @@
 package nl.tue.vc.model;
 
+import java.util.logging.Level;
+import java.util.logging.Logger;
+
 import javafx.scene.Group;
 import nl.tue.vc.application.utils.Utils;
+import nl.tue.vc.application.visual.VolumeGenerator;
 import nl.tue.vc.model.BoxParameters;
 
 public class Octree {
@@ -15,6 +19,7 @@ public class Octree {
 	private double centerY;
 	private double centerZ;
 	private int octreeHeight;
+	private static final Logger logger = Logger.getLogger(Octree.class.getName());
 
 	/**
 	 *        +---------+-----------+
@@ -66,8 +71,8 @@ public class Octree {
 	private Node constructRootNode(NodeColor Color, double sizeX, double sizeY, double sizeZ, double centerX, double centerY, double centerZ, int octreeHeight){
 		String message = "RootNode: {SizeX: " + sizeX + ", SizeY: " + sizeY + ", SizeZ: " + sizeZ;
 		message += ", CenterX: " + centerX + ", CenterY: " + centerY + ", CenterZ: " + centerZ + ", Height: " + octreeHeight + "}";
-		
-		Utils.debugNewLine(message, true);
+
+		logger.log(Level.INFO, message);
 		if (octreeHeight > 0){
 			return new InternalNode(Color, sizeX, sizeY, sizeZ, centerX, centerY, centerZ, octreeHeight, 1);
 		} else {

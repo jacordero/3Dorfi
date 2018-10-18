@@ -3,6 +3,8 @@ package nl.tue.vc.imgproc;
 import java.util.HashSet;
 import java.util.Set;
 import java.util.concurrent.Callable;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 import org.opencv.core.Core;
 import org.opencv.core.CvType;
@@ -11,6 +13,7 @@ import org.opencv.core.Scalar;
 import org.opencv.imgproc.Imgproc;
 
 import nl.tue.vc.application.utils.Utils;
+import nl.tue.vc.model.OctreeModelGenerator;
 
 public class ConcurrentSilhouetteExtractor implements Callable<SegmentedImageStruct> {
 	
@@ -34,10 +37,9 @@ public class ConcurrentSilhouetteExtractor implements Callable<SegmentedImageStr
 	
 	private int imageHeight;
 
-	private boolean DEBUG_OPS;
-	
+	private static final Logger logger = Logger.getLogger(ConcurrentSilhouetteExtractor.class.getName());
+
 	public ConcurrentSilhouetteExtractor(Mat image, String imageName, String method, int binaryThreshold) {
-		DEBUG_OPS = false;
 		originalImage = image;
 		segmentationMethod = method;
 		this.binaryThreshold = binaryThreshold;
@@ -57,12 +59,10 @@ public class ConcurrentSilhouetteExtractor implements Callable<SegmentedImageStr
 		imageWidth = image.cols();
 		imageHeight = image.rows();
 		deltaWidth = imageWidth / 4;
-		deltaHeight = 3*(imageHeight/8);
-		
-		Utils.debugNewLine("Silhouette extration for image with dimensions: [" + imageWidth + ", " + imageHeight + "]", DEBUG_OPS);
-		Utils.debugNewLine("Segmentation algorithm: " + method, DEBUG_OPS);
-		
+		deltaHeight = 3*(imageHeight/8);		
 
+		logger.log(Level.INFO, "Silhouette extration for image with dimensions: [" + imageWidth + ", " + imageHeight + "]");
+		
 		// first convert to grayscale
 		Mat grayImage = new Mat();			
 		if (image.channels() == 3) {
@@ -104,12 +104,10 @@ public class ConcurrentSilhouetteExtractor implements Callable<SegmentedImageStr
 	}
 	
 	private void simpleBinarization(Mat noiseFreeImage) {
-		Utils.debugNewLine("Applying Binarization!!!", DEBUG_OPS);			
 		segmentedImage = noiseFreeImage;
 	}
 	
 	private void watersheed(Mat noiseFreeImage, Mat binaryImage) {		
-		Utils.debugNewLine("Applying Watersheed!", DEBUG_OPS);			
 		
 		Mat kernel = Mat.ones(5, 5, CvType.CV_32S);
 
@@ -193,16 +191,12 @@ public class ConcurrentSilhouetteExtractor implements Callable<SegmentedImageStr
 				}
 			}
 		}
-		
-		Utils.debugNewLine("Equalization info: Minimum grayscale value = " + minimum + ", Maximum grayscale value= " + maximum, DEBUG_OPS);			
-		
+				
 		for (int i = 0; i < grayImage.rows(); i++) {
 			for (int j = 0; j < grayImage.cols(); j++) {
 				grayImage.get(i, j, byteValue);
 				value = convertByteToInt(byteValue);
 				double newValue = (1.0*(value - minimum)/(maximum - minimum))*255;
-				//System.out.println("Old value: " + value + ", new value: " + newValue);
-				//equalized.put(i, j, convertIntToByte((int) newValue));
 				equalized.put(i, j, (int) newValue);
 			}
 		}
@@ -216,17 +210,12 @@ public class ConcurrentSilhouetteExtractor implements Callable<SegmentedImageStr
 		//Mat markers = new Mat();
 		Mat markers = connectedComponents(cleaned);
 		
-		//Imgproc.connectedComponents(cleaned, markers, 8, CvType.CV_32SC1);
-		//Imgproc.connectedComponents(cleaned, markers);
-		
 		Set<Integer> selectedMarks = new HashSet<>();
 		int firstColumn = (imageWidth / 2) - deltaWidth;
 		int lastColumn = (imageWidth / 2) + deltaWidth;
 		int firstRow = (imageHeight / 2) - deltaHeight;
 		int lastRow = (imageHeight / 2) + deltaHeight;
-		
-		Utils.debugNewLine("Selecting region [" + firstColumn + ":" + lastColumn + ", " + firstRow + ":" + lastRow + "]", DEBUG_OPS);
-		
+				
 		int[] labelValue = new int[1];
 		for (int i = firstRow; i < lastRow; i++) {
 			for (int j = firstColumn; j < lastColumn; j++) {
@@ -234,13 +223,7 @@ public class ConcurrentSilhouetteExtractor implements Callable<SegmentedImageStr
 				selectedMarks.add(new Integer(labelValue[0]));
 			}
 		}
-		
-		if (DEBUG_OPS) {
-			for(Integer mark: selectedMarks) {
-				System.out.println("sm: " + mark.toString());
-			}			
-		}
-		
+				
 		byte[] whitePixel = {(byte)-1};
 		byte[] value = new byte[1];
 		int[] lvalue = new int[1];
@@ -248,21 +231,11 @@ public class ConcurrentSilhouetteExtractor implements Callable<SegmentedImageStr
 			for (int j = 0; j < markers.cols(); j++) {
 				markers.get(i,  j, labelValue);
 				Integer label = new Integer(labelValue[0]);
-				Utils.debugNewLine(String.format("%02d", label) + " ", DEBUG_OPS);					
-				
-				//markers.get(i, j, lvalue);
-				//System.out.print(lvalue[0]);
-				//System.out.print(" ");
 				if (!selectedMarks.contains(label)) {
-					//System.out.println("nsm: " + label.toString());
-					//cleaned.put
 					binImage.get(i, j, value);
-					//System.out.print(value[0]);
-					//System.out.print(" ");
 					cleaned.put(i, j, whitePixel);
 				}
 			}
-			Utils.debugNewLine("", DEBUG_OPS);
 		}
 		
 		return cleaned;
@@ -287,12 +260,9 @@ public class ConcurrentSilhouetteExtractor implements Callable<SegmentedImageStr
 				
 				if (value < minimum) {
 					minimum = value;
-				}
-				
+				}				
 			}
 		}
-		
-		Utils.debugNewLine("Equalized values: Minimum = " + minimum + ", Maximum = " + maximum, DEBUG_OPS);
 		
 		for (int i = 0; i < grayImage.rows(); i++) {
 			for (int j = 0; j < grayImage.cols(); j++) {
@@ -323,8 +293,6 @@ public class ConcurrentSilhouetteExtractor implements Callable<SegmentedImageStr
 				binarizedImage.get(row, col, binValue);
 				
 				// found a black value to label
-				Utils.debugNewLine(Byte.toString(binValue[0]), DEBUG_OPS);
-				Utils.debugNewLine(" ", DEBUG_OPS);
 				if (binValue[0] == 0) {
 					
 					int left = col - 1;
@@ -357,7 +325,6 @@ public class ConcurrentSilhouetteExtractor implements Callable<SegmentedImageStr
 					}
 				}
 			}
-			Utils.debugNewLine("", DEBUG_OPS);
 		}
 		
 		// second past
@@ -396,7 +363,6 @@ public class ConcurrentSilhouetteExtractor implements Callable<SegmentedImageStr
 			}
 		}
 		
-		Utils.debugNewLine("Number of labels = " + labelCounter, DEBUG_OPS);
 		return labeledImage;
 	}
 	

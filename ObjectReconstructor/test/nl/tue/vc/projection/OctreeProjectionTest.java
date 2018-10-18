@@ -125,14 +125,9 @@ public class OctreeProjectionTest {
 		List<Point> projections = encodedProjections.toList();
 		NumberFormat formatter = new DecimalFormat("#0.00"); 
 
-		Utils.debugNewLine("\n************ Projecting parent ****************", false);
 		for (int i = 0; i < corners.size(); i++){
 			Point3 corner = corners.get(i);
 			Point projection = projections.get(i);
-			String infoStr = "BoxSize: " + node.getBoxSize();
-			infoStr += "\tCorner: [x: " + formatter.format(corner.x) + ", y: " + formatter.format(corner.y) + ", z: " + formatter.format(corner.z) + "]";
-			infoStr += "\tProjection: [x: " + formatter.format(projection.x) + ", y:" + formatter.format(projection.y) + "]";
-			Utils.debugNewLine(infoStr, false);
 		}
 		
 		Rectangle boundingBox = computeBoundingBox(projections, Utils.IMAGES_WIDTH, Utils.IMAGES_WIDTH, level);
@@ -145,17 +140,14 @@ public class OctreeProjectionTest {
 			Point scaledProjection = new Point(projection.x/ 2, projection.y/2);
 			projectedPoints.add(scaledProjection);
 		}
-		//projectedPoints.addAll(projections);
 		
 		if (!node.isLeaf()){
-			Utils.debugNewLine("\n********** Projecting children *************", false);
 			for (NodeTest children: node.getChildren()){
 				iterateCubesAux(children, level + 1);				
 			}
 		}
 		//
 		
-		//for (Point projection: )
 	}
 	
 	private Rectangle computeBoundingBox(List<Point> projections, double screenWidth, double screenHeight, int level){

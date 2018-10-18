@@ -3,8 +3,7 @@ package nl.tue.vc.application.visual;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.logging.Level;
-
-import com.sun.istack.internal.logging.Logger;
+import java.util.logging.Logger;
 
 import javafx.scene.Group;
 import javafx.scene.shape.Box;
@@ -26,7 +25,7 @@ public class VolumeGenerator {
 	private VoxelGenerator voxelGenerator;
 	private static final int SCALE_FACTOR = 10;
 	private int maximumDepth;
-	private static final Logger logger = Logger.getLogger(VolumeGenerator.class);
+	private static final Logger logger = Logger.getLogger(VolumeGenerator.class.getName());
 	
 	public VolumeGenerator(VoxelGenerator voxelGenerator, int maximumDepth) {
 		this.voxelGenerator = voxelGenerator;

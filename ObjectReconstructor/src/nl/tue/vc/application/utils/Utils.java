@@ -227,7 +227,6 @@ public final class Utils
 	
 	public static Mat loadImage(String imageFilename){
 		BufferedImage bufferedImage = null;
-		Utils.debugNewLine("Loading  image: " + imageFilename, true);
 		try {
 			bufferedImage = ImageIO.read(new File(imageFilename));
 		} catch (FileNotFoundException e) {
@@ -256,6 +255,7 @@ public final class Utils
 	}
 	
 	
+	/**
 	public static void debug(String str, boolean printInfo) {
 		if (printInfo) {
 			System.out.print(str);
@@ -267,6 +267,7 @@ public final class Utils
 			System.out.println(str);
 		}
 	}
+	**/
 	
 	public static List<String> listFilesForFolder(final File folder) {
 		List<String> fileNames = new ArrayList<String>();

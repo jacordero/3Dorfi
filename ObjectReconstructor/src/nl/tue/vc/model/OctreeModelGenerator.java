@@ -3,12 +3,15 @@ package nl.tue.vc.model;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 import org.opencv.core.MatOfPoint2f;
 import org.opencv.core.MatOfPoint3f;
 import org.opencv.core.Point;
 
 import nl.tue.vc.application.utils.Utils;
+import nl.tue.vc.application.visual.VolumeGenerator;
 import nl.tue.vc.projection.BoundingBox;
 import nl.tue.vc.projection.IntersectionStatus;
 import nl.tue.vc.projection.ProjectionGenerator;
@@ -20,6 +23,7 @@ public class OctreeModelGenerator {
 	private Map<String, int[][]> distanceArrays;
 	private Map<String, int[][]> invertedDistanceArrays;
 	private ProjectionGenerator projectionGenerator;
+	private static final Logger logger = Logger.getLogger(OctreeModelGenerator.class.getName());
 	
 	public OctreeModelGenerator(Map<String, int[][]> distanceArrays,
 			Map<String, int[][]> invertedDistanceArrays, ProjectionGenerator projectionGenerator){
@@ -41,9 +45,6 @@ public class OctreeModelGenerator {
 		for (int octreeLevel = firstLevel; octreeLevel <= lastLevel; octreeLevel++){
 
 			octree.splitNodes(octreeLevel);
-			if (octree == null) {
-				Utils.debugNewLine("***************** something weird happened here", true);
-			}
 			refineOctreeModel();
 		}		
 	}
@@ -51,12 +52,12 @@ public class OctreeModelGenerator {
 	public void refineOctreeModel(){
 				
 		Node root = octree.getRoot();
-		
-		Utils.debugNewLine("Octree height: "  + octree.getOctreeHeight(), false);
+
+		logger.log(Level.INFO, "Octree height: "  + octree.getOctreeHeight());
 		if (root.isLeaf()) {
-			Utils.debugNewLine("Octree children: 1", false);
+			logger.log(Level.INFO, "Octree children: 1");
 		} else {
-			Utils.debugNewLine("Octree children: " + root.getChildren().length, false);
+			logger.log(Level.INFO, "Octree children: " + root.getChildren().length);
 		}
 		root = refineOctreeModelAux(root);
 		octree.setRoot(root);
@@ -95,7 +96,6 @@ public class OctreeModelGenerator {
 				currentNode.setColor(NodeColor.GRAY);
 			}			
 		} else {
-//			if (currentNode.getColor() == NodeColor.GRAY || (currentNode.getColor() == NodeColor.BLACK && currentNode.getDepth() < octreeDepth)) {
 			if (currentNode.getColor() == NodeColor.GRAY) {
 				Node[] children = currentNode.getChildren();
 				for (int i = 0; i < children.length; i++) {
@@ -328,7 +328,6 @@ public class OctreeModelGenerator {
 		int rows = distanceArrays.get(projectionMatrixId).length;
 		int columns = distanceArrays.get(projectionMatrixId)[0].length;
 		BoundingBox boundingBox = computeBoundingBox(projections, rows, columns, level);
-		Utils.debugNewLine(boundingBox.toString(), false);
 
 		return boundingBox;
 	}
@@ -385,7 +384,6 @@ public class OctreeModelGenerator {
 	private List<ProjectedPoint> projectionsAsList(MatOfPoint2f encodedProjections) {
 		List<ProjectedPoint> projections = new ArrayList<ProjectedPoint>();
 		for (Point point : encodedProjections.toList()) {
-			// TODO: change this way of assigning the scale factor
 			projections.add(new ProjectedPoint(point.x, point.y, 2.0));
 		}
 		return projections;

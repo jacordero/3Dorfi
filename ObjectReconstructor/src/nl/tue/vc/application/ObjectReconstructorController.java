@@ -10,9 +10,12 @@ import java.util.Timer;
 import java.util.TimerTask;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
+import java.util.logging.Level;
 import java.util.stream.Collectors;
 
 import org.opencv.core.Mat;
+
+import com.sun.istack.internal.logging.Logger;
 
 import javafx.application.Platform;
 import javafx.beans.value.ChangeListener;
@@ -21,7 +24,6 @@ import javafx.fxml.FXML;
 import javafx.scene.SubScene;
 import javafx.scene.control.Button;
 import javafx.scene.control.CheckBox;
-import javafx.scene.control.ChoiceBox;
 import javafx.scene.control.ComboBox;
 import javafx.scene.control.Label;
 import javafx.scene.control.ListView;
@@ -284,6 +286,9 @@ public class ObjectReconstructorController {
 	List<String> objectImageFilenames;
 
 	private OctreeModelGenerator octreeModelGenerator;
+	
+	private static final Logger logger = Logger.getLogger(ObjectReconstructor.class);
+
 
 	public ObjectReconstructorController() {
 
@@ -590,12 +595,11 @@ public class ObjectReconstructorController {
 			loadDefaultImages();
 		}
 
-		System.out.println("Extract silhouettes method was called...");
 
 		binaryImagesSelectionView = new ListView<String>();
 		binaryImagesPanel.clearImages(binaryImagesSelectionView);
 
-		Utils.debugNewLine("Silhouette extraction for " + thresholdImageIndex, true);
+		logger.log(Level.INFO, "Silhouette extraction for " + thresholdImageIndex);
 		String segmentationMethod = "Binarization";
 		if (thresholdImageIndex.equals("ALL_IMAGES") || thresholdForAll.isSelected()) {
 			binarizedImagesMap = new HashMap<String, Mat>();
@@ -641,8 +645,7 @@ public class ObjectReconstructorController {
 		} else {
 			Mat imageToBinarize = objectImagesMap.get(thresholdImageIndex);
 			int binaryThreshold = imageThresholdMap.get(thresholdImageIndex);
-			Utils.debugNewLine("Extracting Image " + thresholdImageIndex + " with binary threshold " + binaryThreshold,
-					true);
+			logger.log(Level.INFO, "Extracting Image " + thresholdImageIndex + " with binary threshold " + binaryThreshold);
 
 			ConcurrentSilhouetteExtractor cse = new ConcurrentSilhouetteExtractor(imageToBinarize, thresholdImageIndex,
 					segmentationMethod, binaryThreshold);
@@ -781,11 +784,9 @@ public class ObjectReconstructorController {
 	@FXML
 	private void calibrateCameraForExtrinsicParams() {
 
-		Utils.debugNewLine("*** Calibrating camera to find extrinsic parameters ***", true);
-		Utils.debugNewLine("Calibration images Map size: " + calibrationImagesMap.size(), true);
+		logger.log(Level.INFO, "Calibrating camera to find extrinsic parameters");
 
 		if (calibrateCameraFromDirectory.isSelected()) {
-			Utils.debugNewLine("*** Load calibration images ***", true);
 			deleteCameraCalibrationImages();
 			// Load calibration images
 			final File folder = new File(CALIBRATION_IMAGES_DIR);
@@ -821,7 +822,7 @@ public class ObjectReconstructorController {
 
 	@FXML
 	private void loadObjectImagesFromDirectory() {
-		Utils.debugNewLine("*** Loading object images from directory ***", true);
+		logger.log(Level.INFO, "Loading object images from directory ");
 		// TODO: replace this error message
 		if (objectImageFilenames.isEmpty()) {
 			System.out.println("There is an error: calibrate the camera again!!");
@@ -901,7 +902,6 @@ public class ObjectReconstructorController {
 		int projectionCounter = 0;
 		for (String imageKey : objectImagesMap.keySet()) {
 			Mat binaryImage = binarizedImagesMap.get(imageKey);
-			Utils.debugNewLine("Projecting octree for " + imageKey, true);
 
 			Mat projectedVolume = octreeCubeProjector.drawProjection(binaryImage, imageKey, projectionGenerator);
 			Image imageToDisplay = Utils.mat2Image(projectedVolume);
@@ -920,7 +920,6 @@ public class ObjectReconstructorController {
 	@FXML
 	protected void visualizeOctreeModel() {
 		renderModel();
-		Utils.debugNewLine("+++ Model visualization is ready!", true);
 	}
 
 	public void renderModel() {
@@ -938,9 +937,6 @@ public class ObjectReconstructorController {
 	}
 
 	private void updateBinaryThreshold(int binaryThreshold) {
-		Utils.debugNewLine("Updating binary threshold!!", true);
-		// selectedBinaryThreshold = binaryThreshold;
-
 		if (!thresholdImageIndex.equals("ALL_IMAGES")) {
 			if (thresholdForAll.isSelected()) {
 				for (String imageKey : imageThresholdMap.keySet()) {
@@ -1097,11 +1093,9 @@ public class ObjectReconstructorController {
 	public void generateTestModel() {
 
 		long lStartTime = System.nanoTime();
-		Utils.debugNewLine("generateTestModel", true);
 		configValuesForExample();
 
 		loadDefaultImages();
-		Utils.debugNewLine("ObjectImagesMap size: " + objectImagesMap.size(), true);
 		extractSilhouettes();
 
 		constructOctreeModel();

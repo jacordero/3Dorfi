@@ -19,9 +19,7 @@ public class DistanceTransformGenerator {
 			for (int j = 0; j < columns; j++){
 				distanceMatrix[i][j] = -1;
 			}
-		}
-		
-		Utils.debugNewLine("Binary matrix dimension: rows = " + rows + ", columns = " + columns, false);
+		}		
 	}
 	
 	public int[][] getDistanceTransform(){

@@ -6,6 +6,8 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 import javax.imageio.ImageIO;
 
@@ -23,6 +25,7 @@ import org.opencv.core.TermCriteria;
 import org.opencv.imgproc.Imgproc;
 
 import nl.tue.vc.application.utils.Utils;
+import nl.tue.vc.gui.SidePanelImageSelector;
 import nl.tue.vc.projection.ProjectionGenerator;
 import nl.tue.vc.projection.ProjectionMatrices;
 
@@ -35,9 +38,9 @@ public class CameraCalibrator {
 	private MatOfDouble distorsionCoefficients;
 	
 	private Size chessboardPatternSize;
-
 	
-	// Object points
+	private static final Logger logger = Logger.getLogger(CameraCalibrator.class.getName());
+
 	
 	public CameraCalibrator() {
 			configure();
@@ -78,16 +81,16 @@ public class CameraCalibrator {
 	}
 	
 	public ProjectionGenerator calibrateMatrices(Map<String, Mat> calibrationImages, boolean debugProjectionParameters){
+		logger.log(Level.INFO, "Calibrate matrices");
 		ProjectionGenerator projector = new ProjectionGenerator();
 		
 		for (String calibrationIndex: calibrationImages.keySet()){
-			Utils.debugNewLine("Calibration for " + calibrationIndex, true);
 			Mat calibrationImage = calibrationImages.get(calibrationIndex);
 			ProjectionMatrices projectionMatrices = calibrateForOneImage(calibrationImage, false);
 			projector.addProjectionMatrices(calibrationIndex, projectionMatrices);
 		}
 		
-		Utils.debugNewLine("Calibration matrices " + projector.effectiveSize(), true);
+		logger.log(Level.INFO, "Calibration matrices " + projector.effectiveSize());
 		return projector;
 	}
 	
@@ -101,30 +104,17 @@ public class CameraCalibrator {
 			calibrationImage.copyTo(grayImage);
 		}		
 		
-		Utils.debugNewLine("Size of the image:[ width = " + calibrationImage.cols() + ", height = " + calibrationImage.rows() + "]", false);		
 		
 		MatOfPoint2f corners = new MatOfPoint2f();
 		boolean cornersFound = Calib3d.findChessboardCorners(calibrationImage, chessboardPatternSize, corners);
 		
 		if (cornersFound) {
-			//System.out.println("**** Corners were found ****");
-			List<Point> cornerPoints = corners.toList();
-			for (Point corner: cornerPoints){
-				Utils.debugNewLine(corner.toString(), false);
-			}
 			
 			Size cornersWindowSize = new Size(7, 7);
 			Size zeroZone = new Size(-1, -1);
 			TermCriteria criteria = new TermCriteria(TermCriteria.EPS + TermCriteria.MAX_ITER, 30, 0.001);	
 			Imgproc.cornerSubPix(grayImage, corners, cornersWindowSize, zeroZone, criteria);
 			
-			// check for the refined corners
-			/**
-			System.out.println("Refined corners");
-			for (Point corner: corners.toList()) {
-				System.out.println(corner);
-			}
-			**/
 			
 			// compute the projection matrix and vector using the solvePnpRansac function
 			Mat rotationVector = new Mat();
@@ -133,28 +123,7 @@ public class CameraCalibrator {
 			boolean extrinsicParametersFound = Calib3d.solvePnPRansac(chessboardCornerPoints, corners, intrinsicParameters,
                     distorsionCoefficients, rotationVector, translationVector);
 			
-			if (extrinsicParametersFound) {
-				/**
-				System.out.println("Extrinsic Parameters Found!!!");
-				double[] firstRotationParam = new double[1];
-				rotationVector.get(0, 0, firstRotationParam);
-				double[] secondRotationParam = new double[1];
-				rotationVector.get(1, 0, secondRotationParam);
-				double[] thirdRotationParam = new double[1];
-				rotationVector.get(2, 0, thirdRotationParam);
-				System.out.println("Rotation vector: [" + firstRotationParam[0] + ", " + secondRotationParam[0] + ", " + thirdRotationParam[0] + "]");
-				
-				double[] firstTranslationParam = new double[1];
-				translationVector.get(0, 0, firstTranslationParam);
-				double[] secondTranslationParam = new double[1];
-				translationVector.get(1, 0, secondTranslationParam);
-				double[] thirdTranslationParam = new double[1];
-				translationVector.get(2, 0, thirdTranslationParam);
-				System.out.println("Translation vector: [" + firstTranslationParam[0] + ", " + secondTranslationParam[0] + ", " + thirdTranslationParam[0] + "]");
-				//System.out.println(translationVector);
-				**/
-				
-				
+			if (extrinsicParametersFound) {				
 				if (debugProjectionParameters) {
 					testCameraCalibration(calibrationImage, rotationVector, translationVector, 
 							intrinsicParameters, distorsionCoefficients);					

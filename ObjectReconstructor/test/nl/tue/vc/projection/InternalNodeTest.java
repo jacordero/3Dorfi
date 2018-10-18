@@ -8,10 +8,6 @@ public class InternalNodeTest extends NodeTest {
 
 	private NodeTest[] children;
 	
-	// this is here for testing purposes
-	//private NodeColor[] colors = {NodeColor.BLACK, NodeColor.BLACK, NodeColor.BLACK, NodeColor.WHITE,
-	//		NodeColor.BLACK, NodeColor.BLACK, NodeColor.BLACK, NodeColor.WHITE};
-	
 	
 	
 	public InternalNodeTest(double boxSize, double parentCenterX, double parentCenterY, double parentCenterZ, int levels) {
@@ -37,10 +33,7 @@ public class InternalNodeTest extends NodeTest {
 				double newParentCenterZ = parentCenterZ + (displacementDirections.deltaZ * displacementSize);
 				
 				//positionCenterX = newParentCenter;
-				
-				Utils.debugNewLine("Parent center: [" + parentCenterX + ", " + parentCenterY + ", " + parentCenterZ + "]", true);
-				Utils.debugNewLine("Node center: [" + newParentCenterX + ", " + newParentCenterY + ", " + newParentCenterZ + "]",  true);
-				
+								
 				if (levels > 0){
 					children[i] = new InternalNodeTest(childrenBoxSize, newParentCenterX, newParentCenterY, newParentCenterZ, levels - 1);
 				} else {

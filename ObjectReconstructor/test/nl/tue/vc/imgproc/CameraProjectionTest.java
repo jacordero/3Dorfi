@@ -95,18 +95,12 @@ public class CameraProjectionTest {
 		Mat rotationVector = new Mat();
 		Mat translationVector = new Mat();
 		
-		Utils.debugNewLine("Find chessboard patterns", false);
 		MatOfPoint2f corners = new MatOfPoint2f();
 		Size patternSize = new Size(9, 6);
 		
 		boolean cornersFound = Calib3d.findChessboardCorners(calibrationImage, patternSize, corners);
 		if (cornersFound) {
-			Utils.debugNewLine("**** Corners were found ****", false);
 			List<Point> cornerPoints = corners.toList();
-			for (Point corner: cornerPoints){
-				Utils.debugNewLine(corner.toString(), false);
-			}
-			
 			
 			Size cornersWindowSize = new Size(7, 7);
 			Size zeroZone = new Size(-1, -1);
@@ -116,7 +110,6 @@ public class CameraProjectionTest {
 			Imgproc.cornerSubPix(grayImage, corners, cornersWindowSize, zeroZone, criteria);
 			
 			// check for the refined corners
-			Utils.debugNewLine("Refined corners", false);
 			for (Point corner: corners.toList()) {
 				System.out.println(corner);
 			}
@@ -126,14 +119,12 @@ public class CameraProjectionTest {
                     distCoeffs, rotationVector, translationVector);
 			
 			if (extrinsicParametersFound) {
-				System.out.println("Extrinsic Parameters Found!!!");
 				double[] firstRotationParam = new double[1];
 				rotationVector.get(0, 0, firstRotationParam);
 				double[] secondRotationParam = new double[1];
 				rotationVector.get(1, 0, secondRotationParam);
 				double[] thirdRotationParam = new double[1];
 				rotationVector.get(2, 0, thirdRotationParam);
-				System.out.println("Rotation vector: [" + firstRotationParam[0] + ", " + secondRotationParam[0] + ", " + thirdRotationParam[0] + "]");
 				
 				double[] firstTranslationParam = new double[1];
 				translationVector.get(0, 0, firstTranslationParam);
@@ -141,8 +132,6 @@ public class CameraProjectionTest {
 				translationVector.get(1, 0, secondTranslationParam);
 				double[] thirdTranslationParam = new double[1];
 				translationVector.get(2, 0, thirdTranslationParam);
-				System.out.println("Translation vector: [" + firstTranslationParam[0] + ", " + secondTranslationParam[0] + ", " + thirdTranslationParam[0] + "]");
-				//System.out.println(translationVector);
 				
 				// Project points
 				MatOfPoint2f projectedPoints = new MatOfPoint2f();

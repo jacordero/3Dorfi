@@ -19,15 +19,17 @@ public class IntersectionMethods {
 	public static void main(String[] args) throws IOException{
 
 		List<String> imagePaths = loadImagePaths();
-		boolean comparisonResult;
+		boolean comparisonResult = true;
 		for (String path: imagePaths){
 			File input = new File(path);
 			BufferedImage buf_image = ImageIO.read(input);
 			int[][] binaryImage = IntersectionTest.getBinaryArray(buf_image);
-			Utils.debugNewLine("**** Comparison being done in image: " + path, false);
-			IntersectionTest.compareDistanceTransformMethods(binaryImage);
-			Utils.debugNewLine("\n", false);
-			
+			comparisonResult = comparisonResult && IntersectionTest.compareDistanceTransformMethods(binaryImage);			
+		}
+		if (comparisonResult){
+			System.out.println("Images are equal!!");
+		} else {
+			System.out.println("Images are different!!");			
 		}
 		
 	}

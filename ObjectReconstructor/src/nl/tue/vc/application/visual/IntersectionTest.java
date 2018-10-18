@@ -18,23 +18,6 @@ import nl.tue.vc.application.utils.Utils;
 public class IntersectionTest {
 
 	public static void main(String[] args) {
-		// TODO Auto-generated method stub
-		// try {
-		// Raster raster =
-		// loadImageRaster("C:\\Tools\\eclipse\\workspace\\objectrecognizer\\ObjectRecognizer\\images\\football.jpg");
-		// for(int x = 0; x<raster.getWidth(); x++) {
-		// for(int y = 0; y<raster.getHeight(); y++) {
-		// System.out.print(raster.getSample(x, y, 0)+" ");
-		// }
-		// System.out.println("");
-		// }
-		//
-		// } catch (IOException e) {
-		// // TODO Auto-generated catch block
-		// e.printStackTrace();
-		// }
-
-		// create the arrays
 		int[][] binaryArray = new int[8][8];
 		int[][] transformedArray = new int[8][8];
 
@@ -95,7 +78,7 @@ public class IntersectionTest {
 		return transformedArray;
 	}
 	
-	public static void compareDistanceTransformMethods(int[][] binaryArray){
+	public static boolean compareDistanceTransformMethods(int[][] binaryArray){
 		int[][] firstTransform = getTransformedArray(binaryArray);
 		int[][] secondTransform = computeDistanceTransform(binaryArray);
 		
@@ -108,24 +91,16 @@ public class IntersectionTest {
 				}
 			}
 		}
-		if (equalContent){
-			Utils.debugNewLine("***** Content of both transformations are equal ****", false);
-		} 
+		return equalContent;
 	}
 
 	public static int getSquareSize(int[][] binaryArray, int xValue, int yValue) {
 		int sum = 0;
 		int size = binaryArray[0].length - yValue;
-		//System.out.println("init Size for (" + xValue +","+yValue+") = " + size);
 		if (size > (xValue + 1))
 			size = xValue + 1;
-		// if(xValue==1 && yValue==1)
-		// System.out.println("Size for (" + xValue +","+yValue+") = " + size);
 		for (int i = 1; i <= size; i++) {
 			int validSize = checkSquareSize(i, binaryArray, xValue, yValue);
-			// if(xValue==1 && yValue==1)
-			// System.out.println("Result for i="+i+" for ("+xValue+","+yValue+") = " +
-			// validSize);
 			if (validSize > 0)
 				sum++;
 			else
@@ -142,11 +117,7 @@ public class IntersectionTest {
 
 		for (int x = maxX; x > max; x--) {
 			for (int y = minY; y < (minY + size); y++) {
-				// if(maxX==1 && minY==1)
-				//System.out.println("x="+x+", y="+y);
 				int pixel = binaryArray[x][y];
-				// if(maxX==1 && minY==1)
-				// System.out.println("("+x+","+y+") = " + pixel);
 				if (pixel == 0) {
 					result -= temp;
 					return result;
@@ -180,15 +151,10 @@ public class IntersectionTest {
 		// to binary
 		Raster raster = IntersectionTest.binarizeImage(img_param).getData();
 		int[][] result = new int[raster.getHeight()][raster.getWidth()];
-//		System.out.println("raster width: " + img_param.getWidth() + " raster height: " + img_param.getHeight());
-//		System.out.println("result array rows = " + result.length + ", cols = " + result[0].length);
-//		System.out.println("raster minx, y = " + raster.getMinX() + ", " + raster.getMinY());
 		for (int x = 0; x < raster.getHeight(); x++) {
 			for (int y = 0; y < raster.getWidth(); y++) {
-				//System.out.println("pixel(" + x + ", " + y + ")" );
 				int binaryValue = (int)raster.getSampleDouble(y, x, 0);
 				result[x][y] = (binaryValue == 0) ? 1 : 0;
-				//System.out.println("pixel(" + x + ", " + y + ") = " + raster.getSampleDouble(x, y, 0));
 			}
 		}
 		return result;
