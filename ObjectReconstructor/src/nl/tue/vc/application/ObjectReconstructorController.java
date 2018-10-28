@@ -268,8 +268,7 @@ public class ObjectReconstructorController {
 
 	private boolean videoTimerActive;
 
-	public static int SNAPSHOT_DELAY = 250;
-	public static final boolean TEST_PROJECTIONS = true;
+	public static int SNAPSHOT_DELAY;
 
 	private float DISPLACEMENT_X;
 	private float DISPLACEMENT_Y;
@@ -279,10 +278,8 @@ public class ObjectReconstructorController {
 	private float CUBE_LENGTH_Y;
 	private float CUBE_LENGTH_Z;
 
-	private String calibrationImagesDir = "images/calibrationImages/";
-
-	private String OBJECT_IMAGES_DIR = "examples/laptopCharger/";
-	private String CALIBRATION_IMAGES_DIR = "examples/laptopCharger/calibrationImages/";
+	private String OBJECT_IMAGES_DIR;
+	private String CALIBRATION_IMAGES_DIR;
 	List<String> objectImageFilenames;
 
 	private OctreeModelGenerator octreeModelGenerator;
@@ -307,24 +304,11 @@ public class ObjectReconstructorController {
 		projectionGenerator = null;
 		cameraDistance = 300;
 		directoryChooser = new DirectoryChooser();
-		initCalibrationIndices();
-	}
-
-	// TODO: generate these indices automatically
-	private void initCalibrationIndices() {
-		calibrationIndices = new ArrayList<String>();
-		calibrationIndices.add("deg-0");
-		calibrationIndices.add("deg-30");
-		calibrationIndices.add("deg-60");
-		calibrationIndices.add("deg-90");
-		calibrationIndices.add("deg-120");
-		calibrationIndices.add("deg-150");
-		calibrationIndices.add("deg-180");
-		calibrationIndices.add("deg-210");
-		calibrationIndices.add("deg-240");
-		calibrationIndices.add("deg-270");
-		calibrationIndices.add("deg-300");
-		calibrationIndices.add("deg-330");
+		calibrationIndices = Utils.PROJECTION_MATRICES_IDS;
+		ApplicationConfiguration appConfig = ApplicationConfiguration.getInstance();
+		MAX_OCTREE_LEVELS = appConfig.getMaxOctreeLevels();
+		SNAPSHOT_DELAY = appConfig.getSnapshotDelay();
+		octreeRenderingLevels = appConfig.getRenderingLevels();
 	}
 
 	// Method called to initialize all FXML variables
@@ -388,16 +372,13 @@ public class ObjectReconstructorController {
 		});
 		
 		
-
-		octreeLevelsSelection.getItems().add("Model with 2 levels");
-		octreeLevelsSelection.getItems().add("Model with 3 levels");
-		octreeLevelsSelection.getItems().add("Model with 4 levels");
-		octreeLevelsSelection.getItems().add("Model with 5 levels");
-		octreeLevelsSelection.getItems().add("Model with 6 levels");
-		octreeLevelsSelection.getItems().add("Model with 7 levels");
-		octreeLevelsSelection.getItems().add("Model with 8 levels");
-		octreeLevelsSelection.setValue("Model with 7 levels");
-		octreeRenderingLevels = 7;
+		
+		for (int level = INITIAL_OCTREE_LEVELS; level <= MAX_OCTREE_LEVELS; level++){
+			octreeLevelsSelection.getItems().add("Model with " + level + " levels");
+			if (level == octreeRenderingLevels){
+				octreeLevelsSelection.setValue("Model with " + level + " levels");
+			}
+		}
 
 		octreeLevelsSelection.valueProperty().addListener(new ChangeListener<String>() {
 			@Override
@@ -746,7 +727,7 @@ public class ObjectReconstructorController {
 		};
 
 		imageTimer = new Timer();
-		imageTimer.schedule(frameGrabber, 250);
+		imageTimer.schedule(frameGrabber, SNAPSHOT_DELAY);
 	}
 
 	/**
@@ -778,7 +759,7 @@ public class ObjectReconstructorController {
 		};
 
 		imageTimer = new Timer();
-		imageTimer.schedule(frameGrabber, 250);
+		imageTimer.schedule(frameGrabber, SNAPSHOT_DELAY);
 	}
 
 	@FXML
@@ -888,7 +869,10 @@ public class ObjectReconstructorController {
 		BoxParameters volumeBoxParameters = createRootNodeParameters();
 		octreeModelGenerator = new OctreeModelGenerator(distanceArrays, invertedDistanceArrays, projectionGenerator);
 		octreeModelGenerator.prepareInitialModel(volumeBoxParameters, INITIAL_OCTREE_LEVELS);
+		
+		
 		octreeModelGenerator.generateFinalModel(INITIAL_OCTREE_LEVELS + 1, MAX_OCTREE_LEVELS);
+		
 	}
 
 	private void createOctreeProjections() {
@@ -992,21 +976,20 @@ public class ObjectReconstructorController {
 			DISPLACEMENT_Z = (float) -2;
 
 			CUBE_LENGTH_X = 12;
-			CUBE_LENGTH_Y = (float) 5;
+			CUBE_LENGTH_Y = (float) 5.1;
 			CUBE_LENGTH_Z = (float) 10;
 
 			OBJECT_IMAGES_DIR = "examples/laptopCharger/";
 			CALIBRATION_IMAGES_DIR = "examples/laptopCharger/calibrationImages/";
-
 		}
-
-		textFieldOctreeLengthX.insertText(0, "" + CUBE_LENGTH_X);
-		textFieldOctreeLengthY.insertText(0, "" + CUBE_LENGTH_Y);
-		textFieldOctreeLengthZ.insertText(0, "" + CUBE_LENGTH_Z);
-
-		textFieldOctreeDisplacementX.insertText(0, "" + DISPLACEMENT_X);
-		textFieldOctreeDisplacementY.insertText(0, "" + DISPLACEMENT_Y);
-		textFieldOctreeDisplacementZ.insertText(0, "" + DISPLACEMENT_Z);
+		
+		textFieldOctreeLengthX.setText(Float.toString(CUBE_LENGTH_X));
+		textFieldOctreeLengthY.setText(Float.toString(CUBE_LENGTH_Y));
+		textFieldOctreeLengthZ.setText(Float.toString(CUBE_LENGTH_Z));
+		
+		textFieldOctreeDisplacementX.setText(Float.toString(DISPLACEMENT_X));
+		textFieldOctreeDisplacementY.setText(Float.toString(DISPLACEMENT_Y));
+		textFieldOctreeDisplacementZ.setText(Float.toString(DISPLACEMENT_Z));
 	}
 
 	private void loadDefaultImages() {
@@ -1140,7 +1123,7 @@ public class ObjectReconstructorController {
 	}
 
 	public void saveCalibrationImages(String imageKey, Mat calibrationImage) {
-		Utils.saveImage(calibrationImage, calibrationImagesDir + imageKey + ".jpg");
+		Utils.saveImage(calibrationImage, CALIBRATION_IMAGES_DIR + imageKey + ".jpg");
 	}
 
 	@FXML

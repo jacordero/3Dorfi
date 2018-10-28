@@ -1,6 +1,5 @@
 package nl.tue.vc.model;
 
-import javafx.scene.paint.Color;
 import nl.tue.vc.model.BoxParameters;
 
 public class Leaf extends Node{

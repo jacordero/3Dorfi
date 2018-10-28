@@ -13,8 +13,6 @@ import org.opencv.core.Mat;
 import org.opencv.core.MatOfByte;
 import org.opencv.imgcodecs.Imgcodecs;
 
-import nl.tue.vc.application.utils.Utils;
-
 public class IntersectionTest {
 
 	public static void main(String[] args) {

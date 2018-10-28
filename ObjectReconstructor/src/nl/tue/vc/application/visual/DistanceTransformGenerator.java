@@ -1,7 +1,5 @@
 package nl.tue.vc.application.visual;
 
-import nl.tue.vc.application.utils.Utils;
-
 public class DistanceTransformGenerator {
 
 	private int[][] distanceMatrix;

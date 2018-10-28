@@ -1,10 +1,7 @@
 package nl.tue.vc.application;
 
-import java.util.HashMap;
-import java.util.Map;
-
-import nl.tue.vc.model.BoxParameters;
-import nl.tue.vc.voxelengine.CameraPosition;
+import java.io.FileInputStream;
+import java.util.Properties;
 
 public class ApplicationConfiguration {
 
@@ -20,26 +17,18 @@ public class ApplicationConfiguration {
 	
 	private int volumeSceneDepth;
 	
-	private CameraPosition cameraPosition;
+	private String title;
 	
-	private int volumeBoxSize;
+	private int maxOctreeLevels;
 	
-	private int imageWidth;
+	private int renderingLevels;
 	
-	private int imageHeight;
+	private int snapshotDelay;
 	
-	private Map<String, Integer> silhouetteConfiguration;
-	
-	private BoxParameters volumeBoxParameters;
-	
-	
+	private final String PROPERTIES_FILENAME = "resources/config.properties";
 	
 	// private constructor to make this a singleton
 	private ApplicationConfiguration() {
-		// original width resolution: 1280, original height resolution: 960
-		imageWidth = 640;
-		imageHeight = 480;
-		
 		windowWidth = 960;
 		windowHeight = 680;
 		
@@ -47,27 +36,34 @@ public class ApplicationConfiguration {
 		volumeSceneHeight = 480;
 		volumeSceneDepth = 200;
 		
-		cameraPosition = new CameraPosition();
-		cameraPosition.positionAxisX = 0;
-		cameraPosition.positionAxisY = 0;
-		cameraPosition.positionAxisZ = 0;
-		volumeBoxSize = 256;
-		
-		silhouetteConfiguration = new HashMap<String, Integer>();
-		silhouetteConfiguration.put("imageWidthFirstPixel", 30);
-		silhouetteConfiguration.put("imageWidthLastPixel", 370);
-		silhouetteConfiguration.put("imageHeightFirstPixel", 20);
-		silhouetteConfiguration.put("imageHeightLastPixel", 280);
-		silhouetteConfiguration.put("binaryThreshold", 105);
-		
-		volumeBoxParameters = new BoxParameters();		
-		volumeBoxParameters.setSizeX(volumeBoxSize);
-		volumeBoxParameters.setSizeY(volumeBoxSize);
-		volumeBoxParameters.setSizeZ(volumeBoxSize);
-		volumeBoxParameters.setCenterX(volumeSceneWidth/2);
-		volumeBoxParameters.setCenterY(volumeSceneHeight/2);
-		volumeBoxParameters.setCenterZ(volumeSceneDepth/2);
+		loadProperties();
 	}
+	
+	private void loadProperties(){
+		try {
+
+			Properties properties = new Properties();
+			FileInputStream input = new FileInputStream(PROPERTIES_FILENAME);
+			properties.load(input);
+			
+			title = properties.getProperty("title", "Object Reconstructor");
+			maxOctreeLevels = Integer.parseInt(properties.getProperty("maxOctreeLevels", "8"));
+			if (maxOctreeLevels >= 8){
+				maxOctreeLevels = 8;
+			} else if (maxOctreeLevels <= 2){
+				maxOctreeLevels = 3;
+			} 
+			
+			renderingLevels = Integer.parseInt(properties.getProperty("renderingLevels", "7"));
+			renderingLevels = renderingLevels <= maxOctreeLevels ? renderingLevels : maxOctreeLevels;
+
+			snapshotDelay = Integer.parseInt(properties.getProperty("snapshotDely", "250"));
+			snapshotDelay = snapshotDelay <= 500 ? snapshotDelay : 500; 
+		} catch (Exception e){
+			e.printStackTrace();
+		}
+	}
+	
 	
 	public static ApplicationConfiguration getInstance() {
 		if (instance == null) {
@@ -81,34 +77,10 @@ public class ApplicationConfiguration {
 		return windowWidth;
 	}
 
-	public void setWindowWidth(int windowWidth) {
-		this.windowWidth = windowWidth;
-	}
-
 	public int getWindowHeight() {
 		return windowHeight;
 	}
-
-	public void setWindowHeight(int windowHeight) {
-		this.windowHeight = windowHeight;
-	}
 	
-	public void setCameraPosition(CameraPosition cameraPosition) {
-		this.cameraPosition = cameraPosition;
-	}
-	
-	public CameraPosition getCameraPosition() {
-		return cameraPosition;
-	}
-	
-	public void setVolumeBoxSize(int volumeBoxSize) {
-		this.volumeBoxSize = volumeBoxSize;
-	}
-	
-	public int getVolumeBoxSize() {
-		return volumeBoxSize;
-	}
-
 	public int getVolumeSceneWidth() {
 		return volumeSceneWidth;
 	}
@@ -133,23 +105,19 @@ public class ApplicationConfiguration {
 		this.volumeSceneDepth = volumeSceneDepth;
 	}
 	
-	public int getImageWidth() {
-		return imageWidth;
+	public String getTitle(){
+		return title;
 	}
 	
-	public int getImageHeight() {
-		return imageHeight;
+	public int getMaxOctreeLevels(){
+		return maxOctreeLevels;
 	}
 	
-	public Map<String, Integer> getSilhouetteConfiguration(){
-		return silhouetteConfiguration;
+	public int getRenderingLevels(){
+		return renderingLevels;
 	}
-
-	public BoxParameters getVolumeBoxParameters() {
-		return volumeBoxParameters;
-	}
-
-	public void setVolumeBoxParameters(BoxParameters volumeBoxParameters) {
-		this.volumeBoxParameters = volumeBoxParameters;
+	
+	public int getSnapshotDelay(){
+		return snapshotDelay;
 	}
 }

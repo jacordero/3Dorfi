@@ -1,4 +1,2 @@
 Todo list:
-1) Enable the generation of multiple 3D test models one after another.
-2) Add resolution selection functionality
-3) Execute the model generation tasks in an asynchronous manner
+1) Implement an error management system

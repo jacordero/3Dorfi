@@ -15,11 +15,6 @@ import nl.tue.vc.application.utils.Utils;
 
 public class ProjectionView extends Application {
 	
-	private static final int SCENE_WIDTH = 640;
-	private static final int SCENE_HEIGHT = 480;
-	
-	//@FXML
-	//GridPane visualPane;
 	
 	@Override
 	public void start(Stage primaryStage) {
@@ -29,13 +24,7 @@ public class ProjectionView extends Application {
 			FXMLLoader loader = new FXMLLoader(getClass().getResource("/ProjectionView.fxml"));
 			BorderPane rootGroup = (BorderPane) loader.load();
 						
-			GridPane visualPane = new GridPane();//(GridPane) rootGroup.getCenter();
-			//centerPane.setMinSize(SCENE_WIDTH, SCENE_HEIGHT - 100);
-			//visualPane.setMinWidth(545);
-			//visualPane.setMinHeight(380);
-			
-			//System.out.println(visualPane.getHeight());
-			//System.out.println(visualPane.getWidth());
+			GridPane visualPane = new GridPane();
 			
 			ProjectionViewController controller = loader.getController();
 			
@@ -47,7 +36,6 @@ public class ProjectionView extends Application {
 			SubScene volumeScene = controller.renderVolume();
 			volumeScene.setWidth(440);
 			volumeScene.setHeight(320);
-			//volumeScene.setFill(Color.BLUE);
 
 			visualPane.add(projectionScene, 0, 0);			
 			visualPane.add(volumeScene, 1, 0);
@@ -65,16 +53,6 @@ public class ProjectionView extends Application {
 			controller.setVisualPane(visualPane);
 			controller.setProjectionScene(projectionScene);
 			controller.setVolumeScene(volumeScene);
-//			controller.setVolumeGroup(volumeGroup);
-//			controller.setProjectionGroup(projectionGroup);
-//			controller.render();
-			//controller.init();
-//			ObjectRecognizerController controller = loader.getController();
-//			controller.setStage(this.primaryStage);
-//			controller.setRootGroup(rootGroup);
-//			controller.setVolumeRenderer(volumeRenderer);
-//			controller.init();
-
 		} catch(Exception e) {
 			e.printStackTrace();
 		}

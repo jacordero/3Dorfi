@@ -63,8 +63,6 @@ public class OctreeProjectionTest {
 		OctreeProjectionTest projectionTest = new OctreeProjectionTest();
 		projectionTest.projectCubes();
 		
-		//projectionTest.generateOctree();
-		//System.out.println(projectionTest.octree);
 	}
 	
 	public SubScene generateProjectionScene(){
@@ -81,25 +79,7 @@ public class OctreeProjectionTest {
 			root2D.getChildren().add(boundingBox);
 		}
 		
-		
-		/**
-		// draw the lines
-		Line line1 = new Line(projectedPoints.get(4).getX(), projectedPoints.get(4).getY(),
-				projectedPoints.get(7).getX(), projectedPoints.get(7).getY());
-		line1.getStrokeDashArray().addAll(2d);
-		line1.setFill(Color.BLUE);
-		root2D.getChildren().add(line1);
-		 **/
-		/**
-		RotateTransition rotation = new RotateTransition(Duration.seconds(20), root3D);
-		rotation.setCycleCount(Animation.INDEFINITE);
-		rotation.setFromAngle(0);
-		rotation.setToAngle(360);
-		rotation.setAutoReverse(false);
-		rotation.setAxis(Rotate.Y_AXIS);
-		rotation.play();
-		**/
-		
+				
 		SubScene subScene = new SubScene(root2D, Utils.IMAGES_WIDTH/2, Utils.IMAGES_WIDTH/2, true, SceneAntialiasing.BALANCED);		
 		
 		PerspectiveCamera perspectiveCamera = new PerspectiveCamera(false);
@@ -146,8 +126,6 @@ public class OctreeProjectionTest {
 				iterateCubesAux(children, level + 1);				
 			}
 		}
-		//
-		
 	}
 	
 	private Rectangle computeBoundingBox(List<Point> projections, double screenWidth, double screenHeight, int level){

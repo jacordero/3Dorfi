@@ -130,55 +130,6 @@ public abstract class Node {
 	
 	protected DeltaStruct computeDisplacementDirections(int index) {
 		return OctreeUtils.computeDisplacementDirections(index);
-		/**
-		DeltaStruct deltas = new DeltaStruct();
-		switch (index) {
-		case 0:
-			deltas.deltaX = -1;
-			deltas.deltaY = 1;
-			deltas.deltaZ = 1;
-			break;
-		case 1:
-			deltas.deltaX = 1;
-			deltas.deltaY = 1;
-			deltas.deltaZ = 1;
-			break;
-		case 2:
-			deltas.deltaX = -1;
-			deltas.deltaY = -1;
-			deltas.deltaZ = 1;
-			break;
-		case 3:
-			deltas.deltaX = 1;
-			deltas.deltaY = -1;
-			deltas.deltaZ = 1;
-			break;
-		case 4:
-			deltas.deltaX = -1;
-			deltas.deltaY = 1;
-			deltas.deltaZ = -1;
-			break;
-		case 5:
-			deltas.deltaX = 1;
-			deltas.deltaY = 1;
-			deltas.deltaZ = -1;
-			break;
-		case 6:
-			deltas.deltaX = -1;
-			deltas.deltaY = -1;
-			deltas.deltaZ = -1;
-			break;
-		case 7:
-			deltas.deltaX = 1;
-			deltas.deltaY = -1;
-			deltas.deltaZ = -1;
-			break;
-		default:
-			throw new RuntimeException("Invalid index value " + index);
-		}
-
-		return deltas;
-		**/
 	}
 
 	
@@ -196,7 +147,6 @@ public abstract class Node {
 	@Override
 	public String toString() {
 		String str = "{Color: ";
-		//String str = "{sizeX: " + sizeX + ", sizeY: " + sizeY + ", sizeZ: " + sizeZ + ", centerX: " + positionCenterX + ", centerY: " + positionCenterY + ", centerZ: " + positionCenterZ + ", Color: ";
 		if (color == NodeColor.BLACK){
 			str += " black}";
 		} else if (color == NodeColor.GRAY){

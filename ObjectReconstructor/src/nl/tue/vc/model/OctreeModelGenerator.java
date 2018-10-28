@@ -40,10 +40,8 @@ public class OctreeModelGenerator {
 	
 	public void generateFinalModel(int firstLevel, int lastLevel){
 		
-		
 		refineInitialOctreeModel();
 		for (int octreeLevel = firstLevel; octreeLevel <= lastLevel; octreeLevel++){
-
 			octree.splitNodes(octreeLevel);
 			refineOctreeModel();
 		}		
@@ -391,5 +389,17 @@ public class OctreeModelGenerator {
 
 	public Octree getOctree(){
 		return octree;
+	}
+
+	public Map<String, int[][]> getDistanceArrays() {
+		return distanceArrays;
+	}
+
+	public Map<String, int[][]> getInvertedDistanceArrays() {
+		return invertedDistanceArrays;
+	}
+
+	public ProjectionGenerator getProjectionGenerator() {
+		return projectionGenerator;
 	}
 }

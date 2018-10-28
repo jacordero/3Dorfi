@@ -105,10 +105,6 @@ public class ProjectionViewController {
 		visualPane.add(projectionScene, 0, 0);			
 		visualPane.add(volumeScene, 1, 0);
 		rootGroup.setCenter(visualPane);
-		//Scene scene = new Scene(rootGroup, 960, 640);
-		//scene.getStylesheets().add(getClass().getResource("application.css").toExternalForm());			
-		//primaryStage.setScene(scene);
-		//primaryStage.show();
 	}
 	
 	
@@ -122,13 +118,7 @@ public class ProjectionViewController {
 		buildCamera();
 		root3D = new Group();
 		root3D.getChildren().add(volume);
-		
-		// Where should I add the lights?
-//		light = new PointLight();
-//		light.setTranslateX(offsetX);
-//		light.setTranslateY(offsetY);
-//		light.setTranslateZ(0);
-		
+				
 		RotateTransition rotation = new RotateTransition(Duration.seconds(20), root3D);
 		rotation.setCycleCount(Animation.INDEFINITE);
 		rotation.setFromAngle(0);
@@ -175,16 +165,9 @@ public class ProjectionViewController {
 		double bottomMostPos = 0;
 		
 		for (Vector3D vector: volumeModel.modelVertices) {
-			//System.out.println("\nVector in world coordinates");
-			//System.out.println(vector);
 			
 			Vector3D viewVector = transformMatrices.toViewCoordinates(vector);
-			//System.out.println("\nVector in view coordinates");
-			//System.out.println(viewVector);
-			
 			Vector3D clipVector = transformMatrices.toClipCoordinates(viewVector);
-			//System.out.println("\nVector in clip coordinates");
-			//System.out.println(clipVector);
 			if (Math.abs(clipVector.getX()) > Math.abs(clipVector.getW()) ||
 					Math.abs(clipVector.getY()) > Math.abs(clipVector.getW()) ||
 					Math.abs(clipVector.getZ()) > Math.abs(clipVector.getW())) {
@@ -192,12 +175,8 @@ public class ProjectionViewController {
 			}
 			
 			Vector3D ndcVector = transformMatrices.toNDCCoordinates(clipVector);
-			//System.out.println("\nVector in ndc coordinates");
-			//System.out.println(ndcVector);
 			
 			Vector3D windowVector = transformMatrices.toWindowCoordinates(ndcVector);
-			//System.out.println("\nVector in window coordinates");
-			//System.out.println(windowVector);
 			projectedPoints.add(windowVector);
 			
 			if (windowVector.getX() > rightMostPos) {
