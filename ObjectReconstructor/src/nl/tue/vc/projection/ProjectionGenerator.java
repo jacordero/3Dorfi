@@ -42,7 +42,6 @@ public class ProjectionGenerator {
 		if (projectionMatricesMap.get(projectionMatricesIndex) != null){
 			projectionMatrices = projectionMatricesMap.get(projectionMatricesIndex);
 		} else {
-			System.out.println("Index " + projectionMatricesIndex + " not found!!");
 			projectionMatrices = projectionMatricesMap.get(DEFAULT_PROJECTION_INDEX);
 		}
 		

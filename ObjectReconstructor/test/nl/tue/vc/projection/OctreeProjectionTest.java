@@ -50,7 +50,6 @@ public class OctreeProjectionTest {
 	public OctreeProjectionTest(){
 		calibrationImages = Utils.loadCalibrationImages();
 		octree = generateOctree();
-		System.out.println(octree);
 		cameraCalibrator = new CameraCalibrator();
 		projectionGenerator = cameraCalibrator.calibrateMatrices(calibrationImages, true);
 		projectedPoints = new ArrayList<Point>();

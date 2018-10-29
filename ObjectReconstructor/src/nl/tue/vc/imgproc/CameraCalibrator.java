@@ -195,9 +195,8 @@ public class CameraCalibrator {
 		    // retrieve image
 		    File outputfile = new File("images/projectedImage.png");
 		    ImageIO.write(imgToSave, "png", outputfile);
-		    System.out.println("Projected image was saved");
 		} catch (IOException e) {
-		    System.out.println("There was an error while saving projected image!!");
+			logger.log(Level.SEVERE, e.getMessage());
 		}
 		
 	}

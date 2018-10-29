@@ -2,6 +2,8 @@ package nl.tue.vc.application;
 
 import java.io.FileInputStream;
 import java.util.Properties;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 public class ApplicationConfiguration {
 
@@ -26,6 +28,8 @@ public class ApplicationConfiguration {
 	private int snapshotDelay;
 	
 	private final String PROPERTIES_FILENAME = "resources/config.properties";
+	
+	private static final Logger logger = Logger.getLogger(ApplicationConfiguration.class.getName());
 	
 	// private constructor to make this a singleton
 	private ApplicationConfiguration() {
@@ -60,7 +64,7 @@ public class ApplicationConfiguration {
 			snapshotDelay = Integer.parseInt(properties.getProperty("snapshotDely", "250"));
 			snapshotDelay = snapshotDelay <= 500 ? snapshotDelay : 500; 
 		} catch (Exception e){
-			e.printStackTrace();
+			logger.log(Level.WARNING, "Cannot load properties\n: " + e.getMessage());
 		}
 	}
 	

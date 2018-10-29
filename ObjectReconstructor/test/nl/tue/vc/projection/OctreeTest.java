@@ -1,29 +1,6 @@
 package nl.tue.vc.projection;
 
-import java.awt.image.BufferedImage;
-import java.io.File;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Random;
-
-import org.opencv.core.Mat;
-import javafx.embed.swing.SwingFXUtils;
-import javafx.geometry.Bounds;
-import javafx.geometry.Point2D;
-import javafx.geometry.Point3D;
-import javafx.scene.Group;
-import javafx.scene.image.Image;
 import javafx.scene.paint.Color;
-import javafx.scene.paint.ImagePattern;
-import javafx.scene.paint.PhongMaterial;
-import javafx.scene.shape.Box;
-import javafx.scene.shape.Ellipse;
-import javafx.scene.shape.Line;
-import javafx.scene.shape.Rectangle;
-import nl.tue.vc.application.ApplicationConfiguration;
-import nl.tue.vc.projection.IntersectionStatus;
-import nl.tue.vc.projection.TransformMatrices;
-import nl.tue.vc.projection.Vector3D;
 
 public class OctreeTest {
 

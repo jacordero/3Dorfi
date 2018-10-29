@@ -269,7 +269,6 @@ public class ConcurrentSilhouetteExtractor implements Callable<SegmentedImageStr
 				grayImage.get(i, j, byteValue);
 				value = convertByteToInt(byteValue);
 				double newValue = (1.0*(value - minimum)/(maximum - minimum))*255;
-				//System.out.println("Old value: " + value + ", new value: " + newValue);
 				equalized.put(i, j, (int)newValue);
 			}
 		}

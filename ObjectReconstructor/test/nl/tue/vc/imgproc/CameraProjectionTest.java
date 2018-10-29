@@ -34,10 +34,7 @@ public class CameraProjectionTest {
 			Imgproc.cvtColor(calibrationImage, grayImage, Imgproc.COLOR_BGR2GRAY);
 		} else {
 			calibrationImage.copyTo(grayImage);
-		}		
-		
-		System.out.println("Size of the image:[ width = " + calibrationImage.cols() + ", height = " + calibrationImage.rows() + "]");
-		
+		}				
 		
 		
 		// Object points
@@ -108,12 +105,7 @@ public class CameraProjectionTest {
 			
 			
 			Imgproc.cornerSubPix(grayImage, corners, cornersWindowSize, zeroZone, criteria);
-			
-			// check for the refined corners
-			for (Point corner: corners.toList()) {
-				System.out.println(corner);
-			}
-			
+						
 			// compute the projection matrix and vector using the solvePnpRansac function
 			boolean extrinsicParametersFound = Calib3d.solvePnPRansac(objectPoints, corners, intrinsicParameters,
                     distCoeffs, rotationVector, translationVector);
@@ -185,7 +177,6 @@ public class CameraProjectionTest {
 		    // retrieve image
 		    File outputfile = new File("images/projectedImage.png");
 		    ImageIO.write(imgToSave, "png", outputfile);
-		    System.out.println("Projected image was saved");
 		} catch (IOException e) {
 		    System.out.println("There was an error while saving projected image!!");
 		}

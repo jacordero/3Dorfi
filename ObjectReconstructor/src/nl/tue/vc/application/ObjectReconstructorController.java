@@ -11,11 +11,10 @@ import java.util.TimerTask;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 import java.util.logging.Level;
+import java.util.logging.Logger;
 import java.util.stream.Collectors;
 
 import org.opencv.core.Mat;
-
-import com.sun.istack.internal.logging.Logger;
 
 import javafx.application.Platform;
 import javafx.beans.value.ChangeListener;
@@ -218,6 +217,8 @@ public class ObjectReconstructorController {
 	private SidePanelImageSelector projectedVolumesPanel;
 
 	private int MODEL_RENDERING_TAB_ORDER = 2;
+	
+	private int SIDE_PANEL_WIDTH = 140;
 
 	private ToggleGroup calibrateCameraOptions;
 
@@ -284,8 +285,7 @@ public class ObjectReconstructorController {
 
 	private OctreeModelGenerator octreeModelGenerator;
 	
-	private static final Logger logger = Logger.getLogger(ObjectReconstructor.class);
-
+	private static final Logger logger = Logger.getLogger(ObjectReconstructor.class.getName());
 
 	public ObjectReconstructorController() {
 
@@ -320,7 +320,6 @@ public class ObjectReconstructorController {
 	protected void configureGUI() {
 
 		cameraDistanceSlider.valueProperty().addListener((observable, oldValue, newValue) -> {
-			System.out.println("Camera distance changed (newValue: " + newValue.intValue() + ")");
 			updateCameraDistance(newValue.intValue());
 		});
 
@@ -357,7 +356,6 @@ public class ObjectReconstructorController {
 		voxelTypeSelection.valueProperty().addListener(new ChangeListener<String>() {
 			@Override
 			public void changed(ObservableValue ov, String previousValue, String newValue) {
-				System.out.println(newValue);
 				if (newValue.equals("Black blocks")){
 					voxelGenerator = new SolidBoxGenerator(false);
 				} else if (newValue.equals("Black and gray blocks")){
@@ -383,23 +381,24 @@ public class ObjectReconstructorController {
 		octreeLevelsSelection.valueProperty().addListener(new ChangeListener<String>() {
 			@Override
 			public void changed(ObservableValue ov, String previousValue, String newValue) {
-				System.out.println(newValue);
 				updateOctreeRenderingLevels(newValue);
-				renderModel();
+				if (octreeModelGenerator != null){
+					renderModel();					
+				}
 			}
 		});
 
 		binaryImagesSelectionArea.getChildren().add(binaryImagesSelectionView);
-		binaryImagesSelectionView.setMaxWidth(140);
+		binaryImagesSelectionView.setMaxWidth(SIDE_PANEL_WIDTH);
 
 		projectedVolumesSelectionArea.getChildren().add(projectedVolumesSelectionView);
-		projectedVolumesSelectionView.setMaxWidth(140);
+		projectedVolumesSelectionView.setMaxWidth(SIDE_PANEL_WIDTH);
 
 		cameraCalibrationImageSelectionArea.getChildren().add(cameraCalibrationImageSelectionView);
-		cameraCalibrationImageSelectionView.setMaxWidth(140);
+		cameraCalibrationImageSelectionView.setMaxWidth(SIDE_PANEL_WIDTH);
 
 		objectImagesSelectionArea.getChildren().add(objectImagesSelectionView);
-		objectImagesSelectionView.setMaxWidth(140);
+		objectImagesSelectionView.setMaxWidth(SIDE_PANEL_WIDTH);
 
 		calibrateCameraOptions = new ToggleGroup();
 		calibrateCameraFromWebcam.setToggleGroup(calibrateCameraOptions);
@@ -411,7 +410,6 @@ public class ObjectReconstructorController {
 				RadioButton radioButton = (RadioButton) calibrateCameraOptions.getSelectedToggle();
 				if (radioButton != null) {
 					String selection = radioButton.getText();
-					System.out.println("Radio button selected: " + selection);
 					if (selection.equals("Webcam")) {
 						cameraCalibrationDirectoryButton.setDisable(true);
 						enableCameraCalibrationWebcam.setDisable(false);
@@ -429,7 +427,6 @@ public class ObjectReconstructorController {
 			File selectedDirectory = directoryChooser.showDialog(stage);
 			if (selectedDirectory != null) {
 				CALIBRATION_IMAGES_DIR = selectedDirectory.getAbsolutePath();
-				System.out.println(CALIBRATION_IMAGES_DIR);
 				cameraCalibrationDirectoryText.setText(CALIBRATION_IMAGES_DIR);
 			}
 		});
@@ -437,11 +434,11 @@ public class ObjectReconstructorController {
 		enableCameraCalibrationWebcam.setOnAction((event) -> {
 			boolean selected = enableCameraCalibrationWebcam.isSelected();
 			if (selected) {
-				System.out.println("Starting video ...");
+				logger.log(Level.INFO, "Starting video ...");
 				calibrationSnapshotButton.setDisable(false);
 				startVideo(cameraCalibrationDisplayView);
 			} else {
-				System.out.println("Stopping video ...");
+				logger.log(Level.INFO, "Stopping video ...");
 				calibrationSnapshotButton.setDisable(true);
 				stopVideo();
 			}
@@ -457,7 +454,6 @@ public class ObjectReconstructorController {
 				RadioButton radioButton = (RadioButton) loadObjectImagesOptions.getSelectedToggle();
 				if (radioButton != null) {
 					String selection = radioButton.getText();
-					System.out.println("Radio button selected: " + selection);
 					if (selection.equals("Webcam")) {
 						objectImagesDirectoryButton.setDisable(true);
 						enableObjectWebcam.setDisable(false);
@@ -475,7 +471,6 @@ public class ObjectReconstructorController {
 			File selectedDirectory = directoryChooser.showDialog(stage);
 			if (selectedDirectory != null) {
 				OBJECT_IMAGES_DIR = selectedDirectory.getAbsolutePath();
-				System.out.println(OBJECT_IMAGES_DIR);
 				objectImagesDirectoryText.setText(OBJECT_IMAGES_DIR);
 			}
 		});
@@ -483,11 +478,11 @@ public class ObjectReconstructorController {
 		enableObjectWebcam.setOnAction((event) -> {
 			boolean selected = enableObjectWebcam.isSelected();
 			if (selected) {
-				System.out.println("Starting video ...");
+				logger.log(Level.INFO, "Starting video ...");
 				objectSnapshotButton.setDisable(false);
 				startVideo(objectImagesDisplayView);
 			} else {
-				System.out.println("Stopping video ...");
+				logger.log(Level.INFO, "Stopping video ...");
 				objectSnapshotButton.setDisable(true);
 				stopVideo();
 			}
@@ -606,7 +601,7 @@ public class ObjectReconstructorController {
 			try {
 				binarizedImagesMap = combinedFuture.get();
 			} catch (InterruptedException | ExecutionException e) {
-				e.printStackTrace();
+				logger.log(Level.WARNING, "It cannot retrieve binarized images:\n" + e.getMessage());
 			}
 
 			for (String imageKey : binarizedImagesMap.keySet()) {
@@ -615,8 +610,7 @@ public class ObjectReconstructorController {
 					BufferedImage bufImage = IntersectionTest.Mat2BufferedImage(binaryImage);
 					imagesForDistanceComputation.put(imageKey, bufImage);
 				} catch (Exception e) {
-					System.out.println("Something went really wrong!!!");
-					e.printStackTrace();
+					logger.log(Level.WARNING, "It cannot compute intersection images:\n" + e.getMessage());					
 				}
 
 				Image resizedImage = Utils.mat2Image(binaryImage, 500, 0, true);
@@ -637,8 +631,7 @@ public class ObjectReconstructorController {
 				BufferedImage bufImage = IntersectionTest.Mat2BufferedImage(binaryImage);
 				imagesForDistanceComputation.put(thresholdImageIndex, bufImage);
 			} catch (Exception e) {
-				System.out.println("Something went really wrong!!!");
-				e.printStackTrace();
+				logger.log(Level.SEVERE, e.getMessage());
 			}
 
 			Image resizedImage = Utils.mat2Image(binaryImage, 500, 0, true);
@@ -780,8 +773,6 @@ public class ObjectReconstructorController {
 				String[] splittedName = filename.split("-");
 				String objectImageFilename = "object-" + splittedName[1];
 
-				System.out.println("Calibration image filename: " + filename);
-				System.out.println("Object image filename: " + objectImageFilename);
 				objectImageFilenames.add(objectImageFilename);
 				Mat image = Utils.loadImage(filename);
 
@@ -806,14 +797,14 @@ public class ObjectReconstructorController {
 		logger.log(Level.INFO, "Loading object images from directory ");
 		// TODO: replace this error message
 		if (objectImageFilenames.isEmpty()) {
-			System.out.println("There is an error: calibrate the camera again!!");
+			logger.log(Level.INFO, "There is an error: calibrate the camera again!!");
 		} else {
 			deleteObjectImages();
 			int calibrationIndex = 0;
 			for (String filename : objectImageFilenames) {
 				String fullPathFilename = OBJECT_IMAGES_DIR + "/" + filename;
 
-				System.out.println("Loading: " + fullPathFilename);
+				logger.log(Level.INFO, "Loading: " + fullPathFilename);
 				Mat image = Utils.loadImage(fullPathFilename);
 				if (image != null) {
 					String imageIdentifier = calibrationIndices.get(calibrationIndex);
@@ -906,6 +897,7 @@ public class ObjectReconstructorController {
 		renderModel();
 	}
 
+	// TODO: fix bug when model rendering is selected before having a constructed model
 	public void renderModel() {
 		volumeGenerator = new VolumeGenerator(voxelGenerator, octreeRenderingLevels);
 		volumeGenerator.generateVolume(octreeModelGenerator.getOctree(), createRootNodeParameters());
@@ -1024,7 +1016,6 @@ public class ObjectReconstructorController {
 
 		// compute calibration matrices
 		projectionGenerator = cameraCalibrator.calibrateMatrices(calibrationImagesMap, true);
-		System.out.println("Calibration map size: " + projectionGenerator.effectiveSize());
 
 		// Load object images
 		objectImageFilenames = new ArrayList<String>();
@@ -1085,7 +1076,7 @@ public class ObjectReconstructorController {
 		visualizeOctreeModel();
 		long lEndTime = System.nanoTime();
 		long output = (lEndTime - lStartTime) / 1000000000;
-		System.out.println("The model was generated in: " + output + " seconds!!!");
+		logger.log(Level.INFO, "The model was generated in: " + output + " seconds!!!");
 	}
 
 	/**

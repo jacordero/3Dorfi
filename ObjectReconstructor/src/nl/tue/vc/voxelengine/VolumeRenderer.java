@@ -203,13 +203,7 @@ public class VolumeRenderer {
 					break;
 				case X:
 					if (event.isControlDown()) {
-						/**
-						 * if (axisGroup.isVisible()) {
-						 * System.out.println("setVisible(false)");
-						 * axisGroup.setVisible(false); } else {
-						 * System.out.println("setVisible(true)");
-						 * axisGroup.setVisible(true); }
-						 **/
+						
 					}
 					break;
 				case S:

@@ -1,5 +1,8 @@
 package nl.tue.vc.application;
 
+import java.util.logging.Level;
+import java.util.logging.Logger;
+
 import org.opencv.core.Core;
 
 import javafx.application.Application;
@@ -14,6 +17,9 @@ public class ObjectReconstructor extends Application {
 	private Stage primaryStage;
 
 	private AnchorPane rootGroup;
+	
+	private static final Logger logger = Logger.getLogger(ObjectReconstructor.class.getName());
+
 	
 	@Override
 	public void start(Stage primaryStage) {
@@ -44,7 +50,7 @@ public class ObjectReconstructor extends Application {
 			});
 			
 		} catch (Exception e) {
-			e.printStackTrace();
+			logger.log(Level.SEVERE, "Cannot start application\n: " + e.getMessage());
 		}
 	}
 	

@@ -14,51 +14,6 @@ import org.opencv.core.MatOfByte;
 import org.opencv.imgcodecs.Imgcodecs;
 
 public class IntersectionTest {
-
-	public static void main(String[] args) {
-		int[][] binaryArray = new int[8][8];
-		int[][] transformedArray = new int[8][8];
-
-		// initialize some rows to 0
-		for (int x = 0; x < 8; x++) {
-			for (int y = 0; y < 8; y++) {
-				binaryArray[x][y] = 0;
-			}
-		}
-
-		// initialize some rows to 1
-		for (int x = 1; x < 6; x++) {
-			for (int y = 1; y < 6; y++) {
-				binaryArray[x][y] = 1;
-			}
-		}
-
-		// initialize the remaining rows
-		binaryArray[0][2] = 1;
-		binaryArray[0][3] = 1;
-		binaryArray[0][4] = 1;
-		binaryArray[6][2] = 1;
-		binaryArray[6][3] = 1;
-		binaryArray[6][4] = 1;
-
-		// print the contents of binaryArray
-		for (int x = 0; x < 8; x++) {
-			for (int y = 0; y < 8; y++) {
-				System.out.print(binaryArray[x][y] + " ");
-			}
-			System.out.println("");
-		}
-
-		transformedArray = getTransformedArray(binaryArray);
-
-		// print the contents of transformedArray
-		for (int x = 0; x < 8; x++) {
-			for (int y = 0; y < 8; y++) {
-				System.out.print(transformedArray[x][y] + " ");
-			}
-			System.out.println("");
-		}
-	}
 	
 	public static int[][] computeDistanceTransform(int[][] binaryArray) {
 		DistanceTransformGenerator dtg = new DistanceTransformGenerator(binaryArray);
@@ -85,7 +40,6 @@ public class IntersectionTest {
 			for (int j = 0; j < binaryArray[0].length; j++){
 				if (firstTransform[i][j] != secondTransform[i][j]){
 					equalContent = false;
-					System.out.println("ft[" + i + "][" + j + "] = " + firstTransform[i][j] + ", st[" + i + "][" + j + "] = " + secondTransform[i][j]);
 				}
 			}
 		}

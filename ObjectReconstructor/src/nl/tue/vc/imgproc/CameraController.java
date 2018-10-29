@@ -1,6 +1,9 @@
 package nl.tue.vc.imgproc;
 
 
+import java.util.logging.Level;
+import java.util.logging.Logger;
+
 import org.opencv.core.Mat;
 import org.opencv.videoio.VideoCapture;
 
@@ -13,6 +16,9 @@ public class CameraController {
 	private VideoCapture captureDevice;
 	
 	private Mat lastPicture;
+	
+	private static final Logger logger = Logger.getLogger(CameraController.class.getName());
+
 		
 	public CameraController() {
 		isCameraActive = false;
@@ -41,8 +47,7 @@ public class CameraController {
 			try {
 				captureDevice.read(frame);
 			} catch (Exception e) {
-				System.err.print("ERROR");
-				e.printStackTrace();
+				logger.log(Level.WARNING, "It cannot capture image:\n" + e.getMessage());
 			}
 		}
 		return frame;

@@ -3,7 +3,6 @@ package nl.tue.vc.projection;
 import java.text.DecimalFormat;
 import java.text.NumberFormat;
 
-import javafx.scene.shape.Rectangle;
 import nl.tue.vc.voxelengine.SimpleRectangle;
 
 public class BoundingBox {

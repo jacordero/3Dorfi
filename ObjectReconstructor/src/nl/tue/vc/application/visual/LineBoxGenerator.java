@@ -1,5 +1,7 @@
 package nl.tue.vc.application.visual;
 
+import javafx.scene.paint.Color;
+import javafx.scene.paint.PhongMaterial;
 import javafx.scene.shape.Box;
 import javafx.scene.shape.DrawMode;
 import nl.tue.vc.model.BoxParameters;
@@ -14,6 +16,10 @@ public class LineBoxGenerator implements VoxelGenerator {
 		box.setTranslateX(boxParameters.getCenterX());
 		box.setTranslateY(boxParameters.getCenterY());
 		box.setTranslateZ(boxParameters.getCenterZ());
+		
+		PhongMaterial textureMaterial = new PhongMaterial();
+		textureMaterial.setDiffuseColor(Color.CHOCOLATE);
+		box.setMaterial(textureMaterial);
 		box.setDrawMode(DrawMode.LINE);
 
 		return box;
