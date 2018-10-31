@@ -944,7 +944,7 @@ public class ObjectReconstructorController {
 			DISPLACEMENT_Z = (float) -2;
 
 			CUBE_LENGTH_X = 12;
-			CUBE_LENGTH_Y = (float) 8.5;
+			CUBE_LENGTH_Y = (float) 8.0;
 			CUBE_LENGTH_Z = (float) 10;
 
 			OBJECT_IMAGES_DIR = "examples/blackCup242/";
