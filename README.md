@@ -1,5 +1,32 @@
 # Description
-This repository contains the code for a software application that allows a user to construct 3D models of phyiscal objects from a set of images taken from different viewpoints using a hand-held camera.
+This repository contains an application that semi-automatically generates 3D models of physical objects from a series of images taken from different viewpoints. The image below shows the 3D model generation process. Each step of this process is described below.
+
+![Process diagram](/docs_images/3DModelGeneration.png)
+
+## Images
+
+Talk about the turntable.
+In order to generate 3D models, the application uses two types of images: a calibration image and an object image. Each one of the object images used in the application must be paired with a corresponding calibration image. Our application uses 12 pairs of calibration and object images to generate 3D models. A chessboard pattern of 10x7 is used for the calibration images. The images below show two pairs of calibration and object images. These pairs correspond to  The calibration images are used to compute the extrinsic parameters of the camera used to capture the object images. 
+
+<p float="left">
+  <img src="/docs_images/deg-60.jpg" width=400/>
+  <img src="/docs_images/object-60.jpg" width=400/> 
+</p>
+
+<p float="left">
+  <img src="/docs_images/deg-120.jpg" width=400/>
+  <img src="/docs_images/object-120.jpg" width=400/> 
+</p>
+
+
+## Camera Calibration
+
+## Image Processing
+
+## 3D Model Generation
+
+## 3D Model Visualization
+
 
 # Compilation and usage
 ## Dependencies
