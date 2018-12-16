@@ -24,8 +24,8 @@ In order to generate 3D models, the application uses two types of images: a cali
 
 ![Voxel coloring](./docs_images/VoxelColoring.png)
 
-# Compilation and usage
-## Dependencies
+# How to run this project
+## Install project dependencies
 The following instructions explain how to install the project dependencies.
 
 1. Install the Java SE Development Kit 8 following this webpage's instructions: https://docs.oracle.com/javase/8/docs/technotes/guides/install/install_overview.html.
@@ -35,7 +35,7 @@ The following instructions explain how to install the project dependencies.
 
 4. Using git, clone the following repository https://github.com/jacordero/3dorfi.git.
 
-## Project configuration
+## Configure project (eclipse)
 The following instructions explain how to load and compile the source code of the application using the Eclipse IDE.
 
 First, open the Eclipse IDE and import the *3dorfi/ObjectReconstructor* folder as a project. The import projects tab is enabled by selecting the following options: File > Import > General > Existing projects into workspace. Then, select *ObjectReconstructor* as the root directory of the project and click Finish.
@@ -46,7 +46,7 @@ After the project is loaded, the project's build path is configured to add the p
 
 ![Buil Path Conf](./docs_images/BuildPathConf.png)
 
-## Project usage
+## Run examples
 To use the application, run the *nl.tue.vc.application.ObjectReconstructor.java* as a Java application. To see examples of 3D models, first enable the **Select 3D Test Model** button, then select **Charger**, **Cup** or **Hexagon** from the dropdown menu next to the checkbox button, and finally click the "Generate 3D Test Model" button.
 
 ![Object Reconstructor](./docs_images/ObjectReconstructor.png)
