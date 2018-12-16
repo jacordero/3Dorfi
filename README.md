@@ -1,18 +1,36 @@
 # Description
-This repository contains an application that semi-automatically generates 3D models of physical objects from a series of images taken from different viewpoints. The image below shows the 3D model generation process. Each step of this process is described below.
+
+This repository contains the source code of a software application developed for computer science master course. This application is able to generate 3D models of physical objects from a series of images taken from different angles. The image below shows the general procedure followed by the software. First, calibration and object images are taken from a camera and stored in the application. Then, calibration parameters and object silhouettes are computed. Next, using the previously computed parameters and silhouettes, an octree model is generated. Finally, the octree model is rendered at different resolution levels and using different display options. This application uses Java 8, JavaFX, and OpenCV.
+
 
 ![Process diagram](./docs_images/process-diagram.png)
 
-## Images
+## Calibration and object images
 
-Talk about the turntable.
-In order to generate 3D models, the application uses two types of images: a calibration image and an object image. Each one of the object images used in the application must be paired with a corresponding calibration image. Our application uses 12 pairs of calibration and object images to generate 3D models. A chessboard pattern of 10x7 is used for the calibration images. The images below show two pairs of calibration and object images. These pairs correspond to  The calibration images are used to compute the extrinsic parameters of the camera used to capture the object images. 
+In order to generate a 3D model of an object, several images taken at different angles are used by application. To generate good 3D models, the octree model generation algorithm needs to extract measures (angles and distances) of the real world from the images. That is for each object image a corresponding calibration image is taken. These calibration images must be taken at the same angle as the object image. The figure below shows pairs of objects and calibration images taken at different angles (0, 60, and 120 degrees). For this project, a turntable was used to facilitate the image acquisition procedure. 
 
 ![Process diagram](./docs_images/ObjectAndChessboardPairs.png)
 
 ## Camera Calibration
 
+The camera calibration procedure uses calibration images to compute camera parameters of the images. The are two types of camera parameters: intrinsic parameters and extrinsic parameters. From these parameters, a projection matrix can be computed which can be used to map real world coordinates to pixel coordinates and the other way around. The intrinsic parameters contain: 
+
+For a more in depth explanation about camera parameters, look at the following resources:
+* [https://docs.opencv.org/3.3.1/d4/d94/tutorial_camera_calibration.html](Camera calibration with OpenCV)
+* [http://www.cs.cmu.edu/~16385/s17/] (Lecture slides from section: 8. Multi-View Geometry)
+* [https://www.mathworks.com/help/vision/ug/camera-calibration.html] (MatWorks camera calibration tutorial)
+
+
+
 ## Silhouette extraction
+The octree model generation algorithm uses silhouettes to create the 3D model of the object. Several silhouette extraction algorithms were tried during the development of this project. In the end, the following procedure was chosen:
+
+1. Convert the object image to grayscale and apply a simple binarization method using an appropriate threshold.
+2. Remove noise from the binary image using a combination of morphological image processing techniques.
+3. Compute connected components on the binary image and delete elements that are not connected to elements in the center of the image. This procedure removes elements that were considered important by the thresholding binarization procedure but are not part of the object of interest.
+
+In case the default threshold value does not produce good silhouettes, this value can be adjusted in the **Silhouettes Config Tab** of the application.
+
 
 ![Process diagram](./docs_images/ObjectsAndSilhouettes.png)
 
