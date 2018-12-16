@@ -1,4 +1,5 @@
 # Description
+A semi
 This repository contains the code for a software application that allows a user to construct 3D models of phyiscal objects from a set of images taken from different viewpoints using a hand-held camera.
 
 # Compilation and usage
