@@ -1,7 +1,7 @@
 # Description
 This repository contains an application that semi-automatically generates 3D models of physical objects from a series of images taken from different viewpoints. The image below shows the 3D model generation process. Each step of this process is described below.
 
-![Process diagram](/docs_images/3DModelGeneration.png)
+![Process diagram](/docs_images/process-diagram.png)
 
 ## Images
 
