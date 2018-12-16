@@ -13,13 +13,12 @@ In order to generate a 3D model of an object, several images taken at different 
 
 ## Camera Calibration
 
-The camera calibration procedure uses calibration images to compute camera parameters of the images. The are two types of camera parameters: intrinsic parameters and extrinsic parameters. From these parameters, a projection matrix can be computed which can be used to map real world coordinates to pixel coordinates and the other way around. The intrinsic parameters contain: 
+The camera calibration procedure uses calibration images to compute camera parameters of the images. The are two types of camera parameters: intrinsic parameters and extrinsic parameters. From these parameters, a projection matrix can be computed which can be used to map real world coordinates to pixel coordinates and the other way around. The intrinsic parameters contain focal length, optical center, and skew coefficients. Thse parameters are dependent on the camera device. The only need to be computed once. The extrinsic parameters consist of rotation and translation vectors. These vectors need to be computed each time the camera moves with respect to the object being photographed. For this project, the intrinsic parameters were computed using the [https://www.mathworks.com/help/vision/ref/cameracalibrator-app.html](MATLAB camera calibration app). For each calibration image, using the intrinsic parameters, rotation and translation vectors are computed using OpenCV. After computing the required intrinsic and extrinsic parameters, projection matrices are computed and mapped to the corresponding object silhouettes to later generate an octree model.
 
 For a more in depth explanation about camera parameters, look at the following resources:
 * [https://docs.opencv.org/3.3.1/d4/d94/tutorial_camera_calibration.html](Camera calibration with OpenCV)
 * [http://www.cs.cmu.edu/~16385/s17/] (Lecture slides from section: 8. Multi-View Geometry)
 * [https://www.mathworks.com/help/vision/ug/camera-calibration.html] (MatWorks camera calibration tutorial)
-
 
 
 ## Silhouette extraction
