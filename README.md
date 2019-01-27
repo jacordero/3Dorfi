@@ -1,9 +1,10 @@
-# Description
 
 ## Software demo
 Take a look at the following video to see what 3Dorfi can do.
 [![](http://img.youtube.com/vi/88WcipV4pH8/0.jpg)](http://www.youtube.com/watch?v=88WcipV4pH8 "3Dorfi")
 
+
+## Description
 ![Process diagram](./docs_images/process-diagram.png)
 
 The source code of this repository was developed for a project based computer science master course. The project consisted on developing a software application capable of generating 3D models of physical objects from a series of images taken from different angles. The main algorithm of this application was implemented using the technique presented in this paper: [Rapid Octree Construction from Image Sequences](https://pdfs.semanticscholar.org/6b04/58ebe30555ebebc31e85f85845fef2be17f4.pdf). The image above shows the general procedure followed by the software to generate 3D models of objects. First, calibration and object images are taken from a camera and stored in the application. Then, camera calibration parameters and object silhouettes are computed. Next, using the camera parameters and silhouettes, an octree model is generated. Finally, the octree model is rendered. This application was deloveped using Java 8, JavaFX, and OpenCV.
