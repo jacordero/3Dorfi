@@ -1,6 +1,9 @@
 
 ## Software demo
-Take a look at the following video to see what 3Dorfi can do.
+**TLDR;** 
+
+Software that generates 3D models of objects using a series of images taken from different view points. The generated models can be generated and visualized at different resolution levels. Different types of voxels can be used to render the models. The following video is a small demo of 3Dorfi.
+
 [![](http://img.youtube.com/vi/88WcipV4pH8/0.jpg)](http://www.youtube.com/watch?v=88WcipV4pH8 "3Dorfi")
 
 
